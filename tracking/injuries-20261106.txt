@@ -1,0 +1,17 @@
+BOS: Payton Pritchard=Q
+CHA: Dennis Schroder=Q; Moussa Diabate=Q; Kon Knueppel=O; Grant Williams=O
+WSH: Anthony Davis=Q; Justin Champagnie=O; Tristan Vukcevic=O
+ATL: Jalen Johnson=Q; Asa Newell=O; Jock Landale=O; Henri Veesaar=O; Mouhamed Gueye=O
+PHI: Adem Bona=D; Ariel Hukporti=O; Dominick Barlow=O
+CLE: Jarrett Allen=Q; Peyton Watson=Q; Tyrese Proctor=Q; Jaylon Tyson=O; Nae'Qwan Tomlin=O
+MIN: Terrence Shannon Jr=Q; Anthony Edwards=O; Donte DiVincenzo=O
+NO: Trey Murphy III=P; Yves Missi=O
+OKC: Jaylin Williams=O; Cason Wallace=O; Chet Holmgren=O; Jalen Williams=O; Nikola Topic=O; Thomas Sorber=O
+MEM: Isaiah Stewart=O; Scotty Pippen Jr.=O
+TOR: Scottie Barnes=Q; Kawhi Leonard=O
+UTAH: Jaren Jackson Jr.=O; Jusuf Nurkic=O
+DAL: Max Christie=P; Santi Aldama=P; Tarik Biberovic=O; Dereck Lively II=O; Sergio de Larrea=O
+POR: Ja Morant=O; Shaedon Sharpe=O; Vit Krejci=O
+LAL: Sandro Mamukelashvili=Q
+SA: Tobias Harris=O; Jayden Quaintance=O
+SAC: Keegan Murray=O; Ben Simmons=O; Maxime Raynaud=O
