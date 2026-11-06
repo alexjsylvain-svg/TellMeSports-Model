@@ -1,0 +1,106 @@
+# Pre-tip lineup check on GitHub's servers, every 30 minutes from 3 to 10:59 PM US Eastern: for games tipping in the next
+# 11-50 minutes, compare RotoWire's latest starters with the ones tonight's frozen picks used, and re-freeze only the games
+# whose starters (or a starter's injury tag) changed. Same steps as the PC's old "nba-pretip-lineup-check" task.
+# Most runs find nothing due or nothing changed and end in under a minute without building or simulating.
+name: Pre-tip lineup check
+
+on:
+  schedule:
+    # UTC; covers 3-10:59 PM in both EST and EDT, and the first step drops runs outside that window
+    - cron: "5,35 19-23 * * *"
+    - cron: "5,35 0-3 * * *"
+  workflow_dispatch:
+    inputs:
+      all:
+        description: "Check every game that hasn't tipped, not just the ones due"
+        type: boolean
+        default: false
+      force:
+        description: "Treat these game ids as changed (comma-separated ESPN ids; for testing the re-freeze)"
+        required: false
+      publish:
+        description: "Commit and publish a re-freeze (untick for a test run)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-writes
+  cancel-in-progress: false
+
+jobs:
+  lineups:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: America/New_York
+      ALL: ${{ inputs.all && '1' || '' }}
+      FORCE: ${{ inputs.force }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Which games are due
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $D = Get-Date -Format yyyyMMdd; "D=$D" | Out-File -Append $env:GITHUB_ENV
+          $h = (Get-Date).Hour
+          if("${{ github.event_name }}" -eq "schedule" -and ($h -lt 15 -or $h -gt 22)){ "outside 3-10:59 PM ET ($h h): skipping"; "SKIP=1" | Out-File -Append $env:GITHUB_ENV; exit 0 }
+          if(-not (Test-Path "tracking/picks-$D.json")){ "no frozen picks for $D yet"; "SKIP=1" | Out-File -Append $env:GITHUB_ENV; exit 0 }
+          if($env:ALL -or $env:FORCE){ "checking all games (manual run)"; exit 0 }
+          # the slate on disk may be the morning's or another night's; -Due only needs tip times, so fall back to the picks file's games
+          $s = Get-Content site/slate.json -Raw | ConvertFrom-Json
+          if("$($s.date)" -eq $D){ $out = ./scripts/lineup-check.ps1 -Date $D -Due -MinLead 11 -MaxLead 50; $out
+            $r = ($out | ? { $_ -like "RESULT *" } | Select-Object -Last 1).Substring(7) | ConvertFrom-Json; $due = @($r.due)
+            if($out -match 'marked final'){ "tonight's picks are locked"; "SKIP=1" | Out-File -Append $env:GITHUB_ENV; exit 0 } }
+          else { $p = Get-Content "tracking/picks-$D.json" -Raw | ConvertFrom-Json; if($p.final){ "tonight's picks are locked"; "SKIP=1" | Out-File -Append $env:GITHUB_ENV; exit 0 }
+            $now = [DateTime]::UtcNow; $due = @($p.calls | ? { $l = (([DateTime]$_.time).ToUniversalTime() - $now).TotalMinutes; $l -ge 11 -and $l -le 50 } | % gid) }
+          if(-not $due.Count){ "no games tipping in the next 11-50 minutes"; "SKIP=1" | Out-File -Append $env:GITHUB_ENV }
+
+      - name: Build and compare starters
+        if: env.SKIP != '1'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          ./scripts/build.ps1 -Date $env:D -Refetch | Out-Null
+          $out = if($env:ALL -or $env:FORCE){ ./scripts/lineup-check.ps1 -Date $env:D -All } else { ./scripts/lineup-check.ps1 -Date $env:D -MinLead 11 -MaxLead 50 }
+          $out
+          $r = ($out | ? { $_ -like "RESULT *" } | Select-Object -Last 1).Substring(7) | ConvertFrom-Json
+          $changed = @(@($r.changed) + @("$env:FORCE" -split ',' | % { $_.Trim() } | ? { $_ }) | Select-Object -Unique)
+          # the CHANGED lines and their game, for the report and the commit message
+          $note = @(); $lbl = ""; foreach($l in $out){ if($l -match '^(\S+@\S+) '){ $lbl = $matches[1] }; if($l -match '^\s+CHANGED (.+)$'){ $note += "$lbl $($matches[1])" } }
+          if($env:FORCE){ $note += "forced re-freeze (test): $env:FORCE" }
+          "## Lineup check $env:D" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          ($out | ? { $_ -notlike "RESULT *" } | % { "    $_" }) | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          if(-not $changed.Count){ "Starters unchanged: nothing to re-freeze."; "SKIP=1" | Out-File -Append $env:GITHUB_ENV; exit 0 }
+          "CHANGED=$($changed -join ',')" | Out-File -Append $env:GITHUB_ENV
+          "NOTE=$(($note -join '; ') -replace '[\r\n]',' ')" | Out-File -Append $env:GITHUB_ENV
+
+      - name: Start the page server
+        if: env.SKIP != '1'
+        run: |
+          nohup pwsh -NoProfile -File scripts/serve.ps1 -Page "$PWD/nba-matchup-sim.html" -Data "$PWD/site/slate.json" -VideoDir "$PWD/videos" > serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8765/slate.json && break; sleep 1; done
+
+      - name: Re-sim and re-freeze the changed games
+        if: env.SKIP != '1'
+        run: |
+          npm install --no-save --silent puppeteer-core@23.11.1
+          node scripts/run-picks.mjs "$D" picks-report.md "--only=$CHANGED" "--note=$NOTE"
+          cat picks-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish
+        if: env.SKIP != '1' && (github.event_name == 'schedule' || inputs.publish)
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          $chg = Get-Content picks-changed.txt -Raw
+          $msg = "Lineup change $env:D (on GitHub)`n`n$env:NOTE" + $(if($chg){ "`n`ncard $chg" } else { "`n`ncard unchanged" })
+          ./scripts/push-site.ps1 -Message $msg
+
+      - name: Server log on failure
+        if: failure()
+        run: tail -50 serve.log || true

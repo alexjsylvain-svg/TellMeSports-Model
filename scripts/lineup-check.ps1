@@ -7,8 +7,8 @@ param([string]$Date, [switch]$Due, [switch]$All, [int]$MinLead = 15, [int]$MaxLe
 # The last line printed is "RESULT {json}": due = game ids in the window, changed = game ids whose starters changed.
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
-$slatePath = Join-Path $root "site\slate.json"
-$picksPath = Join-Path $root "tracking\picks-$Date.json"
+$slatePath = Join-Path $root "site/slate.json"
+$picksPath = Join-Path $root "tracking/picks-$Date.json"
 $slate = Get-Content $slatePath -Raw -Encoding UTF8 | ConvertFrom-Json
 if($slate.date -ne $Date){ throw "site\slate.json is for $($slate.date), not $Date" }
 $now = [DateTime]::UtcNow
