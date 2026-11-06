@@ -1,6 +1,6 @@
-param([string]$Date = "20261021", [string]$Out = "site\slate.json", [switch]$Refetch)
+param([string]$Date = "20261021", [string]$Out = "site/slate.json", [switch]$Refetch)
 $ErrorActionPreference = "Stop"
-. "$PSScriptRoot\lib.ps1"
+. "$PSScriptRoot/lib.ps1"
 $root = Split-Path $PSScriptRoot -Parent
 $raw = Join-Path $root "raw"; New-Item -ItemType Directory -Force $raw | Out-Null
 $UA = @{"User-Agent"="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"}
@@ -186,9 +186,9 @@ $outPath = Join-Path $root $Out; New-Item -ItemType Directory -Force (Split-Path
 # an earlier night's last pregame build is the backtest record for that night: keep it as tracking\slate-<date>.json before
 # overwriting (Oct 30: the grading run that archives it was missed, and the morning build replaced Oct 29's)
 if(Test-Path $outPath){ try{ $old = (Get-Content $outPath -Raw -Encoding UTF8 | ConvertFrom-Json).date
-  $arc = Join-Path $root "tracking\slate-$old.json"
+  $arc = Join-Path $root "tracking/slate-$old.json"
   if($old -and $old -ne $Date -and -not (Test-Path $arc)){ Copy-Item $outPath $arc; Write-Host "archived the $old slate to $arc" } }catch{} }
 [IO.File]::WriteAllText($outPath, ($outObj | ConvertTo-Json -Depth 12 -Compress))
 Write-Host "wrote $outPath $((Get-Item $outPath).Length) bytes"
 # this season's games so far (minutes, starts, per-game production) for every player, from games before $Date
-& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "season-to-date.ps1") -Date $Date -Slate $outPath | Write-Host
+& (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "season-to-date.ps1") -Date $Date -Slate $outPath | Write-Host

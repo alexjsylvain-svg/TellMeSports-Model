@@ -7,16 +7,16 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent; Set-Location $root
 $docs = Join-Path $root "docs"; New-Item -ItemType Directory -Force $docs | Out-Null
 if(-not (Test-Path (Join-Path $docs ".nojekyll"))){ New-Item -ItemType File (Join-Path $docs ".nojekyll") | Out-Null }
-$slate = [IO.File]::ReadAllText((Join-Path $root "site\slate.json")) | ConvertFrom-Json; $D = "$($slate.date)"
+$slate = [IO.File]::ReadAllText((Join-Path $root "site/slate.json")) | ConvertFrom-Json; $D = "$($slate.date)"
 $map = [ordered]@{
   "index.html"   = "nba-matchup-sim.html"
-  "slate.json"   = "site\slate.json"
-  "live.json"    = "site\live.json"
-  "picks.json"   = "tracking\picks-$D.json"
-  "board.json"   = "tracking\board-$D.json"
-  "results.json" = "site\results.json"
-  "season.json"  = "site\season.json"
-  "boxes.json"   = "site\boxes.json"
+  "slate.json"   = "site/slate.json"
+  "live.json"    = "site/live.json"
+  "picks.json"   = "tracking/picks-$D.json"
+  "board.json"   = "tracking/board-$D.json"
+  "results.json" = "site/results.json"
+  "season.json"  = "site/season.json"
+  "boxes.json"   = "site/boxes.json"
 }
 $copied = @()
 foreach($k in $map.Keys){ $src = Join-Path $root $map[$k]; if(Test-Path $src){ Copy-Item $src (Join-Path $docs $k) -Force; $copied += $k } }

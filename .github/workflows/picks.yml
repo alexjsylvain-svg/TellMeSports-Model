@@ -1,0 +1,86 @@
+# Twice-daily picks on GitHub's servers (11:15 AM and 6:15 PM US Eastern), so the card updates with the PC off.
+# Same steps as the PC's "nba-daily-refresh-freeze" task: build the slate (lines, injuries, lineups, props), run the page's
+# sims at 50,000 a game in headless Chrome, freeze the picks for games that haven't tipped, export the board, publish to Pages.
+name: Picks refresh
+
+on:
+  schedule:
+    # GitHub's cron is UTC and has no time zones, so both the EST and EDT times are listed; the gate below keeps the right two.
+    - cron: "15 16 * * *"   # 11:15 AM EST
+    - cron: "15 23 * * *"   # 6:15 PM EST
+    - cron: "15 15 * * *"   # 11:15 AM EDT
+    - cron: "15 22 * * *"   # 6:15 PM EDT
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Commit and publish the new picks (untick for a test run)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-writes
+  cancel-in-progress: false
+
+jobs:
+  picks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick the run
+        run: |
+          D=$(date +%Y%m%d); echo "D=$D" >> "$GITHUB_ENV"
+          SCHED="${{ github.event.schedule }}"
+          if [ -n "$SCHED" ]; then
+            # keep only the two entries that match US Eastern's current offset (GitHub may start a run late, so go by the entry, not the clock)
+            OFF=$(date +%z)
+            case "$OFF|$SCHED" in
+              "-0500|15 16 * * *"|"-0500|15 23 * * *"|"-0400|15 15 * * *"|"-0400|15 22 * * *") ;;
+              *) echo "Not this season's slot ($SCHED, offset $OFF): skipping."; echo "SKIP=1" >> "$GITHUB_ENV"; exit 0;;
+            esac
+          fi
+          if [ -f "tracking/picks-$D.json" ] && grep -q '"final": *true' "tracking/picks-$D.json"; then
+            echo "Tonight's picks are locked (final); nothing changed." | tee -a "$GITHUB_STEP_SUMMARY"; echo "SKIP=1" >> "$GITHUB_ENV"; exit 0
+          fi
+          echo "Picks run for $D ($(date '+%-I:%M %p %Z'))"
+
+      - name: Build the slate
+        if: env.SKIP != '1'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          ./scripts/build.ps1 -Date $env:D -Refetch
+          $n = @((Get-Content site/slate.json -Raw | ConvertFrom-Json).games).Count
+          if($n -eq 0){ "No NBA games today." | Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY; "SKIP=1" | Out-File -Append $env:GITHUB_ENV }
+
+      - name: Start the page server
+        if: env.SKIP != '1'
+        run: |
+          nohup pwsh -NoProfile -File scripts/serve.ps1 -Page "$PWD/nba-matchup-sim.html" -Data "$PWD/site/slate.json" -VideoDir "$PWD/videos" > serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8765/slate.json && break; sleep 1; done
+          curl -s http://localhost:8765/slate.json | head -c 200; echo
+
+      - name: Run the sims and freeze
+        if: env.SKIP != '1'
+        run: |
+          npm install --no-save --silent puppeteer-core@23.11.1
+          node scripts/run-picks.mjs "$D" picks-report.md
+          cat picks-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish
+        if: env.SKIP != '1' && (github.event_name == 'schedule' || inputs.publish)
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          ./scripts/push-site.ps1 -Message "Slate $env:D refresh (on GitHub)"
+
+      - name: Server log on failure
+        if: failure()
+        run: tail -50 serve.log || true

@@ -14,7 +14,7 @@ $def = @{}
 $off = @{}
 while($day -lt $end){
   $d = $day.ToString('yyyyMMdd'); $f = Join-Path $trk "finals-$d.json"
-  if(-not (Test-Path $f)){ & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "live.ps1") -Date $d -Out "tracking\finals-$d.json" | Out-Null }
+  if(-not (Test-Path $f)){ & (Get-Process -Id $PID).Path -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "live.ps1") -Date $d -Out "tracking/finals-$d.json" | Out-Null }
   if(Test-Path $f){
     $fin = Get-Content $f -Raw -Encoding UTF8 | ConvertFrom-Json
     foreach($g in @($fin.games | ? { $_.state -eq 'post' })){
