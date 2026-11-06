@@ -1,0 +1,151 @@
+{
+    "date":  "20261027",
+    "gradedAt":  "2026-10-28T11:38:18.7771154Z",
+    "gamesFinal":  4,
+    "gamesTotal":  4,
+    "sets":  {
+                 "recommended":  {
+                                     "w":  1,
+                                     "l":  0,
+                                     "p":  0,
+                                     "void":  0,
+                                     "pending":  0,
+                                     "units":  0.72,
+                                     "roi":  0.72,
+                                     "staked":  1.09,
+                                     "risked":  1.5
+                                 },
+                 "page":  {
+                              "w":  0,
+                              "l":  0,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0,
+                              "units":  0,
+                              "roi":  null
+                          },
+                 "board":  {
+                               "w":  0,
+                               "l":  0,
+                               "p":  0,
+                               "void":  0,
+                               "pending":  0,
+                               "units":  0,
+                               "roi":  null
+                           }
+             },
+    "calls":  {
+                  "winners":  {
+                                  "w":  3,
+                                  "l":  1,
+                                  "p":  0,
+                                  "void":  0,
+                                  "pending":  0
+                              },
+                  "ats":  {
+                              "w":  1,
+                              "l":  3,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0
+                          },
+                  "totals":  {
+                                 "w":  2,
+                                 "l":  2,
+                                 "p":  0,
+                                 "void":  0,
+                                 "pending":  0
+                             }
+              },
+    "bets":  [
+                 {
+                     "set":  "recommended",
+                     "game":  "DET @ NY",
+                     "gid":  "401909878",
+                     "mkt":  "Prop",
+                     "bet":  "Karl-Anthony Towns under 3.5 AST",
+                     "book":  "FD",
+                     "odds":  -138,
+                     "pBlend":  0.6449259012306064,
+                     "result":  "WIN",
+                     "actual":  "3 AST",
+                     "units":  0.725,
+                     "stake":  1.5,
+                     "staked":  1.088
+                 }
+             ],
+    "gameCalls":  [
+                      {
+                          "gid":  "401909877",
+                          "game":  "BKN @ BOS",
+                          "final":  "BKN 124 - 125 BOS",
+                          "winnerPick":  "BOS",
+                          "winnerProb":  0.76638,
+                          "winner":  "WIN",
+                          "ats":  "BOS -12.5",
+                          "atsProb":  0.52216,
+                          "atsResult":  "LOSS",
+                          "totalCall":  "Over 222.5",
+                          "totalProb":  0.50992,
+                          "totalResult":  "WIN",
+                          "fairSpread":  -13.68442,
+                          "fairTotal":  223.15082,
+                          "marginError":  -12.7,
+                          "totalError":  25.8
+                      },
+                      {
+                          "gid":  "401909878",
+                          "game":  "DET @ NY",
+                          "final":  "DET 97 - 111 NY",
+                          "winnerPick":  "NY",
+                          "winnerProb":  0.60978,
+                          "winner":  "WIN",
+                          "ats":  "NY -4.5",
+                          "atsProb":  0.5341,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Over 219.5",
+                          "totalProb":  0.52672,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -5.0562,
+                          "fairTotal":  221.15144,
+                          "marginError":  8.9,
+                          "totalError":  -13.2
+                      },
+                      {
+                          "gid":  "401909879",
+                          "game":  "SAC @ SA",
+                          "final":  "SAC 103 - 130 SA",
+                          "winnerPick":  "SA",
+                          "winnerProb":  0.82966,
+                          "winner":  "WIN",
+                          "ats":  "SAC +18.5",
+                          "atsProb":  0.51094,
+                          "atsResult":  "LOSS",
+                          "totalCall":  "Over 232.5",
+                          "totalProb":  0.51076,
+                          "totalResult":  "WIN",
+                          "fairSpread":  -17.93054,
+                          "fairTotal":  233.34446,
+                          "marginError":  9.1,
+                          "totalError":  -0.3
+                      },
+                      {
+                          "gid":  "401909880",
+                          "game":  "POR @ LAL",
+                          "final":  "POR 136 - 129 LAL",
+                          "winnerPick":  "LAL",
+                          "winnerProb":  0.53708,
+                          "winner":  "LOSS",
+                          "ats":  "LAL -1.5",
+                          "atsProb":  0.5149,
+                          "atsResult":  "LOSS",
+                          "totalCall":  "Under 233.5",
+                          "totalProb":  0.5256,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -0.96644,
+                          "fairTotal":  232.53544,
+                          "marginError":  -8.0,
+                          "totalError":  32.5
+                      }
+                  ]
+}

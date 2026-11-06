@@ -1,0 +1,25 @@
+# downloaded source data (re-fetched by build.ps1; ~250 MB)
+raw/
+videos/
+.claude/
+# backtest and analysis scratch
+tracking/bt*/
+tracking/phonetest/
+tracking/ddtest/
+tracking/btrun/
+tracking/harness-*.json
+tracking/px-*.json
+tracking/ta-*.json
+tracking/bt-props*.json
+tracking/press-eval*.json
+tracking/dd-eval*.json
+tracking/ledger.before-*.json
+tracking/ledger.bak*
+tracking/slate-*-morning.json
+tracking/slate-*.morning.json
+tracking/slate-*-prev.json
+# personal: the bets you placed
+tracking/placed*
+# runtime
+tracking/*.pid
+*.log

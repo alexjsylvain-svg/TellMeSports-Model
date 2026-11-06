@@ -1,0 +1,27 @@
+﻿ATL: Jalen Johnson=Q; Jock Landale=O; Henri Veesaar=O; Mouhamed Gueye=O
+WSH: Alex Sarr=Q; Anthony Gill=Q; Justin Champagnie=O; Tristan Vukcevic=O
+PHI: Ariel Hukporti=O; Dominick Barlow=O
+DET: Isaiah Joe=O; Jalen Duren=O
+CHA: Coby White=P; Kon Knueppel=P; Grant Williams=O
+BKN: Egor Demin=O
+CHI: Nic Claxton=Q; Jalen Smith=P
+NY: Josh Hart=Q
+BOS: Payton Pritchard=Q
+CLE: Peyton Watson=O; Jaylon Tyson=O; Nae'Qwan Tomlin=O
+OKC: Jaylin Williams=Q; Cason Wallace=O; Chet Holmgren=O; Jalen Williams=O; Nikola Topic=O; Thomas Sorber=O
+IND: Ivica Zubac=Q; Kelly Oubre=Q; Obi Toppin=Q; Tyrese Haliburton=O; Ben Sheppard=O; Johnny Furphy=O; TJ McConnell=O
+MEM: Quinten Post=Q; Scotty Pippen Jr.=O
+UTAH: Mo Bamba=Q; Jaren Jackson Jr.=O; Jusuf Nurkic=O
+NO: Trey Murphy III=P; Jordan Poole=P; Yves Missi=O
+MIN: Anthony Edwards=O; Donte DiVincenzo=O
+HOU: Steven Adams=O
+POR: Ja Morant=O; Shaedon Sharpe=O
+PHX: Jordan Goodwin=Q; Rasheer Fleming=Q; Mark Williams=O
+TOR: Jakob Poeltl=Q; Kawhi Leonard=O
+DEN: Cameron Johnson=P; Alpha Diallo=P; Spencer Jones=O; Julian Strawther=O
+DAL: Santi Aldama=Q; Max Christie=O; Tarik Biberovic=O; Dereck Lively II=O; Sergio de Larrea=O
+SA: Tobias Harris=O; Jayden Quaintance=O
+LAL: Adou Thiero=O
+SAC: Precious Achiuwa=P; Keegan Murray=O; Ben Simmons=O; Maxime Raynaud=O
+MIA: Giannis Antetokounmpo=P; Myron Gardner=Q
+LAC: Brandon Ingram=O; Bradley Beal=O; Jordan Miller=O; Yanic Konan Niederhauser=O

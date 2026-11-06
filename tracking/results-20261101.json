@@ -1,0 +1,166 @@
+{
+    "date":  "20261101",
+    "gradedAt":  "2026-11-02T12:33:09.9700284Z",
+    "gamesFinal":  4,
+    "gamesTotal":  4,
+    "sets":  {
+                 "recommended":  {
+                                     "w":  2,
+                                     "l":  0,
+                                     "p":  0,
+                                     "void":  0,
+                                     "pending":  0,
+                                     "units":  1.33,
+                                     "roi":  0.665,
+                                     "staked":  2.67,
+                                     "risked":  4
+                                 },
+                 "page":  {
+                              "w":  0,
+                              "l":  0,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0,
+                              "units":  0,
+                              "roi":  null
+                          },
+                 "board":  {
+                               "w":  0,
+                               "l":  0,
+                               "p":  0,
+                               "void":  0,
+                               "pending":  0,
+                               "units":  0,
+                               "roi":  null
+                           }
+             },
+    "calls":  {
+                  "winners":  {
+                                  "w":  3,
+                                  "l":  1,
+                                  "p":  0,
+                                  "void":  0,
+                                  "pending":  0
+                              },
+                  "ats":  {
+                              "w":  3,
+                              "l":  1,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0
+                          },
+                  "totals":  {
+                                 "w":  1,
+                                 "l":  3,
+                                 "p":  0,
+                                 "void":  0,
+                                 "pending":  0
+                             }
+              },
+    "bets":  [
+                 {
+                     "set":  "recommended",
+                     "game":  "BOS @ ORL",
+                     "gid":  "401909903",
+                     "mkt":  "Prop",
+                     "bet":  "Payton Pritchard under 4.5 AST",
+                     "book":  "FAN",
+                     "odds":  -150,
+                     "pBlend":  0.6723872640304374,
+                     "result":  "WIN",
+                     "actual":  "3 AST",
+                     "units":  0.667,
+                     "stake":  2,
+                     "staked":  1.334
+                 },
+                 {
+                     "set":  "recommended",
+                     "game":  "TOR @ LAL",
+                     "gid":  "401909906",
+                     "mkt":  "Prop",
+                     "bet":  "Austin Reaves under 5.5 AST",
+                     "book":  "FAN",
+                     "odds":  -150,
+                     "pBlend":  0.6811163380334572,
+                     "result":  "WIN",
+                     "actual":  "4 AST",
+                     "units":  0.667,
+                     "stake":  2,
+                     "staked":  1.334
+                 }
+             ],
+    "gameCalls":  [
+                      {
+                          "gid":  "401909903",
+                          "game":  "BOS @ ORL",
+                          "final":  "BOS 108 - 97 ORL",
+                          "winnerPick":  "BOS",
+                          "winnerProb":  0.6791400000000001,
+                          "winner":  "WIN",
+                          "ats":  "BOS -7.5",
+                          "atsProb":  0.5333,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Over 221.5",
+                          "totalProb":  0.5068,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  7.83822,
+                          "fairTotal":  222.0953,
+                          "marginError":  -3.2,
+                          "totalError":  -17.1
+                      },
+                      {
+                          "gid":  "401909904",
+                          "game":  "BKN @ IND",
+                          "final":  "BKN 98 - 90 IND",
+                          "winnerPick":  "IND",
+                          "winnerProb":  0.56588,
+                          "winner":  "LOSS",
+                          "ats":  "IND -3.5",
+                          "atsProb":  0.50794,
+                          "atsResult":  "LOSS",
+                          "totalCall":  "Under 230.5",
+                          "totalProb":  0.50298,
+                          "totalResult":  "WIN",
+                          "fairSpread":  -3.28662,
+                          "fairTotal":  230.64618,
+                          "marginError":  -11.3,
+                          "totalError":  -42.6
+                      },
+                      {
+                          "gid":  "401909905",
+                          "game":  "LAC @ GS",
+                          "final":  "LAC 112 - 124 GS",
+                          "winnerPick":  "GS",
+                          "winnerProb":  0.58012,
+                          "winner":  "WIN",
+                          "ats":  "GS -2.5",
+                          "atsProb":  0.53566,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Under 220.5",
+                          "totalProb":  0.51244,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -4.48322,
+                          "fairTotal":  220.10166,
+                          "marginError":  7.5,
+                          "totalError":  15.9
+                      },
+                      {
+                          "gid":  "401909906",
+                          "game":  "TOR @ LAL",
+                          "final":  "TOR 125 - 131 LAL",
+                          "winnerPick":  "LAL",
+                          "winnerProb":  0.58088,
+                          "winner":  "WIN",
+                          "ats":  "LAL -2.5",
+                          "atsProb":  0.53704,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Under 224.5",
+                          "totalProb":  0.5308,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -3.792,
+                          "fairTotal":  223.37244,
+                          "marginError":  2.2,
+                          "totalError":  32.6
+                      }
+                  ]
+}

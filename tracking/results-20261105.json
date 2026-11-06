@@ -1,0 +1,115 @@
+{
+    "date":  "20261105",
+    "gradedAt":  "2026-11-06T12:30:42.5215005Z",
+    "gamesFinal":  2,
+    "gamesTotal":  2,
+    "sets":  {
+                 "recommended":  {
+                                     "w":  0,
+                                     "l":  1,
+                                     "p":  0,
+                                     "void":  0,
+                                     "pending":  0,
+                                     "units":  -1,
+                                     "roi":  -1,
+                                     "staked":  -1.5,
+                                     "risked":  1.5
+                                 },
+                 "page":  {
+                              "w":  0,
+                              "l":  0,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0,
+                              "units":  0,
+                              "roi":  null
+                          },
+                 "board":  {
+                               "w":  0,
+                               "l":  0,
+                               "p":  0,
+                               "void":  0,
+                               "pending":  0,
+                               "units":  0,
+                               "roi":  null
+                           }
+             },
+    "calls":  {
+                  "winners":  {
+                                  "w":  2,
+                                  "l":  0,
+                                  "p":  0,
+                                  "void":  0,
+                                  "pending":  0
+                              },
+                  "ats":  {
+                              "w":  2,
+                              "l":  0,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0
+                          },
+                  "totals":  {
+                                 "w":  0,
+                                 "l":  2,
+                                 "p":  0,
+                                 "void":  0,
+                                 "pending":  0
+                             }
+              },
+    "bets":  [
+                 {
+                     "set":  "recommended",
+                     "game":  "ORL @ PHX",
+                     "gid":  "401909936",
+                     "mkt":  "Prop",
+                     "bet":  "Devin Booker under 5.5 AST",
+                     "book":  "FAN",
+                     "odds":  -145,
+                     "pBlend":  0.645128124459714,
+                     "result":  "LOSS",
+                     "actual":  "8 AST",
+                     "units":  -1,
+                     "stake":  1.5,
+                     "staked":  -1.5
+                 }
+             ],
+    "gameCalls":  [
+                      {
+                          "gid":  "401909936",
+                          "game":  "ORL @ PHX",
+                          "final":  "ORL 104 - 117 PHX",
+                          "winnerPick":  "PHX",
+                          "winnerProb":  0.55202,
+                          "winner":  "WIN",
+                          "ats":  "PHX -1.5",
+                          "atsProb":  0.53024,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Over 222.5",
+                          "totalProb":  0.51864,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -2.00826,
+                          "fairTotal":  223.77306,
+                          "marginError":  11.0,
+                          "totalError":  -2.8
+                      },
+                      {
+                          "gid":  "401909937",
+                          "game":  "MIA @ GS",
+                          "final":  "MIA 100 - 120 GS",
+                          "winnerPick":  "GS",
+                          "winnerProb":  0.58238,
+                          "winner":  "WIN",
+                          "ats":  "GS -3.5",
+                          "atsProb":  0.52868,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Over 235.5",
+                          "totalProb":  0.50314,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -4.294,
+                          "fairTotal":  235.91724,
+                          "marginError":  15.7,
+                          "totalError":  -15.9
+                      }
+                  ]
+}

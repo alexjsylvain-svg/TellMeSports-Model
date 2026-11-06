@@ -1,0 +1,133 @@
+{
+    "date":  "20261029",
+    "gradedAt":  "2026-10-30T11:50:20.6193653Z",
+    "gamesFinal":  3,
+    "gamesTotal":  3,
+    "sets":  {
+                 "recommended":  {
+                                     "w":  1,
+                                     "l":  0,
+                                     "p":  0,
+                                     "void":  0,
+                                     "pending":  0,
+                                     "units":  0.77,
+                                     "roi":  0.77,
+                                     "staked":  0.38,
+                                     "risked":  0.5
+                                 },
+                 "page":  {
+                              "w":  0,
+                              "l":  0,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0,
+                              "units":  0,
+                              "roi":  null
+                          },
+                 "board":  {
+                               "w":  0,
+                               "l":  0,
+                               "p":  0,
+                               "void":  0,
+                               "pending":  0,
+                               "units":  0,
+                               "roi":  null
+                           }
+             },
+    "calls":  {
+                  "winners":  {
+                                  "w":  2,
+                                  "l":  1,
+                                  "p":  0,
+                                  "void":  0,
+                                  "pending":  0
+                              },
+                  "ats":  {
+                              "w":  1,
+                              "l":  2,
+                              "p":  0,
+                              "void":  0,
+                              "pending":  0
+                          },
+                  "totals":  {
+                                 "w":  1,
+                                 "l":  2,
+                                 "p":  0,
+                                 "void":  0,
+                                 "pending":  0
+                             }
+              },
+    "bets":  [
+                 {
+                     "set":  "recommended",
+                     "game":  "MEM @ POR",
+                     "gid":  "401909895",
+                     "mkt":  "Prop",
+                     "bet":  "Cam Spencer over 5.5 PTS",
+                     "book":  "FAN",
+                     "odds":  -130,
+                     "pBlend":  0.6003042239217313,
+                     "result":  "WIN",
+                     "actual":  "8 PTS",
+                     "units":  0.769,
+                     "stake":  0.5,
+                     "staked":  0.384
+                 }
+             ],
+    "gameCalls":  [
+                      {
+                          "gid":  "401909893",
+                          "game":  "CLE @ ATL",
+                          "final":  "CLE 111 - 114 ATL",
+                          "winnerPick":  "ATL",
+                          "winnerProb":  0.52108,
+                          "winner":  "WIN",
+                          "ats":  "CLE +1.5",
+                          "atsProb":  0.50082,
+                          "atsResult":  "LOSS",
+                          "totalCall":  "Over 237.5",
+                          "totalProb":  0.5407,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -1.12284,
+                          "fairTotal":  239.86528,
+                          "marginError":  1.9,
+                          "totalError":  -14.9
+                      },
+                      {
+                          "gid":  "401909894",
+                          "game":  "SAC @ NO",
+                          "final":  "SAC 120 - 132 NO",
+                          "winnerPick":  "NO",
+                          "winnerProb":  0.58074,
+                          "winner":  "WIN",
+                          "ats":  "SAC +5.5",
+                          "atsProb":  0.52352,
+                          "atsResult":  "LOSS",
+                          "totalCall":  "Over 234.5",
+                          "totalProb":  0.52302,
+                          "totalResult":  "WIN",
+                          "fairSpread":  -3.93304,
+                          "fairTotal":  235.8994,
+                          "marginError":  8.1,
+                          "totalError":  16.1
+                      },
+                      {
+                          "gid":  "401909895",
+                          "game":  "MEM @ POR",
+                          "final":  "MEM 124 - 103 POR",
+                          "winnerPick":  "POR",
+                          "winnerProb":  0.64716,
+                          "winner":  "LOSS",
+                          "ats":  "MEM +7.5",
+                          "atsProb":  0.50058,
+                          "atsResult":  "WIN",
+                          "totalCall":  "Over 232.5",
+                          "totalProb":  0.51582,
+                          "totalResult":  "LOSS",
+                          "fairSpread":  -7.10764,
+                          "fairTotal":  233.5542,
+                          "marginError":  -28.1,
+                          "totalError":  -6.6
+                      }
+                  ]
+}

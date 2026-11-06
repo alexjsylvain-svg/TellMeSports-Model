@@ -1,0 +1,362 @@
+{
+    "date":  "20261027",
+    "frozenAt":  "2026-10-27T21:31:05.812Z",
+    "dataGenerated":  "2026-10-27T21:29:03.1463487Z",
+    "sims":  50000,
+    "modelWeight":  0.4,
+    "model":  {
+                  "hca":  1,
+                  "effAdj":  0,
+                  "paceSD":  0.035,
+                  "minSD":  0.15,
+                  "teamDefW":  0.3,
+                  "formP":  0.05,
+                  "formU":  0.22,
+                  "formR":  0.22,
+                  "formT":  0.015,
+                  "fouls":  true,
+                  "nsFoul":  0.1,
+                  "blowDyn":  true,
+                  "rotBench":  4,
+                  "anchor":  1,
+                  "stPlus":  0,
+                  "stKnee":  99,
+                  "stSlope":  1,
+                  "usgExp":  1.25,
+                  "defW":  1,
+                  "curOn":  true,
+                  "curK":  1.5,
+                  "curRateK":  150,
+                  "benchCap":  true,
+                  "benchCapPlus":  3,
+                  "benchCapTo":  "hard",
+                  "defMatch":  "threat",
+                  "formF":  0,
+                  "mktTeamW":  1,
+                  "foulDef":  1.5,
+                  "benchFoul":  1.5,
+                  "foulCaution":  true
+              },
+    "stake":  "each bet\u0027s stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64% (the flat 1-unit record is graded too)",
+    "lockedGames":  [
+
+                    ],
+    "refrozenGames":  [
+                          "401909877",
+                          "401909878",
+                          "401909879",
+                          "401909880"
+                      ],
+    "previousFreeze":  "2026-10-27T15:36:12.110Z",
+    "gameFrozenAt":  {
+                         "401909877":  "2026-10-27T21:31:05.812Z",
+                         "401909878":  "2026-10-27T21:31:05.812Z",
+                         "401909879":  "2026-10-27T21:31:05.812Z",
+                         "401909880":  "2026-10-27T21:31:05.812Z"
+                     },
+    "notes":  "recommended = the page\u0027s two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game\u0027s picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
+    "bets":  [
+                 {
+                     "set":  "recommended",
+                     "gid":  "401909878",
+                     "game":  "DET @ NY",
+                     "mkt":  "Prop",
+                     "bet":  "Karl-Anthony Towns under 3.5 AST",
+                     "book":  "FD",
+                     "odds":  -138,
+                     "side":  "Under",
+                     "hl":  null,
+                     "tl":  null,
+                     "player":  "Karl-Anthony Towns",
+                     "stat":  "AST",
+                     "line":  3.5,
+                     "thr":  null,
+                     "pSim":  0.69366,
+                     "pBlend":  0.6449259012306064,
+                     "ev":  0.11226351081800251,
+                     "top":  true,
+                     "mean":  2.77072,
+                     "season":  {
+                                    "hit":  2,
+                                    "n":  3,
+                                    "vals":  [
+                                                 1,
+                                                 3,
+                                                 4
+                                             ]
+                                },
+                     "def":  "Paul Reed",
+                     "stake":  1.5
+                 }
+             ],
+    "calls":  [
+                  {
+                      "gid":  "401909877",
+                      "away":  "BKN",
+                      "home":  "BOS",
+                      "time":  "2026-10-27T23:30Z",
+                      "lineBook":  "DK",
+                      "winner":  "BOS",
+                      "winProb":  0.76638,
+                      "homeWinProb":  0.76638,
+                      "mlHome":  -625,
+                      "mlAway":  455,
+                      "spread":  -12.5,
+                      "atsPick":  "H",
+                      "atsProb":  0.52216,
+                      "fairSpread":  -13.68442,
+                      "total":  222.5,
+                      "totalPick":  "O",
+                      "totalProb":  0.50992,
+                      "fairTotal":  223.15082
+                  },
+                  {
+                      "gid":  "401909878",
+                      "away":  "DET",
+                      "home":  "NY",
+                      "time":  "2026-10-28T00:00Z",
+                      "lineBook":  "DK",
+                      "winner":  "NY",
+                      "winProb":  0.60978,
+                      "homeWinProb":  0.60978,
+                      "mlHome":  -170,
+                      "mlAway":  142,
+                      "spread":  -4.5,
+                      "atsPick":  "H",
+                      "atsProb":  0.5341,
+                      "fairSpread":  -5.0562,
+                      "total":  219.5,
+                      "totalPick":  "O",
+                      "totalProb":  0.52672,
+                      "fairTotal":  221.15144
+                  },
+                  {
+                      "gid":  "401909879",
+                      "away":  "SAC",
+                      "home":  "SA",
+                      "time":  "2026-10-28T00:00Z",
+                      "lineBook":  "DK",
+                      "winner":  "SA",
+                      "winProb":  0.82966,
+                      "homeWinProb":  0.82966,
+                      "mlHome":  -1800,
+                      "mlAway":  1000,
+                      "spread":  -18.5,
+                      "atsPick":  "A",
+                      "atsProb":  0.51094,
+                      "fairSpread":  -17.93054,
+                      "total":  232.5,
+                      "totalPick":  "O",
+                      "totalProb":  0.51076,
+                      "fairTotal":  233.34446
+                  },
+                  {
+                      "gid":  "401909880",
+                      "away":  "POR",
+                      "home":  "LAL",
+                      "time":  "2026-10-28T03:00Z",
+                      "lineBook":  "DK",
+                      "winner":  "LAL",
+                      "winProb":  0.53708,
+                      "homeWinProb":  0.53708,
+                      "mlHome":  -125,
+                      "mlAway":  105,
+                      "spread":  -1.5,
+                      "atsPick":  "H",
+                      "atsProb":  0.5149,
+                      "fairSpread":  -0.96644,
+                      "total":  233.5,
+                      "totalPick":  "U",
+                      "totalProb":  0.5256,
+                      "fairTotal":  232.53544
+                  }
+              ],
+    "starters":  {
+                     "401909877":  {
+                                       "BKN":  [
+                                                   {
+                                                       "name":  "Egor Demin",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Keon Ellis",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Michael Porter Jr.",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Julius Randle",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Day\u0027Ron Sharpe",
+                                                       "inj":  null
+                                                   }
+                                               ],
+                                       "BOS":  [
+                                                   {
+                                                       "name":  "Paul George",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Mitchell Robinson",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Jayson Tatum",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Jordan Walsh",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Derrick White",
+                                                       "inj":  "Prob"
+                                                   }
+                                               ]
+                                   },
+                     "401909878":  {
+                                       "DET":  [
+                                                   {
+                                                       "name":  "John Collins",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Cade Cunningham",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Paul Reed",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Duncan Robinson",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Ausar Thompson",
+                                                       "inj":  "Ques"
+                                                   }
+                                               ],
+                                       "NY":  [
+                                                  {
+                                                      "name":  "OG Anunoby",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Mikal Bridges",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Jalen Brunson",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Josh Hart",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Karl-Anthony Towns",
+                                                      "inj":  null
+                                                  }
+                                              ]
+                                   },
+                     "401909879":  {
+                                       "SAC":  [
+                                                   {
+                                                       "name":  "Precious Achiuwa",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Darius Acuff Jr.",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "De\u0027Andre Hunter",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Zach LaVine",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Domantas Sabonis",
+                                                       "inj":  null
+                                                   }
+                                               ],
+                                       "SA":  [
+                                                  {
+                                                      "name":  "Stephon Castle",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "De\u0027Aaron Fox",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Dylan Harper",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Devin Vassell",
+                                                      "inj":  null
+                                                  },
+                                                  {
+                                                      "name":  "Victor Wembanyama",
+                                                      "inj":  null
+                                                  }
+                                              ]
+                                   },
+                     "401909880":  {
+                                       "POR":  [
+                                                   {
+                                                       "name":  "Deni Avdija",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Toumani Camara",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Donovan Clingan",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Damian Lillard",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Ja Morant",
+                                                       "inj":  null
+                                                   }
+                                               ],
+                                       "LAL":  [
+                                                   {
+                                                       "name":  "Luka Doncic",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Walker Kessler",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Austin Reaves",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Matisse Thybulle",
+                                                       "inj":  null
+                                                   },
+                                                   {
+                                                       "name":  "Ziaire Williams",
+                                                       "inj":  null
+                                                   }
+                                               ]
+                                   }
+                 },
+    "final":  true,
+    "finalAt":  "2026-10-27T21:31:43.3579380Z"
+}

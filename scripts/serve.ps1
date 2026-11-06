@@ -1,0 +1,40 @@
+param([string]$Page, [string]$Data, [string]$VideoDir, [int]$Port = 8765)
+# Local preview server: serves the page and slate.json, and saves recorded videos POSTed to /upload?name=...
+New-Item -ItemType Directory -Force $VideoDir | Out-Null
+$l = New-Object System.Net.HttpListener
+$l.Prefixes.Add("http://localhost:$Port/")
+$l.Start()
+while ($l.IsListening) {
+  $c = $l.GetContext()
+  $path = $c.Request.Url.AbsolutePath
+  if ($c.Request.HttpMethod -eq "POST" -and $path -eq "/upload") {
+    $name = [IO.Path]::GetFileName($c.Request.QueryString["name"])
+    if ($name -notmatch '^[\w\-.]+\.(mp4|webm|json)$') { $c.Response.StatusCode = 400; $c.Response.Close(); continue }
+    # videos go to the video folder; JSON records (frozen picks) go to tracking\ next to the project
+    $dir = if ($name -like "*.json") { Join-Path (Split-Path $VideoDir) "tracking" } else { $VideoDir }
+    New-Item -ItemType Directory -Force $dir | Out-Null
+    $dest = Join-Path $dir $name
+    # a frozen picks file is a record: never replaced unless the caller asks explicitly (?overwrite=1)
+    if ($name -like "picks-*.json" -and (Test-Path $dest) -and $c.Request.QueryString["overwrite"] -ne "1") { $c.Response.StatusCode = 409; $c.Response.Close(); continue }
+    $fs = [IO.File]::Create($dest); $c.Request.InputStream.CopyTo($fs); $fs.Close()
+    $b = [Text.Encoding]::UTF8.GetBytes("ok"); $c.Response.ContentType = "text/plain"
+  } elseif ($path -match '^/tracking/((picks|bt-props|results)-\d{8}\.json)$') {
+    # read-only access to a frozen picks file, so a re-freeze can keep locked (already tipped) games' picks
+    $f = Join-Path (Join-Path (Split-Path $VideoDir) "tracking") $matches[1]
+    if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
+    $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
+  } elseif ($path -eq '/harness.js') {
+    # backtest harness for the local preview (scripts\harness.js)
+    $b = [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "harness.js")); $c.Response.ContentType = "text/javascript"
+  } elseif ($path -match '^/(slate|live|results|finals|picks|board|season|boxes)\.json$') {
+    # picks, board, season and boxes are the phone view's files; they're only there when the -Data folder holds them
+    $f = Join-Path (Split-Path $Data) ($matches[1] + ".json")
+    if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
+    $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
+  } else {
+    $body = "<!doctype html><html><head><meta charset=`"utf-8`"><meta name=`"viewport`" content=`"width=device-width,initial-scale=1`"></head><body>" + [IO.File]::ReadAllText($Page) + "</body></html>"
+    $b = [Text.Encoding]::UTF8.GetBytes($body); $c.Response.ContentType = "text/html; charset=utf-8"
+  }
+  $c.Response.OutputStream.Write($b, 0, $b.Length)
+  $c.Response.Close()
+}

@@ -1,0 +1,766 @@
+{
+ "date": "20261031",
+ "frozenAt": "2026-10-31T21:01:36.572Z",
+ "dataGenerated": "2026-10-31T20:56:31.6321859Z",
+ "sims": 50000,
+ "modelWeight": 0.4,
+ "model": {
+  "hca": 1,
+  "effAdj": 0,
+  "paceSD": 0.035,
+  "minSD": 0.15,
+  "teamDefW": 0.3,
+  "formP": 0.05,
+  "formU": 0.22,
+  "formR": 0.22,
+  "formT": 0.015,
+  "fouls": true,
+  "nsFoul": 0.1,
+  "blowDyn": true,
+  "rotBench": 4,
+  "anchor": 1,
+  "stPlus": 0,
+  "stKnee": 99,
+  "stSlope": 1,
+  "usgExp": 1.25,
+  "defW": 1,
+  "curOn": true,
+  "curK": 1.5,
+  "curRateK": 150,
+  "curAstK": null,
+  "curAstKMoved": null,
+  "benchCap": true,
+  "benchCapPlus": 3,
+  "benchCapTo": "hard",
+  "curDef": true,
+  "curDefK": 10,
+  "defMatch": "threat",
+  "formF": 0,
+  "mktTeamW": 1,
+  "foulDef": 1.5,
+  "benchFoul": 1.5,
+  "foulCaution": true,
+  "ownGap": 0,
+  "ownGapLine": false,
+  "seasonMin": 0.5,
+  "seasonMinN": 3,
+  "ownW": 0,
+  "underMinGap": 0,
+  "newMinG": 3,
+  "teamAst": false,
+  "teamAstK": 5,
+  "astCtx": 0.5,
+  "astCtxRef": 71,
+  "book": "FAN"
+ },
+ "stake": "each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64% (the flat 1-unit record is graded too)",
+ "lockedGames": [
+  "401909896"
+ ],
+ "refrozenGames": [
+  "401909897",
+  "401909898",
+  "401909899",
+  "401909900",
+  "401909901",
+  "401909902"
+ ],
+ "previousFreeze": "2026-10-31T17:01:06.169Z",
+ "gameFrozenAt": {
+  "401909896": "2026-10-31T17:01:06.169Z",
+  "401909897": "2026-10-31T21:01:36.572Z",
+  "401909898": "2026-10-31T21:01:36.572Z",
+  "401909899": "2026-10-31T21:01:36.572Z",
+  "401909900": "2026-10-31T21:01:36.572Z",
+  "401909901": "2026-10-31T21:01:36.572Z",
+  "401909902": "2026-10-31T21:01:36.572Z"
+ },
+ "notes": "recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
+ "bets": [
+  {
+   "set": "recommended",
+   "gid": "401909896",
+   "game": "POR @ UTAH",
+   "mkt": "Prop",
+   "bet": "Scoot Henderson under 3.5 AST",
+   "book": "FAN",
+   "odds": -125,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Scoot Henderson",
+   "stat": "AST",
+   "line": 3.5,
+   "thr": null,
+   "pSim": 0.73486,
+   "pBlend": 0.6385567878795146,
+   "ev": 0.14940221818312643,
+   "top": false,
+   "stake": 0.5,
+   "mean": 2.57308,
+   "season": {
+    "hit": 4,
+    "n": 4,
+    "vals": [
+     1,
+     2,
+     3,
+     0
+    ],
+    "opp": "UTAH",
+    "h2h": []
+   },
+   "def": "Isaiah Collier"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909897",
+   "game": "PHI @ CHA",
+   "mkt": "Prop",
+   "bet": "Tyrese Maxey under 6.5 AST",
+   "book": "FAN",
+   "odds": -140,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Tyrese Maxey",
+   "stat": "AST",
+   "line": 6.5,
+   "thr": null,
+   "pSim": 0.76222,
+   "pBlend": 0.6941882011849784,
+   "ev": 0.19003691631710584,
+   "top": true,
+   "stake": 2,
+   "mean": 4.8522,
+   "season": {
+    "hit": 6,
+    "n": 6,
+    "vals": [
+     5,
+     6,
+     4,
+     4,
+     4,
+     4
+    ],
+    "opp": "CHA",
+    "h2h": []
+   },
+   "def": "Dennis Schroder"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909898",
+   "game": "ATL @ NO",
+   "mkt": "Prop",
+   "bet": "Nickeil Alexander-Walker under 3.5 AST",
+   "book": "FAN",
+   "odds": -140,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Nickeil Alexander-Walker",
+   "stat": "AST",
+   "line": 3.5,
+   "thr": null,
+   "pSim": 0.6493,
+   "pBlend": 0.613718875327952,
+   "ev": 0.05208950056220352,
+   "top": false,
+   "stake": 0.5,
+   "mean": 2.99178,
+   "season": {
+    "hit": 4,
+    "n": 6,
+    "vals": [
+     3,
+     5,
+     4,
+     3,
+     1,
+     1
+    ],
+    "opp": "NO",
+    "h2h": []
+   },
+   "def": "Dejounte Murray"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909899",
+   "game": "SAC @ MEM",
+   "mkt": "Prop",
+   "bet": "Cameron Boozer under 5.5 AST",
+   "book": "FAN",
+   "odds": -120,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Cameron Boozer",
+   "stat": "AST",
+   "line": 5.5,
+   "thr": null,
+   "pSim": 0.741,
+   "pBlend": 0.6676186433056074,
+   "ev": 0.22396751272694693,
+   "top": true,
+   "stake": 2,
+   "mean": 4.17728,
+   "season": {
+    "hit": 3,
+    "n": 5,
+    "vals": [
+     5,
+     6,
+     4,
+     4,
+     12
+    ],
+    "opp": "SAC",
+    "h2h": [
+     4
+    ]
+   },
+   "def": "Precious Achiuwa"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909902",
+   "game": "OKC @ HOU",
+   "mkt": "Prop",
+   "bet": "Isaiah Hartenstein under 3.5 AST",
+   "book": "FAN",
+   "odds": -145,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Isaiah Hartenstein",
+   "stat": "AST",
+   "line": 3.5,
+   "thr": null,
+   "pSim": 0.68996,
+   "pBlend": 0.6447522048743538,
+   "ev": 0.08940889789114959,
+   "top": true,
+   "stake": 1.5,
+   "mean": 2.79954,
+   "season": {
+    "hit": 5,
+    "n": 5,
+    "vals": [
+     3,
+     2,
+     1,
+     3,
+     3
+    ],
+    "opp": "HOU",
+    "h2h": []
+   },
+   "def": "Alperen Sengun"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909902",
+   "game": "OKC @ HOU",
+   "mkt": "Prop",
+   "bet": "Jared McCain under 20.5 PRA",
+   "book": "FAN",
+   "odds": -120,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Jared McCain",
+   "stat": "PRA",
+   "line": 20.5,
+   "thr": null,
+   "pSim": 0.68926,
+   "pBlend": 0.6031426129731464,
+   "ev": 0.10576145711743523,
+   "top": false,
+   "stake": 0.5,
+   "mean": 17.46676,
+   "season": {
+    "hit": 3,
+    "n": 5,
+    "vals": [
+     24,
+     5,
+     4,
+     25,
+     18
+    ],
+    "opp": "HOU",
+    "h2h": []
+   },
+   "def": "Kevin Durant"
+  }
+ ],
+ "calls": [
+  {
+   "gid": "401909896",
+   "away": "POR",
+   "home": "UTAH",
+   "time": "2026-10-31T19:00Z",
+   "lineBook": "DK",
+   "winner": "POR",
+   "winProb": 0.6574800000000001,
+   "homeWinProb": 0.34252,
+   "mlHome": 250,
+   "mlAway": -310,
+   "spread": 7.5,
+   "atsPick": "A",
+   "atsProb": 0.51206,
+   "fairSpread": 7.2065,
+   "total": 231.5,
+   "totalPick": "O",
+   "totalProb": 0.52078,
+   "fairTotal": 232.92874
+  },
+  {
+   "gid": "401909897",
+   "away": "PHI",
+   "home": "CHA",
+   "time": "2026-10-31T22:00Z",
+   "lineBook": "DK",
+   "winner": "PHI",
+   "winProb": 0.55324,
+   "homeWinProb": 0.44676,
+   "mlHome": -108,
+   "mlAway": -112,
+   "spread": 1.5,
+   "atsPick": "A",
+   "atsProb": 0.53166,
+   "fairSpread": 1.74806,
+   "total": 211.5,
+   "totalPick": "O",
+   "totalProb": 0.5021,
+   "fairTotal": 211.83734
+  },
+  {
+   "gid": "401909898",
+   "away": "ATL",
+   "home": "NO",
+   "time": "2026-10-31T23:00Z",
+   "lineBook": "DK",
+   "winner": "ATL",
+   "winProb": 0.59964,
+   "homeWinProb": 0.40036,
+   "mlHome": 154,
+   "mlAway": -185,
+   "spread": 4.5,
+   "atsPick": "A",
+   "atsProb": 0.5213,
+   "fairSpread": 4.13028,
+   "total": 241.5,
+   "totalPick": "U",
+   "totalProb": 0.51064,
+   "fairTotal": 241.23324
+  },
+  {
+   "gid": "401909899",
+   "away": "SAC",
+   "home": "MEM",
+   "time": "2026-11-01T00:00Z",
+   "lineBook": "DK",
+   "winner": "MEM",
+   "winProb": 0.64632,
+   "homeWinProb": 0.64632,
+   "mlHome": -360,
+   "mlAway": 285,
+   "spread": -8.5,
+   "atsPick": "A",
+   "atsProb": 0.52454,
+   "fairSpread": -7.24452,
+   "total": 229.5,
+   "totalPick": "U",
+   "totalProb": 0.50822,
+   "fairTotal": 229.41204
+  },
+  {
+   "gid": "401909900",
+   "away": "CLE",
+   "home": "MIL",
+   "time": "2026-11-01T00:00Z",
+   "lineBook": "DK",
+   "winner": "CLE",
+   "winProb": 0.69416,
+   "homeWinProb": 0.30584,
+   "mlHome": 300,
+   "mlAway": -380,
+   "spread": 9.5,
+   "atsPick": "H",
+   "atsProb": 0.51248,
+   "fairSpread": 8.88026,
+   "total": 235.5,
+   "totalPick": "U",
+   "totalProb": 0.51004,
+   "fairTotal": 235.08138
+  },
+  {
+   "gid": "401909901",
+   "away": "MIN",
+   "home": "SA",
+   "time": "2026-11-01T00:00Z",
+   "lineBook": "DK",
+   "winner": "SA",
+   "winProb": 0.78802,
+   "homeWinProb": 0.78802,
+   "mlHome": -600,
+   "mlAway": 440,
+   "spread": -12.5,
+   "atsPick": "H",
+   "atsProb": 0.5383,
+   "fairSpread": -13.85864,
+   "total": 228.5,
+   "totalPick": "O",
+   "totalProb": 0.50564,
+   "fairTotal": 228.96188
+  },
+  {
+   "gid": "401909902",
+   "away": "OKC",
+   "home": "HOU",
+   "time": "2026-11-01T00:30Z",
+   "lineBook": "DK",
+   "winner": "HOU",
+   "winProb": 0.54302,
+   "homeWinProb": 0.54302,
+   "mlHome": -142,
+   "mlAway": 120,
+   "spread": -2.5,
+   "atsPick": "A",
+   "atsProb": 0.50288,
+   "fairSpread": -2.48254,
+   "total": 219.5,
+   "totalPick": "O",
+   "totalProb": 0.51094,
+   "fairTotal": 220.3795
+  }
+ ],
+ "starters": {
+  "401909896": {
+   "POR": [
+    {
+     "name": "Deni Avdija",
+     "inj": null
+    },
+    {
+     "name": "Toumani Camara",
+     "inj": null
+    },
+    {
+     "name": "Donovan Clingan",
+     "inj": null
+    },
+    {
+     "name": "Jrue Holiday",
+     "inj": null
+    },
+    {
+     "name": "Damian Lillard",
+     "inj": null
+    }
+   ],
+   "UTAH": [
+    {
+     "name": "Ace Bailey",
+     "inj": null
+    },
+    {
+     "name": "Keyonte George",
+     "inj": null
+    },
+    {
+     "name": "Jaxson Hayes",
+     "inj": null
+    },
+    {
+     "name": "Lauri Markkanen",
+     "inj": "Ques"
+    },
+    {
+     "name": "Darryn Peterson",
+     "inj": null
+    }
+   ]
+  },
+  "401909897": {
+   "PHI": [
+    {
+     "name": "Adem Bona",
+     "inj": null
+    },
+    {
+     "name": "Jaylen Brown",
+     "inj": "Ques"
+    },
+    {
+     "name": "VJ Edgecombe",
+     "inj": null
+    },
+    {
+     "name": "Tyrese Maxey",
+     "inj": null
+    },
+    {
+     "name": "Dean Wade",
+     "inj": null
+    }
+   ],
+   "CHA": [
+    {
+     "name": "Moussa Diabate",
+     "inj": null
+    },
+    {
+     "name": "Sion James",
+     "inj": null
+    },
+    {
+     "name": "Brandon Miller",
+     "inj": null
+    },
+    {
+     "name": "Naz Reid",
+     "inj": null
+    },
+    {
+     "name": "Dennis Schroder",
+     "inj": null
+    }
+   ]
+  },
+  "401909898": {
+   "ATL": [
+    {
+     "name": "Nickeil Alexander-Walker",
+     "inj": null
+    },
+    {
+     "name": "Dyson Daniels",
+     "inj": null
+    },
+    {
+     "name": "Jalen Johnson",
+     "inj": null
+    },
+    {
+     "name": "CJ McCollum",
+     "inj": null
+    },
+    {
+     "name": "Onyeka Okongwu",
+     "inj": null
+    }
+   ],
+   "NO": [
+    {
+     "name": "Jeremiah Fears",
+     "inj": null
+    },
+    {
+     "name": "Karlo Matkovic",
+     "inj": null
+    },
+    {
+     "name": "Trey Murphy III",
+     "inj": null
+    },
+    {
+     "name": "Dejounte Murray",
+     "inj": null
+    },
+    {
+     "name": "Zion Williamson",
+     "inj": null
+    }
+   ]
+  },
+  "401909899": {
+   "SAC": [
+    {
+     "name": "Precious Achiuwa",
+     "inj": null
+    },
+    {
+     "name": "Darius Acuff Jr.",
+     "inj": null
+    },
+    {
+     "name": "De'Andre Hunter",
+     "inj": null
+    },
+    {
+     "name": "Zach LaVine",
+     "inj": null
+    },
+    {
+     "name": "Domantas Sabonis",
+     "inj": null
+    }
+   ],
+   "MEM": [
+    {
+     "name": "Cameron Boozer",
+     "inj": null
+    },
+    {
+     "name": "Cedric Coward",
+     "inj": null
+    },
+    {
+     "name": "Zach Edey",
+     "inj": null
+    },
+    {
+     "name": "Ty Jerome",
+     "inj": "Ques"
+    },
+    {
+     "name": "Jaylen Wells",
+     "inj": null
+    }
+   ]
+  },
+  "401909900": {
+   "CLE": [
+    {
+     "name": "Jarrett Allen",
+     "inj": null
+    },
+    {
+     "name": "James Harden",
+     "inj": null
+    },
+    {
+     "name": "Donovan Mitchell",
+     "inj": null
+    },
+    {
+     "name": "Evan Mobley",
+     "inj": null
+    },
+    {
+     "name": "Peyton Watson",
+     "inj": null
+    }
+   ],
+   "MIL": [
+    {
+     "name": "Tyler Herro",
+     "inj": null
+    },
+    {
+     "name": "Jaime Jaquez Jr.",
+     "inj": null
+    },
+    {
+     "name": "Kyle Kuzma",
+     "inj": null
+    },
+    {
+     "name": "Ryan Rollins",
+     "inj": null
+    },
+    {
+     "name": "Myles Turner",
+     "inj": null
+    }
+   ]
+  },
+  "401909901": {
+   "MIN": [
+    {
+     "name": "LaMelo Ball",
+     "inj": null
+    },
+    {
+     "name": "Ayo Dosunmu",
+     "inj": null
+    },
+    {
+     "name": "Rudy Gobert",
+     "inj": "Ques"
+    },
+    {
+     "name": "Jonathan Kuminga",
+     "inj": null
+    },
+    {
+     "name": "Jaden McDaniels",
+     "inj": null
+    }
+   ],
+   "SA": [
+    {
+     "name": "Stephon Castle",
+     "inj": "Ques"
+    },
+    {
+     "name": "De'Aaron Fox",
+     "inj": null
+    },
+    {
+     "name": "Dylan Harper",
+     "inj": null
+    },
+    {
+     "name": "Devin Vassell",
+     "inj": null
+    },
+    {
+     "name": "Victor Wembanyama",
+     "inj": null
+    }
+   ]
+  },
+  "401909902": {
+   "OKC": [
+    {
+     "name": "Shai Gilgeous-Alexander",
+     "inj": null
+    },
+    {
+     "name": "Isaiah Hartenstein",
+     "inj": null
+    },
+    {
+     "name": "Jared McCain",
+     "inj": null
+    },
+    {
+     "name": "Ajay Mitchell",
+     "inj": null
+    },
+    {
+     "name": "Kenrich Williams",
+     "inj": null
+    }
+   ],
+   "HOU": [
+    {
+     "name": "Kevin Durant",
+     "inj": null
+    },
+    {
+     "name": "Alperen Sengun",
+     "inj": null
+    },
+    {
+     "name": "Marcus Smart",
+     "inj": null
+    },
+    {
+     "name": "Jabari Smith Jr.",
+     "inj": null
+    },
+    {
+     "name": "Amen Thompson",
+     "inj": null
+    }
+   ]
+  }
+ }
+}
