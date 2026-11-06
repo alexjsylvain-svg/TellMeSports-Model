@@ -1,6 +1,6 @@
 {
  "date": "20261106",
- "frozenAt": "2026-11-06T15:22:14.767Z",
+ "frozenAt": "2026-11-06T16:07:39.841Z",
  "dataGenerated": "2026-11-06T15:18:05.5383648Z",
  "sims": 50000,
  "modelWeight": 0.4,
@@ -10,6 +10,7 @@
   "paceSD": 0.035,
   "minSD": 0.15,
   "teamDefW": 0.3,
+  "oneStat": false,
   "formP": 0.05,
   "formU": 0.22,
   "formR": 0.22,
@@ -66,17 +67,17 @@
   "401909294",
   "401909295"
  ],
- "previousFreeze": "2026-11-06T14:38:23.314Z",
+ "previousFreeze": "2026-11-06T15:22:14.767Z",
  "gameFrozenAt": {
-  "401909287": "2026-11-06T15:22:14.767Z",
-  "401909288": "2026-11-06T15:22:14.767Z",
-  "401909289": "2026-11-06T15:22:14.767Z",
-  "401909290": "2026-11-06T15:22:14.767Z",
-  "401909291": "2026-11-06T15:22:14.767Z",
-  "401909292": "2026-11-06T15:22:14.767Z",
-  "401909293": "2026-11-06T15:22:14.767Z",
-  "401909294": "2026-11-06T15:22:14.767Z",
-  "401909295": "2026-11-06T15:22:14.767Z"
+  "401909287": "2026-11-06T16:07:39.841Z",
+  "401909288": "2026-11-06T16:07:39.841Z",
+  "401909289": "2026-11-06T16:07:39.841Z",
+  "401909290": "2026-11-06T16:07:39.841Z",
+  "401909291": "2026-11-06T16:07:39.841Z",
+  "401909292": "2026-11-06T16:07:39.841Z",
+  "401909293": "2026-11-06T16:07:39.841Z",
+  "401909294": "2026-11-06T16:07:39.841Z",
+  "401909295": "2026-11-06T16:07:39.841Z"
  },
  "notes": "recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
  "bets": [
@@ -127,37 +128,42 @@
    "gid": "401909287",
    "game": "WSH @ ATL",
    "mkt": "Prop",
-   "bet": "AJ Dybantsa under 26.5 PRA",
+   "bet": "Dyson Daniels under 5.5 AST",
    "book": "FAN",
-   "odds": -115,
+   "odds": -125,
    "side": "Under",
    "hl": null,
    "tl": null,
-   "player": "AJ Dybantsa",
-   "stat": "PRA",
-   "line": 26.5,
+   "player": "Dyson Daniels",
+   "stat": "AST",
+   "line": 5.5,
    "thr": null,
-   "pSim": 0.74924,
-   "pBlend": 0.6335046547048295,
-   "ev": 0.18437826749163777,
+   "pSim": 0.69226,
+   "pBlend": 0.6353877903440043,
+   "ev": 0.14369802261920772,
    "top": false,
    "stake": 0.5,
-   "mean": 21.31464,
+   "mean": 4.48412,
    "season": {
-    "hit": 3,
-    "n": 4,
+    "hit": 7,
+    "n": 9,
     "vals": [
-     23,
-     26,
-     28,
-     18
+     3,
+     4,
+     3,
+     4,
+     7,
+     5,
+     3,
+     4,
+     8
     ],
-    "opp": "ATL",
+    "opp": "WSH",
     "h2h": [
-     18
+     8
     ]
    },
-   "def": "Dyson Daniels"
+   "def": "AJ Dybantsa"
   },
   {
    "set": "recommended",
@@ -239,6 +245,44 @@
     "h2h": []
    },
    "def": "Cedric Coward"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909291",
+   "game": "OKC @ MEM",
+   "mkt": "Prop",
+   "bet": "Ty Jerome under 5.5 AST",
+   "book": "FAN",
+   "odds": -120,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Ty Jerome",
+   "stat": "AST",
+   "line": 5.5,
+   "thr": null,
+   "pSim": 0.77582,
+   "pBlend": 0.6944757898206487,
+   "ev": 0.2732056146711895,
+   "top": true,
+   "stake": 2,
+   "mean": 3.95362,
+   "season": {
+    "hit": 4,
+    "n": 7,
+    "vals": [
+     6,
+     5,
+     6,
+     8,
+     3,
+     5,
+     3
+    ],
+    "opp": "OKC",
+    "h2h": []
+   },
+   "def": "Ajay Mitchell"
   },
   {
    "set": "recommended",

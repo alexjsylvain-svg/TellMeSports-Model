@@ -1,4 +1,5 @@
-param([string]$Trk = "tracking", [string]$W = "", [string]$Tag = "")
+param([string]$Trk = "tracking", [string]$W = "", [string]$Tag = "", [switch]$StatRule)
+# -StatRule: grade today's card rules (no 3PM, no AST overs) with and without "one pick per stat per game"
 # Refit the blend's sim weight per stat (blend() STAT_W) on every night dumped by __PX (tracking\px-<date>.json), and
 # grade the picks each weight set would have made. -W "PTS=.4,REB=.25,AST=.65,3PM=.75,PRA=.5" adds a set to grade.
 $root = Split-Path $PSScriptRoot -Parent; if(-not [IO.Path]::IsPathRooted($Trk)){ $Trk = Join-Path $root $Trk }
@@ -37,7 +38,7 @@ function picks($w, [int]$minG){
   foreach($grp in ($side | Group-Object d,gid)){
     $gl = @($games | ? { $_.d -eq $grp.Group[0].d -and $_.gid -eq $grp.Group[0].gid })
     $c = @()
-    foreach($r in $grp.Group){ if(-not $r.rule -or $r.why.mis -or $r.why.q -or $w.ContainsKey("skip:"+$r.stat)){ continue }
+    foreach($r in $grp.Group){ if(-not $r.rule -or $r.why.mis -or $r.why.q -or $w.ContainsKey("skip:"+$r.stat) -or ($w.ContainsKey("noASTo") -and $r.stat -eq "AST" -and $r.side -eq "Over")){ continue }
       if(($r.why.prior -or $r.why.y24) -and ($minG -lt 0 -or $r.curG -lt $minG)){ continue }
       $ww = $w[$r.stat]*$r.b; $p = (sg ((1-$ww)*$r.lm + $ww*$r.ls))*(1-$r.push); $pl=[math]::Max(0,1-$p-$r.push); $ev=$p*((dec $r.odds)-1)-$pl
       $c += [pscustomobject]@{ p=$p; ev=$ev; odds=$r.odds; player=$r.player; stat=$r.stat; u=$r.u; bet=$r.bet; d=$r.d; rk=($r.why.prior -or $r.why.y24) } }
@@ -45,7 +46,7 @@ function picks($w, [int]$minG){
     $pk=@()
     foreach($b in ($c | ? { $_.odds -ge -150 -and $_.odds -le 150 -and $_.ev -ge .05 -and $_.p -ge .60 } | Sort-Object @{e={$_.p};Descending=$true},@{e={$_.ev};Descending=$true})){
       if($pk.Count -ge 2){ break }
-      if(@($pk | ? { $_.bet -eq $b.bet -or ($b.player -and ($_.player -eq $b.player -or $_.stat -eq $b.stat)) -or (-not $b.player -and -not $_.player) }).Count){ continue }
+      if(@($pk | ? { $_.bet -eq $b.bet -or ($b.player -and ($_.player -eq $b.player -or (-not $w.ContainsKey("anyStat") -and $_.stat -eq $b.stat))) -or (-not $b.player -and -not $_.player) }).Count){ continue }
       $pk += $b }
     $all += $pk }
   $all }
@@ -59,6 +60,7 @@ function show($name, $w, [int]$minG){
   "{0,-34} {1,3}-{2,-3} flat {3,6:N2}u  staked {4,6:N2}u   {5}{6}" -f $name,$wn,$ls,$fl,$st,$by,$rks }
 $noc = @{}+$cur; foreach($s in "PR","PA","RA"){ $noc["skip:"+$s]=1 }
 $sets = [ordered]@{ "no combos" = $noc; "now" = $cur; "refit (all nights)" = $fitW }
+if($StatRule){ $c1=@{}+$cur; $c1["skip:3PM"]=1; $c1["noASTo"]=1; $c2=@{}+$c1; $c2["anyStat"]=1; $sets=[ordered]@{ "card now: one pick per stat" = $c1; "card, any stat twice" = $c2 } }
 if($W){ $x=@{}; foreach($kv in $W.Split(",")){ $a=$kv.Split("="); $x[$a[0]]=[double]$a[1] }; $sets["custom $W"]=$x }
 "refit weights: " + (($stats | % { "$_=$($fitW[$_])" }) -join ", ")
 ""

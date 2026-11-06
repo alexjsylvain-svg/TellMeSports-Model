@@ -13,7 +13,7 @@ window.__pickAll = (o={})=>{
     const pk=[];
     [b=>b.ev>=0.05, b=>b.ev>=0, ()=>true].forEach(ok=>{
       for(const b of c.filter(ok).sort((a,b)=>(b.p-a.p)||(b.ev-a.ev))){ if(pk.length>=2) break;
-        if(pk.some(p=>p.bet===b.bet||p.player===b.player||p.stat===b.stat)) continue;
+        if(pk.some(p=>p.bet===b.bet||p.player===b.player||((o.oneStat??G.oneStat)&&p.stat===b.stat))) continue;
         if(!o.no3 && b.stat==="3PM" && n3+pk.filter(p=>p.stat==="3PM").length>=(o.max3??3)) continue;
         if(b.side==="Under" && nU+pk.filter(p=>p.side==="Under").length>=maxU) continue;
         pk.push(b); } });

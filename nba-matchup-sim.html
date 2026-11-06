@@ -398,6 +398,9 @@ const etTime=iso=>new Date(iso).toLocaleTimeString("en-US",{hour:"numeric",minut
 // personal fouls with foul-trouble benching, in-game blowout pulls, and rotation depth (bench players in the regular rotation).
 // Settings from the Oct 21 backtest (620 FanDuel props, 11 games, 254 box scores).
 const G={hca:1.0, effAdj:0.0, paceSD:0.035, minSD:0.15, teamDefW:0.30,
+  // card rule: true = at most one pick per stat in a game. Off since Nov 6 (the user's call): two picks may share a stat when
+  // both clear the bar. 13-night replay (fit-blend.ps1 -StatRule): 114-69 +21.40u staked vs 108-65 +23.95u with the rule; even.
+  oneStat:false,
   formP:0.05, formU:0.22, formR:0.22, formT:0.015, fouls:true, nsFoul:0.10, blowDyn:true, rotBench:4, anchor:1.0,
   // Starter minutes. Season minutes already include blowouts and rest, so starters no longer get +1 on top (Oct 21–23: starters
   // projected 31+ minutes played 2–2.7 fewer than simulated; dropping the +1 improved prop accuracy and picks on both full nights).
@@ -1710,7 +1713,7 @@ const LIVE={data:null, res:{}};
 // EV of 5%+; a game with nothing that good gets fewer than two picks (or none) rather than a filler. Picks at 64%+ are
 // flagged top (17-3 on those nights). Also excluded: three-point props (they swing with a whole night's shooting) and assist
 // overs (29% at 60%+, 47% overall), rookies and players on 2024-25 data until they have three games this season, questionable players, long-injury returns and flagged role mismatches;
-// never two picks on one player or one stat in a game; −150 to +150 only. All four nights were used to choose these rules,
+// never two picks on one player in a game (nor on one stat while G.oneStat is on; off since Nov 6); −150 to +150 only. All four nights were used to choose these rules,
 // so expect real results below the backtest.
 const MIN_P=0.60, TOP_P=0.64;
 // Stake by win chance (from Oct 27). Over the first 105 graded picks (Oct 21–26): 66%+ went 11-2 (+6.0u flat), 64–66% 10-4
@@ -1740,7 +1743,7 @@ function ownBlend(b){
   const lg=x=>Math.log(clamp(x,.01,.99)/(1-clamp(x,.01,.99))), sg=x=>1/(1+Math.exp(-x)), push=Math.max(0,1-b.p-b.pl);
   const p=sg((1-G.ownW)*lg(b.p/Math.max(1e-9,1-push))+G.ownW*lg(b.pOwn/Math.max(1e-9,1-push)))*(1-push), pl=Math.max(0,1-p-push);
   return {...b, p, pl, ev:evOf(p,pl,b.odds)}; }
-// taken: bets already placed in this game (frozen earlier, placed:true). They fill slots and block their player and stat
+// taken: bets already placed in this game (frozen earlier, placed:true). They fill slots and block their player (and stat, with G.oneStat)
 // like any pick, and only the new picks are returned.
 function gamePicks(gid, taken=[]){
   const P=PRICED[gid]; if(!P) return [];
@@ -1755,7 +1758,7 @@ function gamePicks(gid, taken=[]){
     .filter(b=>+b.odds>=-150&&+b.odds<=150&&b.ev>=0.05&&b.p>=MIN_P);
   const picks=[...taken];
   for(const b of c.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev))){ if(picks.length>=2) break;
-    if(picks.some(p=>p.bet===b.bet||(b.player?p.player===b.player||p.stat===b.stat:!p.player))) continue;
+    if(picks.some(p=>p.bet===b.bet||(b.player?p.player===b.player||(G.oneStat&&p.stat===b.stat):!p.player))) continue;
     const pl=b.player?findPlayer(RESULTS[gid],b.player):null, d=pl?RESULTS[gid].P[pl.defG]:null;
     picks.push({...b, top:b.p>=TOP_P, stake:stakeOf(b.p), season:seasonHit(gid,b), def:d?d.name:null}); }
   return picks.slice(taken.length);
