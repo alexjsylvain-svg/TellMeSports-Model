@@ -32,6 +32,9 @@ git commit -q -m $Message 2>$null
 if($LASTEXITCODE -ne 0){ throw "git commit failed (exit $LASTEXITCODE)" }
 "committed $($staged.Count) files: $(($Message -split "`n")[0])"
 if($NoPush){ "not pushed (-NoPush)"; exit 0 }
+# GitHub Actions also commits here (nightly grading), so take its commits first and put ours on top
+$out = git -c core.autocrlf=false pull --rebase --autostash -q origin main 2>&1 | % { "$_" }
+if($LASTEXITCODE -ne 0){ git rebase --abort 2>$null; $out; throw "git pull --rebase failed (exit $LASTEXITCODE); local commit kept, not pushed" }
 $out = git push origin main 2>&1 | % { "$_" }
 if($LASTEXITCODE -ne 0){ $out; throw "git push failed (exit $LASTEXITCODE)" }
 "pushed to GitHub"

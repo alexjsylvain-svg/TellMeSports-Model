@@ -1,4 +1,4 @@
-param([string]$Out = "site\season.json")
+param([string]$Out = "site/season.json")
 # Every graded recommended pick this season in one file, for the phone view's record screen.
 # Reads tracking\results-<date>.json (grade.ps1's output) and the running totals in tracking\ledger.json.
 # Run it after each grade.ps1; publish the output as season.json.

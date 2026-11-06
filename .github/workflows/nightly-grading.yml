@@ -1,0 +1,72 @@
+# Grades last night's frozen picks on GitHub's servers, so the record updates with the PC off.
+# Same steps as the PC's old "nba-nightly-grading" task: grade.ps1, the finals box scores, the archived pregame slate,
+# Fanatics' closing lines (clv.ps1) and the season file (season.ps1), then commits the records and the page's data.
+name: Nightly grading
+
+on:
+  schedule:
+    - cron: "17 8 * * *"   # 08:17 UTC = 3:17 AM EST / 4:17 AM EDT, after the late West Coast games
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Night to grade, YYYYMMDD in US Eastern time (blank = yesterday)"
+        required: false
+
+permissions:
+  contents: write
+
+# one job at a time writes to the repo
+concurrency:
+  group: data-writes
+  cancel-in-progress: false
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick the night
+        run: |
+          D="${{ inputs.date }}"
+          if [ -z "$D" ]; then D=$(TZ=America/New_York date -d "yesterday" +%Y%m%d); fi
+          echo "D=$D" >> "$GITHUB_ENV"
+          if [ -f "tracking/picks-$D.json" ]; then echo "Grading $D"; else echo "No frozen picks for $D: nothing to grade."; echo "SKIP=1" >> "$GITHUB_ENV"; fi
+
+      - name: Grade, finals, closing lines, season file
+        if: env.SKIP != '1'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $D = $env:D
+          New-Item -ItemType Directory -Force raw | Out-Null
+          $before = Get-Content tracking/ledger.json -Raw | ConvertFrom-Json
+          ./scripts/grade.ps1 -Date $D
+          ./scripts/live.ps1 -Date $D -Out "tracking/finals-$D.json"
+          # the pregame slate for backtests, only when it's that night's
+          $s = Get-Content site/slate.json -Raw | ConvertFrom-Json
+          if("$($s.date)" -eq $D -and -not (Test-Path "tracking/slate-$D.json")){ Copy-Item site/slate.json "tracking/slate-$D.json"; "archived slate-$D.json" }
+          # no other night's record may change
+          $after = Get-Content tracking/ledger.json -Raw | ConvertFrom-Json
+          $old = @{}; foreach($n in $before.nights){ $old["$($n.date)"] = ($n.sets.recommended | ConvertTo-Json -Compress) }
+          foreach($n in $after.nights){ if("$($n.date)" -ne $D -and $old.ContainsKey("$($n.date)") -and $old["$($n.date)"] -ne ($n.sets.recommended | ConvertTo-Json -Compress)){ throw "ledger night $($n.date) changed; not publishing" } }
+          try { ./scripts/clv.ps1 -Dates $D } catch { Write-Warning "closing lines failed: $_" }
+          ./scripts/season.ps1
+          $r = $after.toDate.recommended
+          "Season to date: $($r.w)-$($r.l), $($r.units)u flat" + $(if($r.staked -ne $null){ ", $($r.staked)u staked" } else { "" })
+
+      - name: Commit and push
+        if: env.SKIP != '1'
+        run: |
+          cp site/results.json site/season.json site/boxes.json docs/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tracking site/results.json site/season.json site/boxes.json docs/results.json docs/season.json docs/boxes.json
+          if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
+          git commit -q -m "Results $D (graded on GitHub)"
+          for i in 1 2 3; do
+            if git pull --rebase -q origin main && git push -q origin main; then echo "Pushed results for $D"; exit 0; fi
+            sleep 10
+          done
+          echo "Push failed after 3 tries"; exit 1

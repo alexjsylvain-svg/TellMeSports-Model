@@ -4,7 +4,7 @@ param([string]$Date = "20261021", [switch]$DryRunLive)
 # Writes tracking\results-<date>.json, updates the running record in tracking\ledger.json,
 # and copies the night's results (with the season-to-date record) to site\results.json for the page.
 $ErrorActionPreference = "Stop"
-. "$PSScriptRoot\lib.ps1"
+. "$PSScriptRoot/lib.ps1"
 $root = Split-Path $PSScriptRoot -Parent
 $trk = Join-Path $root "tracking"
 $picks = Get-Content (Join-Path $trk "picks-$Date.json") -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -118,7 +118,7 @@ foreach($k in 'winners','ats','totals'){ $w=0;$l=0;$p=0; foreach($n in $nights){
 $ledgerOut = [ordered]@{ updated=(Get-Date).ToUniversalTime().ToString("o"); nights=$nights; toDate=$tot }
 [IO.File]::WriteAllText($ledPath, ($ledgerOut | ConvertTo-Json -Depth 8))
 $night['toDate'] = $tot
-[IO.File]::WriteAllText((Join-Path $root "site\results.json"), ($night | ConvertTo-Json -Depth 8 -Compress))
+[IO.File]::WriteAllText((Join-Path $root "site/results.json"), ($night | ConvertTo-Json -Depth 8 -Compress))
 
 # ---- summary ----
 "Games final: $finals / $($GAMES.Count)"

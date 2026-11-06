@@ -1,8 +1,9 @@
-param([string]$Date = "20261021", [string]$Out = "site\live.json")
+param([string]$Date = "20261021", [string]$Out = "site/live.json")
 # Live game state for in-progress and finished games: score, period, clock, player box scores (ESPN),
 # plus current in-game lines by book (Action Network). The page simulates the rest of each game from this state.
+# Paths use forward slashes so this also runs on Linux (GitHub Actions); Windows accepts them too.
 $ErrorActionPreference = "Stop"
-. "$PSScriptRoot\lib.ps1"
+. "$PSScriptRoot/lib.ps1"
 $root = Split-Path $PSScriptRoot -Parent
 $sb = Get-Json "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=$Date"
 $games = @()
