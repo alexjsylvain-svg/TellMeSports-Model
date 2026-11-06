@@ -1,7 +1,7 @@
 {
  "date": "20261106",
- "frozenAt": "2026-11-06T16:07:39.841Z",
- "dataGenerated": "2026-11-06T15:18:05.5383648Z",
+ "frozenAt": "2026-11-06T16:20:09.356Z",
+ "dataGenerated": "2026-11-06T16:13:40.2859417Z",
  "sims": 50000,
  "modelWeight": 0.4,
  "model": {
@@ -67,17 +67,17 @@
   "401909294",
   "401909295"
  ],
- "previousFreeze": "2026-11-06T15:22:14.767Z",
+ "previousFreeze": "2026-11-06T16:07:39.841Z",
  "gameFrozenAt": {
-  "401909287": "2026-11-06T16:07:39.841Z",
-  "401909288": "2026-11-06T16:07:39.841Z",
-  "401909289": "2026-11-06T16:07:39.841Z",
-  "401909290": "2026-11-06T16:07:39.841Z",
-  "401909291": "2026-11-06T16:07:39.841Z",
-  "401909292": "2026-11-06T16:07:39.841Z",
-  "401909293": "2026-11-06T16:07:39.841Z",
-  "401909294": "2026-11-06T16:07:39.841Z",
-  "401909295": "2026-11-06T16:07:39.841Z"
+  "401909287": "2026-11-06T16:20:09.358Z",
+  "401909288": "2026-11-06T16:20:09.358Z",
+  "401909289": "2026-11-06T16:20:09.358Z",
+  "401909290": "2026-11-06T16:20:09.358Z",
+  "401909291": "2026-11-06T16:20:09.358Z",
+  "401909292": "2026-11-06T16:20:09.358Z",
+  "401909293": "2026-11-06T16:20:09.358Z",
+  "401909294": "2026-11-06T16:20:09.358Z",
+  "401909295": "2026-11-06T16:20:09.358Z"
  },
  "notes": "recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
  "bets": [
@@ -86,9 +86,130 @@
    "gid": "401909287",
    "game": "WSH @ ATL",
    "mkt": "Prop",
+   "bet": "AJ Dybantsa under 26.5 PRA",
+   "book": "FAN",
+   "odds": -115,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "AJ Dybantsa",
+   "stat": "PRA",
+   "line": 26.5,
+   "thr": null,
+   "pSim": 0.74924,
+   "pBlend": 0.6335046547048295,
+   "ev": 0.18437826749163777,
+   "top": false,
+   "stake": 0.5,
+   "mean": 21.31464,
+   "season": {
+    "hit": 3,
+    "n": 4,
+    "vals": [
+     23,
+     26,
+     28,
+     18
+    ],
+    "opp": "ATL",
+    "h2h": [
+     18
+    ]
+   },
+   "def": "Dyson Daniels",
+   "placed": true,
+   "placedAt": "2026-11-06T16:12:47.7008593Z"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909291",
+   "game": "OKC @ MEM",
+   "mkt": "Prop",
+   "bet": "Ty Jerome under 5.5 AST",
+   "book": "FAN",
+   "odds": -120,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Ty Jerome",
+   "stat": "AST",
+   "line": 5.5,
+   "thr": null,
+   "pSim": 0.77582,
+   "pBlend": 0.6944757898206487,
+   "ev": 0.2732056146711895,
+   "top": true,
+   "stake": 2,
+   "mean": 3.95362,
+   "season": {
+    "hit": 4,
+    "n": 7,
+    "vals": [
+     6,
+     5,
+     6,
+     8,
+     3,
+     5,
+     3
+    ],
+    "opp": "OKC",
+    "h2h": []
+   },
+   "def": "Ajay Mitchell",
+   "placed": true,
+   "placedAt": "2026-11-06T16:12:47.7008593Z"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909295",
+   "game": "SA @ SAC",
+   "mkt": "Prop",
+   "bet": "Malik Monk under 4.5 AST",
+   "book": "FAN",
+   "odds": -125,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Malik Monk",
+   "stat": "AST",
+   "line": 4.5,
+   "thr": null,
+   "pSim": 0.84622,
+   "pBlend": 0.7162101300296414,
+   "ev": 0.2891782340533545,
+   "top": true,
+   "stake": 2,
+   "mean": 2.72898,
+   "season": {
+    "hit": 5,
+    "n": 7,
+    "vals": [
+     2,
+     2,
+     6,
+     1,
+     3,
+     7,
+     3
+    ],
+    "opp": "SA",
+    "h2h": [
+     6
+    ]
+   },
+   "def": "Ja'Kobi Gillespie",
+   "placed": true,
+   "placedAt": "2026-11-06T16:12:47.7008593Z"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909287",
+   "game": "WSH @ ATL",
+   "mkt": "Prop",
    "bet": "Onyeka Okongwu under 3.5 AST",
    "book": "FAN",
-   "odds": -150,
+   "odds": -145,
    "side": "Under",
    "hl": null,
    "tl": null,
@@ -97,8 +218,8 @@
    "line": 3.5,
    "thr": null,
    "pSim": 0.70524,
-   "pBlend": 0.6583994257871318,
-   "ev": 0.09733237631188629,
+   "pBlend": 0.6554627731107034,
+   "ev": 0.10750606491118864,
    "top": true,
    "stake": 1.5,
    "mean": 2.70598,
@@ -122,48 +243,6 @@
     ]
    },
    "def": "Anthony Davis"
-  },
-  {
-   "set": "recommended",
-   "gid": "401909287",
-   "game": "WSH @ ATL",
-   "mkt": "Prop",
-   "bet": "Dyson Daniels under 5.5 AST",
-   "book": "FAN",
-   "odds": -125,
-   "side": "Under",
-   "hl": null,
-   "tl": null,
-   "player": "Dyson Daniels",
-   "stat": "AST",
-   "line": 5.5,
-   "thr": null,
-   "pSim": 0.69226,
-   "pBlend": 0.6353877903440043,
-   "ev": 0.14369802261920772,
-   "top": false,
-   "stake": 0.5,
-   "mean": 4.48412,
-   "season": {
-    "hit": 7,
-    "n": 9,
-    "vals": [
-     3,
-     4,
-     3,
-     4,
-     7,
-     5,
-     3,
-     4,
-     8
-    ],
-    "opp": "WSH",
-    "h2h": [
-     8
-    ]
-   },
-   "def": "AJ Dybantsa"
   },
   {
    "set": "recommended",
@@ -212,117 +291,39 @@
    "gid": "401909291",
    "game": "OKC @ MEM",
    "mkt": "Prop",
-   "bet": "Shai Gilgeous-Alexander under 6.5 AST",
+   "bet": "Cameron Boozer under 4.5 AST",
    "book": "FAN",
-   "odds": -140,
+   "odds": 115,
    "side": "Under",
    "hl": null,
    "tl": null,
-   "player": "Shai Gilgeous-Alexander",
+   "player": "Cameron Boozer",
    "stat": "AST",
-   "line": 6.5,
+   "line": 4.5,
    "thr": null,
-   "pSim": 0.78646,
-   "pBlend": 0.7130025474314494,
-   "ev": 0.2222900813110562,
+   "pSim": 0.75966,
+   "pBlend": 0.6590145642434339,
+   "ev": 0.4168813131233827,
    "top": true,
-   "stake": 2,
-   "mean": 4.65812,
-   "season": {
-    "hit": 6,
-    "n": 8,
-    "vals": [
-     4,
-     3,
-     5,
-     3,
-     2,
-     3,
-     8,
-     8
-    ],
-    "opp": "MEM",
-    "h2h": []
-   },
-   "def": "Cedric Coward"
-  },
-  {
-   "set": "recommended",
-   "gid": "401909291",
-   "game": "OKC @ MEM",
-   "mkt": "Prop",
-   "bet": "Ty Jerome under 5.5 AST",
-   "book": "FAN",
-   "odds": -120,
-   "side": "Under",
-   "hl": null,
-   "tl": null,
-   "player": "Ty Jerome",
-   "stat": "AST",
-   "line": 5.5,
-   "thr": null,
-   "pSim": 0.77582,
-   "pBlend": 0.6944757898206487,
-   "ev": 0.2732056146711895,
-   "top": true,
-   "stake": 2,
-   "mean": 3.95362,
+   "stake": 1.5,
+   "mean": 3.24306,
    "season": {
     "hit": 4,
-    "n": 7,
+    "n": 8,
     "vals": [
-     6,
      5,
      6,
-     8,
+     4,
+     4,
+     12,
      3,
      5,
-     3
+     4
     ],
     "opp": "OKC",
     "h2h": []
    },
    "def": "Ajay Mitchell"
-  },
-  {
-   "set": "recommended",
-   "gid": "401909295",
-   "game": "SA @ SAC",
-   "mkt": "Prop",
-   "bet": "Malik Monk under 4.5 AST",
-   "book": "FAN",
-   "odds": -125,
-   "side": "Under",
-   "hl": null,
-   "tl": null,
-   "player": "Malik Monk",
-   "stat": "AST",
-   "line": 4.5,
-   "thr": null,
-   "pSim": 0.84622,
-   "pBlend": 0.7162101300296414,
-   "ev": 0.2891782340533545,
-   "top": true,
-   "stake": 2,
-   "mean": 2.72898,
-   "season": {
-    "hit": 5,
-    "n": 7,
-    "vals": [
-     2,
-     2,
-     6,
-     1,
-     3,
-     7,
-     3
-    ],
-    "opp": "SA",
-    "h2h": [
-     6
-    ]
-   },
-   "def": "Ja'Kobi Gillespie"
   }
  ],
  "calls": [
@@ -335,8 +336,8 @@
    "winner": "ATL",
    "winProb": 0.66738,
    "homeWinProb": 0.66738,
-   "mlHome": -283,
-   "mlAway": 231,
+   "mlHome": -297,
+   "mlAway": 241,
    "spread": -7.5,
    "atsPick": "H",
    "atsProb": 0.52468,
@@ -393,18 +394,18 @@
    "time": "2026-11-07T01:00Z",
    "lineBook": "DK",
    "winner": "DAL",
-   "winProb": 0.66084,
-   "homeWinProb": 0.66084,
+   "winProb": 0.6291,
+   "homeWinProb": 0.6291,
    "mlHome": -277,
    "mlAway": 227,
    "spread": -7.5,
-   "atsPick": "H",
-   "atsProb": 0.51548,
-   "fairSpread": -7.0379,
-   "total": 226.5,
+   "atsPick": "A",
+   "atsProb": 0.51562,
+   "fairSpread": -5.57278,
+   "total": 224.5,
    "totalPick": "U",
-   "totalProb": 0.50002,
-   "fairTotal": 226.8389
+   "totalProb": 0.51414,
+   "fairTotal": 224.09626
   },
   {
    "gid": "401909291",
@@ -413,18 +414,18 @@
    "time": "2026-11-07T01:00Z",
    "lineBook": "DK",
    "winner": "OKC",
-   "winProb": 0.57462,
-   "homeWinProb": 0.42538,
+   "winProb": 0.61046,
+   "homeWinProb": 0.38954,
    "mlHome": 142,
    "mlAway": -170,
-   "spread": 3.5,
+   "spread": 4.5,
    "atsPick": "A",
-   "atsProb": 0.51524,
-   "fairSpread": 2.7363,
-   "total": 224.5,
+   "atsProb": 0.53668,
+   "fairSpread": 4.44662,
+   "total": 223.5,
    "totalPick": "U",
-   "totalProb": 0.51478,
-   "fairTotal": 224.20742
+   "totalProb": 0.51994,
+   "fairTotal": 222.83922
   },
   {
    "gid": "401909292",
@@ -433,18 +434,18 @@
    "time": "2026-11-07T01:00Z",
    "lineBook": "DK",
    "winner": "TOR",
-   "winProb": 0.6847,
-   "homeWinProb": 0.3153,
+   "winProb": 0.66442,
+   "homeWinProb": 0.33558,
    "mlHome": 211,
    "mlAway": -257,
    "spread": 6.5,
    "atsPick": "A",
-   "atsProb": 0.555,
-   "fairSpread": 7.99578,
+   "atsProb": 0.53648,
+   "fairSpread": 7.03452,
    "total": 230.5,
    "totalPick": "U",
-   "totalProb": 0.50484,
-   "fairTotal": 230.65862
+   "totalProb": 0.50852,
+   "fairTotal": 230.35848
   },
   {
    "gid": "401909293",
@@ -495,8 +496,8 @@
    "winner": "SA",
    "winProb": 0.80942,
    "homeWinProb": 0.19058,
-   "mlHome": 680,
-   "mlAway": -1040,
+   "mlHome": 740,
+   "mlAway": -1180,
    "spread": 16.5,
    "atsPick": "H",
    "atsProb": 0.51538,
@@ -672,7 +673,7 @@
    "DAL": [
     {
      "name": "Max Christie",
-     "inj": "PROB"
+     "inj": "Prob"
     },
     {
      "name": "Cooper Flagg",
@@ -695,15 +696,15 @@
   "401909291": {
    "OKC": [
     {
+     "name": "Alex Caruso",
+     "inj": null
+    },
+    {
      "name": "Shai Gilgeous-Alexander",
      "inj": null
     },
     {
      "name": "Isaiah Hartenstein",
-     "inj": null
-    },
-    {
-     "name": "Aday Mara",
      "inj": null
     },
     {
@@ -818,7 +819,7 @@
     },
     {
      "name": "Trey Murphy III",
-     "inj": "PROB"
+     "inj": "Prob"
     },
     {
      "name": "Dejounte Murray",
