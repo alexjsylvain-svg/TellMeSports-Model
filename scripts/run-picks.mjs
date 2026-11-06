@@ -56,7 +56,10 @@ console.log("freezePicks:", JSON.stringify(fr));
 if (!fr.ok || fr.date !== D) await fail(`freezePicks: ${fr.error || JSON.stringify(fr)}`);
 const bd = await page.evaluate(() => exportBoard());
 console.log("exportBoard:", JSON.stringify(bd));
-if (!bd.ok || (!ONLY.length && bd.picks !== bd.picksFrozen)) await fail(`exportBoard: ${JSON.stringify(bd)}`);
+// every frozen pick should show on the board as a pick, except placed bets: the board lists tonight's current line, so a bet
+// placed at a line that has since moved isn't a board row
+const nPlaced = picksOf(JSON.parse(fs.readFileSync(`tracking/picks-${D}.json`, "utf8"))).filter(b => b.placed).length;
+if (!bd.ok || (!ONLY.length && (bd.picks > bd.picksFrozen || bd.picks < bd.picksFrozen - nPlaced))) await fail(`exportBoard: ${JSON.stringify(bd)} (${nPlaced} placed)`);
 
 const games = await page.evaluate(only => SLATE.games.filter(g => !only.length || only.includes(g.espnId)).map(g => ({ gid: g.espnId,
   line: `${g.away.abbr} @ ${g.home.abbr} ${etTime(g.time)}: ` + (gamePicks(g.espnId).map(b => `${b.bet} ${oddsTxt(b.odds)} ${b.book} (${(b.p * 100).toFixed(0)}%, ${b.stake}u${b.top ? ", top" : ""}${b.season ? `, ${b.season.hit} of ${b.season.n} this season` : ""}${b.def ? `, guarded by ${b.def}` : ""})`).join("; ") || "none (nothing clears 60%)") })), ONLY);
