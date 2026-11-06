@@ -66,7 +66,7 @@ const prev = prevDoc ? picksOf(prevDoc).filter(inScope).map(key) : null;
 const cur = picksOf(JSON.parse(fs.readFileSync(`tracking/picks-${D}.json`, "utf8"))).filter(inScope).map(key);
 const added = prev ? cur.filter(x => !prev.includes(x)) : [], dropped = prev ? prev.filter(x => !cur.includes(x)) : [];
 const changedCard = prev && (added.length || dropped.length);
-const head = ONLY.length ? `### Lineup change ${D}: re-froze ${games.map(g => g.line.split(":")[0]).join(", ")}` : `### Picks ${D}: ${cur.length} picks, ${fr.lockedGames} game(s) locked (already tipped)`;
+const head = ONLY.length ? `### Lineup change ${D}: re-froze ${games.map(g => g.line.split(" ").slice(0, 3).join(" ")).join(", ")}` : `### Picks ${D}: ${cur.length} picks, ${fr.lockedGames} game(s) locked (already tipped)`;
 const md = [head, "", ...(NOTE ? [NOTE, ""] : []), ...games.map(g => `- ${g.line}`), "",
   prev ? (changedCard ? `**Card changed**: added ${added.join(", ") || "none"}; dropped ${dropped.join(", ") || "none"}` : "Same picks as before.") : "First freeze of the day."];
 fs.writeFileSync(OUT, md.join("\n") + "\n");
