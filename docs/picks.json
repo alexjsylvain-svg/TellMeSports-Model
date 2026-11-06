@@ -1,7 +1,7 @@
 {
  "date": "20261106",
- "frozenAt": "2026-11-06T23:37:20.910Z",
- "dataGenerated": "2026-11-06T23:33:24.1087369Z",
+ "frozenAt": "2026-11-06T23:38:06.204Z",
+ "dataGenerated": "2026-11-06T23:33:55.3659327Z",
  "sims": 50000,
  "modelWeight": 0.4,
  "model": {
@@ -57,19 +57,11 @@
  "stake": "each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64% (the flat 1-unit record is graded too)",
  "lockedGames": [],
  "refrozenGames": [
-  "401909287",
-  "401909288",
-  "401909289",
-  "401909290",
-  "401909291",
-  "401909292",
-  "401909293",
-  "401909294",
-  "401909295"
+  "401909287"
  ],
- "previousFreeze": "2026-11-06T21:34:55.163Z",
+ "previousFreeze": "2026-11-06T23:37:20.910Z",
  "gameFrozenAt": {
-  "401909287": "2026-11-06T23:37:20.929Z",
+  "401909287": "2026-11-06T23:38:06.204Z",
   "401909288": "2026-11-06T23:37:20.929Z",
   "401909289": "2026-11-06T23:37:20.929Z",
   "401909290": "2026-11-06T23:37:20.929Z",
@@ -204,48 +196,6 @@
   },
   {
    "set": "recommended",
-   "gid": "401909287",
-   "game": "WSH @ ATL",
-   "mkt": "Prop",
-   "bet": "Aaron Wiggins under 2.5 AST",
-   "book": "FAN",
-   "odds": -150,
-   "side": "Under",
-   "hl": null,
-   "tl": null,
-   "player": "Aaron Wiggins",
-   "stat": "AST",
-   "line": 2.5,
-   "thr": null,
-   "pSim": 0.6963,
-   "pBlend": 0.6349920127774202,
-   "ev": 0.0583200212957003,
-   "top": false,
-   "stake": 0.5,
-   "mean": 1.92604,
-   "season": {
-    "hit": 6,
-    "n": 9,
-    "vals": [
-     0,
-     1,
-     2,
-     3,
-     3,
-     3,
-     1,
-     2,
-     2
-    ],
-    "opp": "WSH",
-    "h2h": [
-     2
-    ]
-   },
-   "def": "Felix Okpara"
-  },
-  {
-   "set": "recommended",
    "gid": "401909289",
    "game": "PHI @ CLE",
    "mkt": "Prop",
@@ -363,29 +313,51 @@
     "h2h": []
    },
    "def": "Scottie Barnes"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909287",
+   "game": "WSH @ ATL",
+   "mkt": "Prop",
+   "bet": "Aaron Wiggins under 2.5 AST",
+   "book": "FAN",
+   "odds": -150,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Aaron Wiggins",
+   "stat": "AST",
+   "line": 2.5,
+   "thr": null,
+   "pSim": 0.6963,
+   "pBlend": 0.6349920127774202,
+   "ev": 0.0583200212957003,
+   "top": false,
+   "stake": 0.5,
+   "mean": 1.92604,
+   "season": {
+    "hit": 6,
+    "n": 9,
+    "vals": [
+     0,
+     1,
+     2,
+     3,
+     3,
+     3,
+     1,
+     2,
+     2
+    ],
+    "opp": "WSH",
+    "h2h": [
+     2
+    ]
+   },
+   "def": "Felix Okpara"
   }
  ],
  "calls": [
-  {
-   "gid": "401909287",
-   "away": "WSH",
-   "home": "ATL",
-   "time": "2026-11-07T00:00Z",
-   "lineBook": "DK",
-   "winner": "ATL",
-   "winProb": 0.6679,
-   "homeWinProb": 0.6679,
-   "mlHome": -309,
-   "mlAway": 250,
-   "spread": -8.5,
-   "atsPick": "A",
-   "atsProb": 0.5013,
-   "fairSpread": -7.41572,
-   "total": 227.5,
-   "totalPick": "O",
-   "totalProb": 0.508,
-   "fairTotal": 228.12612
-  },
   {
    "gid": "401909288",
    "away": "BOS",
@@ -545,6 +517,26 @@
    "totalPick": "O",
    "totalProb": 0.50818,
    "fairTotal": 232.1594
+  },
+  {
+   "gid": "401909287",
+   "away": "WSH",
+   "home": "ATL",
+   "time": "2026-11-07T00:00Z",
+   "lineBook": "DK",
+   "winner": "ATL",
+   "winProb": 0.6679,
+   "homeWinProb": 0.6679,
+   "mlHome": -309,
+   "mlAway": 250,
+   "spread": -8.5,
+   "atsPick": "A",
+   "atsProb": 0.5013,
+   "fairSpread": -7.41572,
+   "total": 227.5,
+   "totalPick": "O",
+   "totalProb": 0.508,
+   "fairTotal": 228.12612
   }
  ],
  "starters": {
