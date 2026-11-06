@@ -1,0 +1,31 @@
+# Checks whether each data source the picks build uses answers from GitHub's servers (status, size, and a content marker).
+name: Probe data sources
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe
+        run: |
+          D=$(TZ=America/New_York date +%Y%m%d)
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"
+          echo "## Data sources from GitHub ($D, runner IP $(curl -s https://api.ipify.org))" >> "$GITHUB_STEP_SUMMARY"
+          echo "| source | HTTP | bytes | marker found |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          probe(){ # name url marker
+            code=$(curl -s -L -A "$UA" -o body.tmp -w "%{http_code}" --max-time 40 "$2"); n=$(wc -c < body.tmp)
+            if grep -q -- "$3" body.tmp; then m=yes; else m="no: $(head -c 120 body.tmp | tr -d '\n|`')"; fi
+            echo "| $1 | $code | $n | $m |" >> "$GITHUB_STEP_SUMMARY"; echo "$1 $code $n $m"; sleep 3; }
+          probe "ESPN scoreboard" "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=$D" '"events"'
+          probe "ESPN roster" "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/1/roster" '"athletes"'
+          probe "Action Network lines" "https://api.actionnetwork.com/web/v2/scoreboard/nba?bookIds=30,68,69,2988,123,15&date=$D&periods=event" '"games"'
+          probe "Action Network Fanatics props" "https://api.actionnetwork.com/web/v2/scoreboard/nba/markets?bookIds=2988&customPickTypes=core_bet_type_27_points&date=$D" '"markets"'
+          probe "FanDuel NBA page" "https://sbapi.nj.sportsbook.fanduel.com/api/content-managed-page?page=CUSTOM&customPageId=nba&pbHorizontal=false&_ak=FhMFpcPWXMeyZxOx&timezone=America%2FNew_York" '"attachments"'
+          probe "RotoWire lineups" "https://www.rotowire.com/basketball/nba-lineups.php" 'lineup__abbr'
+          probe "BBRef 2026 per game" "https://www.basketball-reference.com/leagues/NBA_2026_per_game.html" 'per_game_stats'
+          probe "BBRef 2026 season" "https://www.basketball-reference.com/leagues/NBA_2026.html" 'advanced-team'
+          probe "BBRef 2027 per game" "https://www.basketball-reference.com/leagues/NBA_2027_per_game.html" 'per_game_stats'
