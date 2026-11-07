@@ -1012,9 +1012,7 @@ async function runAll(){
     await runOne(g,f=>{ $("prog").style.width=((k+f)/gs.length*100)+"%"; }); renderGrid(); }
   $("status").textContent=`${gs.length} games × ${sims().toLocaleString()} sims in ${((performance.now()-t0)/1000).toFixed(1)}s`;
   renderBets(); renderGrid(); renderDetail(); $("runAll").disabled=false; $("rerunGame").disabled=false;
-  if(!LIVE.data){ try{ const r=await fetch("live.json",{cache:"no-store"}); if(r.ok) LIVE.data=await r.json(); }catch(e){} }
-  const preMsg=$("status").textContent;
-  if(LIVE.data){ renderLive(); await runLive(); renderLive(); $("status").textContent=`${preMsg} · ${Object.keys(LIVE.res).length} live games re-simulated`; }
+  LIVE.base=$("status").textContent; await refreshDesktopLive();
 }
 async function rerunSel(){ if(!SEL) return; const g=SLATE.games.find(x=>x.espnId===SEL); $("rerunGame").disabled=true; $("status").textContent=`Rerunning ${g.away.abbr} @ ${g.home.abbr}…`;
   await runOne(g,f=>{ $("prog").style.width=(f*100)+"%"; }); TYPICAL[SEL]=null; renderBets(); renderGrid(); renderDetail(); $("status").textContent=`Reran ${g.away.abbr} @ ${g.home.abbr}`; $("rerunGame").disabled=false; }
@@ -1797,13 +1795,13 @@ async function runLive(){
   const gs=LIVE.data.games.filter(lg=>SLATE.games.some(g=>g.espnId===lg.espnId));
   for(let k=0;k<gs.length;k++){ const lg=gs[k], g=SLATE.games.find(x=>x.espnId===lg.espnId);
     $("status").textContent=`Simulating the rest of ${g.away.abbr} @ ${g.home.abbr} from the live state (${k+1}/${gs.length})…`;
-    LIVE.res[lg.espnId]=await runGame(g,{n:sims(),seed:seedFor(g)+7,live:lg});
+    LIVE.res[lg.espnId]=await runGame(g,{n:5000,seed:seedFor(g)+7,live:lg});   // 5,000 a game, as the section says (re-run every minute)
     renderLive(); }
 }
 function renderLive(){
   const d=LIVE.data; if(!d||!d.games.length){ $("liveSec").hidden=true; return; }
   $("liveSec").hidden=false;
-  $("liveMeta").textContent=`Live snapshot ${new Date(d.generated).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})} ET · ${d.games.filter(x=>x.state==="in").length} in progress · ${d.games.filter(x=>x.state==="post").length} final`;
+  $("liveMeta").textContent=`${d.src==="espn"?"Live from ESPN, checked":"Live snapshot"} ${new Date(d.generated).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})} ET · ${d.games.filter(x=>x.state==="in").length} in progress · ${d.games.filter(x=>x.state==="post").length} final`;
   $("liveGrid").innerHTML=d.games.map(lg=>{
     const g=SLATE.games.find(x=>x.espnId===lg.espnId); if(!g) return "";
     const A=g.away.abbr, H=g.home.abbr, res=LIVE.res[lg.espnId], pre=cons(g), fin=lg.state==="post";
@@ -1853,6 +1851,48 @@ fetch("slate.json",{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP
 // sim's whole outcome distribution for the calculator), live.json (the latest live snapshot), season.json (every graded pick)
 // and boxes.json (final box lines, for grading the bets you track). It never runs the sims.
 // Tracked bets live in the artifact's database under placed/, readable and writable by the owner only.
+// ---------- Live feed (both views) ----------
+// Live data read straight from ESPN (scores, clock, box scores) and Action Network (in-game lines) on the viewer's own device,
+// in the same shape as live.ps1's live.json. Hosted on GitHub Pages this needs no computer of ours at all. Inside claude.ai the
+// sandbox blocks other hosts, so the page falls back to the published live.json there.
+const ESPN="https://site.api.espn.com/apis/site/v2/sports/basketball/nba/";
+const jget=u=>fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(new Error("HTTP "+r.status)));
+function espnBox(s){ return (s.boxscore?.players||[]).map(tp=>{ const st=tp.statistics?.[0]||{}, labels=st.labels||[];
+  return {abbr:tp.team?.abbreviation, players:(st.athletes||[]).map(a=>{ const row={name:a.athlete?.displayName||"", starter:!!a.starter, dnp:!!a.didNotPlay, ejected:!!a.ejected, reason:a.reason||null};
+    labels.forEach((lab,k)=>{ const v=a.stats?.[k]; if(v==null) return; const m=/^(\d+)-(\d+)$/.exec(v); if(m){ row[lab+"M"]=+m[1]; row[lab+"A"]=+m[2]; } else row[lab]=/^[+-]?\d+$/.test(v)?+v:null; });
+    return row; })}; }); }
+const AN_BOOKS={68:"DK",69:"FD",2988:"FAN",123:"CZR"};
+async function anLines(d){ try{ const j=await jget(`https://api.actionnetwork.com/web/v2/scoreboard/nba?bookIds=68,69,2988,123&date=${d}&periods=event`), out={};
+  for(const g of j.games||[]){ if(g.status!=="inprogress") continue; const home=(g.teams||[]).find(t=>t.id===g.home_team_id), lines={};
+    for(const [id,bk] of Object.entries(AN_BOOKS)){ const m=g.markets?.[id], ev=m?.live||m?.event; if(!ev) continue; const f=(a,sd)=>(a||[]).find(x=>x.side===sd)||{};
+      const sh=f(ev.spread,"home"), sa=f(ev.spread,"away"), ov=f(ev.total,"over"), un=f(ev.total,"under"), mh=f(ev.moneyline,"home"), ma=f(ev.moneyline,"away");
+      lines[bk]={spread:sh.value,spreadHome:sh.odds,spreadAway:sa.odds,total:ov.value,over:ov.odds,under:un.odds,mlHome:mh.odds,mlAway:ma.odds}; }
+    // keyed by the home nickname ("Suns"), which ESPN and Action Network spell the same way
+    if(home&&Object.keys(lines).length) out[String(home.full_name||"").toLowerCase().split(" ").pop()]=lines; }
+  return out; }catch(e){ return {}; } }
+async function espnLive(d){ const sb=await jget(`${ESPN}scoreboard?dates=${d}`);
+  const evs=(sb.events||[]).filter(e=>e.competitions?.[0]?.status?.type?.state!=="pre");
+  const [sums,lines]=await Promise.all([Promise.all(evs.map(e=>jget(`${ESPN}summary?event=${e.id}`).catch(()=>null))),
+    evs.some(e=>e.competitions[0].status.type.state==="in")?anLines(d):{}]);
+  const games=[]; evs.forEach((e,i)=>{ const s=sums[i]; if(!s) return; const c0=e.competitions[0], st=c0.status, sc={};
+    for(const c of s.header?.competitions?.[0]?.competitors||c0.competitors||[]) sc[c.homeAway]=+c.score||0;
+    const g={espnId:e.id, state:st.type.state, detail:st.type.shortDetail, period:st.period||0, clock:+st.clock||0, away:sc.away??0, home:sc.home??0, teams:espnBox(s)};
+    const k=String(c0.competitors.find(c=>c.homeAway==="home")?.team?.name||"").toLowerCase().split(" ").pop(); if(lines[k]) g.liveLines=lines[k];
+    games.push(g); });
+  return {generated:new Date().toISOString(), src:"espn", date:d, games}; }
+// The full (desktop) view's Live now section: the same feed (published live.json when ESPN can't be reached, as inside
+// claude.ai), checked every minute while games are on and every 5 minutes otherwise; each check re-simulates the live games
+// from their new state. Waits until the pregame slate has been simulated.
+async function liveFeed(d){ try{ return await espnLive(d); }catch(e){ try{ const r=await fetch("live.json",{cache:"no-store"}); return r.ok? await r.json() : null; }catch(_){ return null; } } }
+let LIVE_BUSY=false, LIVE_DT=0;
+async function refreshDesktopLive(){
+  if(PHONE||LIVE_BUSY||!SLATE||!Object.keys(PRICED).length||$("runAll").disabled) return;
+  LIVE_BUSY=true;
+  try{ const l=await liveFeed(SLATE.date); if(!l) return; LIVE.data=l; renderLive(); await runLive(); renderLive();
+    const n=Object.keys(LIVE.res).filter(id=>l.games.some(g=>g.espnId===id)).length;
+    $("status").textContent=(LIVE.base||"")+(n?` · ${n} live game${n>1?"s":""} re-simulated`:""); }
+  finally{ LIVE_BUSY=false; } }
+setInterval(()=>{ if(PHONE||document.visibilityState!=="visible") return; const on=(LIVE.data?.games||[]).some(g=>g.state==="in"); if(on||++LIVE_DT%5===0) refreshDesktopLive(); },60000);
 (()=>{ if(!PHONE) return;
 const app=document.getElementById("phoneApp"), body=document.getElementById("paBody"), sheet=document.getElementById("paSheet"); app.hidden=false; document.body.classList.add("phone");
 const D={picks:null, board:null, live:null, season:null, boxes:null};
@@ -2305,39 +2345,11 @@ app.addEventListener("click",e=>{
 app.addEventListener("input",e=>{ if(e.target.id==="paQ"){ PF.q=e.target.value; PF.n=60; document.getElementById("paPL").innerHTML=propsList(); } });
 app.addEventListener("change",e=>{ const TFK={tfS:"stat",tfD:"side",tfP:"price",tfF:"from",tfT:"to"}[e.target.id]; if(TFK){ TF[TFK]=e.target.value; render(); document.getElementById(e.target.id)?.focus({preventScroll:true}); return; }
   if(e.target.id==="paG"){ PF.game=e.target.value; PF.n=60; render(); } else if(e.target.id==="paAll"){ PF.all=e.target.value==="1"; PF.n=60; render(); } });
-// Live data read straight from ESPN (scores, clock, box scores) and Action Network (in-game lines) on the viewer's own device,
-// in the same shape as live.ps1's live.json. Hosted on GitHub Pages this needs no computer of ours at all. Inside claude.ai the
-// sandbox blocks other hosts, so the page falls back to the published live.json there.
-const ESPN="https://site.api.espn.com/apis/site/v2/sports/basketball/nba/";
-const jget=u=>fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():Promise.reject(new Error("HTTP "+r.status)));
 // the slate night: the card's date, else today in ET (before 5 AM it is still last night's slate)
 const slateDay=()=>tonight()||new Date(Date.now()-5*36e5).toLocaleDateString("en-CA",{timeZone:"America/New_York"}).replace(/-/g,"");
-function espnBox(s){ return (s.boxscore?.players||[]).map(tp=>{ const st=tp.statistics?.[0]||{}, labels=st.labels||[];
-  return {abbr:tp.team?.abbreviation, players:(st.athletes||[]).map(a=>{ const row={name:a.athlete?.displayName||"", starter:!!a.starter, dnp:!!a.didNotPlay, ejected:!!a.ejected, reason:a.reason||null};
-    labels.forEach((lab,k)=>{ const v=a.stats?.[k]; if(v==null) return; const m=/^(\d+)-(\d+)$/.exec(v); if(m){ row[lab+"M"]=+m[1]; row[lab+"A"]=+m[2]; } else row[lab]=/^[+-]?\d+$/.test(v)?+v:null; });
-    return row; })}; }); }
-const AN_BOOKS={68:"DK",69:"FD",2988:"FAN",123:"CZR"};
-async function anLines(d){ try{ const j=await jget(`https://api.actionnetwork.com/web/v2/scoreboard/nba?bookIds=68,69,2988,123&date=${d}&periods=event`), out={};
-  for(const g of j.games||[]){ if(g.status!=="inprogress") continue; const home=(g.teams||[]).find(t=>t.id===g.home_team_id), lines={};
-    for(const [id,bk] of Object.entries(AN_BOOKS)){ const m=g.markets?.[id], ev=m?.live||m?.event; if(!ev) continue; const f=(a,sd)=>(a||[]).find(x=>x.side===sd)||{};
-      const sh=f(ev.spread,"home"), sa=f(ev.spread,"away"), ov=f(ev.total,"over"), un=f(ev.total,"under"), mh=f(ev.moneyline,"home"), ma=f(ev.moneyline,"away");
-      lines[bk]={spread:sh.value,spreadHome:sh.odds,spreadAway:sa.odds,total:ov.value,over:ov.odds,under:un.odds,mlHome:mh.odds,mlAway:ma.odds}; }
-    // keyed by the home nickname ("Suns"), which ESPN and Action Network spell the same way
-    if(home&&Object.keys(lines).length) out[String(home.full_name||"").toLowerCase().split(" ").pop()]=lines; }
-  return out; }catch(e){ return {}; } }
-async function espnLive(){ const d=slateDay(), sb=await jget(`${ESPN}scoreboard?dates=${d}`);
-  const evs=(sb.events||[]).filter(e=>e.competitions?.[0]?.status?.type?.state!=="pre");
-  const [sums,lines]=await Promise.all([Promise.all(evs.map(e=>jget(`${ESPN}summary?event=${e.id}`).catch(()=>null))),
-    evs.some(e=>e.competitions[0].status.type.state==="in")?anLines(d):{}]);
-  const games=[]; evs.forEach((e,i)=>{ const s=sums[i]; if(!s) return; const c0=e.competitions[0], st=c0.status, sc={};
-    for(const c of s.header?.competitions?.[0]?.competitors||c0.competitors||[]) sc[c.homeAway]=+c.score||0;
-    const g={espnId:e.id, state:st.type.state, detail:st.type.shortDetail, period:st.period||0, clock:+st.clock||0, away:sc.away??0, home:sc.home??0, teams:espnBox(s)};
-    const k=String(c0.competitors.find(c=>c.homeAway==="home")?.team?.name||"").toLowerCase().split(" ").pop(); if(lines[k]) g.liveLines=lines[k];
-    games.push(g); });
-  return {generated:new Date().toISOString(), src:"espn", date:d, games}; }
 // ESPN first on every refresh; when it fails (blocked inside claude.ai, or a network hiccup) the published live.json stands in
 // for that refresh only, so one failed request never leaves the page on the published file for the rest of the night
-async function getLive(){ try{ return await espnLive(); }catch(e){ return get("live"); } }
+async function getLive(){ try{ return await espnLive(slateDay()); }catch(e){ return get("live"); } }
 // keeps the live data current: every 20 s while games are on, else every 2 min; re-renders the two tabs that show it
 async function refreshLive(){ const l=await getLive(); if(l) D.live=l; if(TAB==="tonight"||TAB==="live") render(); }
 let LIVE_T=0; setInterval(()=>{ const on=(D.live?.games||[]).some(g=>g.state==="in"); if(document.visibilityState==="visible"&&(on||++LIVE_T%6===0)) refreshLive(); },20000);
