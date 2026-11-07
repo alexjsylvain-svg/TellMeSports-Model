@@ -1917,7 +1917,8 @@ function grade(t){ const b=boxOf(t); if(b.state!=="post") return {res:"PENDING",
 // regulation still to play (each pregame unit lands in the remaining time with that probability). Foul trouble and blowouts
 // aren't modeled here.
 function liveChance(row,lg,cur,side,line){
-  if(!row||!row.cnt?.length||row.stat==="DD") return null; // the thinning below is for counting stats, not a count of 10+ categories const p=lg.period||1, c=(lg.clock||0)/60, left=p<=4?(4-p)*12+c:c;
+  if(!row||!row.cnt?.length||row.stat==="DD") return null; // the thinning below is for counting stats, not a count of 10+ categories
+  const p=lg.period||1, c=(lg.clock||0)/60, left=p<=4?(4-p)*12+c:c;
   const g=Math.max(0,Math.min(1,left/48)), n=row.cnt.reduce((a,b)=>a+b,0); let win=0;
   const ok=k=>side==="Over"?cur+k>line:cur+k<line;
   row.cnt.forEach((cn,i)=>{ if(!cn) return; const x=row.lo+i, w=cn/n;
@@ -2334,8 +2335,9 @@ async function espnLive(){ const d=slateDay(), sb=await jget(`${ESPN}scoreboard?
     const k=String(c0.competitors.find(c=>c.homeAway==="home")?.team?.name||"").toLowerCase().split(" ").pop(); if(lines[k]) g.liveLines=lines[k];
     games.push(g); });
   return {generated:new Date().toISOString(), src:"espn", date:d, games}; }
-let ESPN_OK=null;   // null: not tried yet; false: blocked (claude.ai), so use the published live.json from then on
-async function getLive(){ if(ESPN_OK!==false){ try{ const l=await espnLive(); ESPN_OK=true; return l; }catch(e){ if(ESPN_OK===null) ESPN_OK=false; else return null; } } return get("live"); }
+// ESPN first on every refresh; when it fails (blocked inside claude.ai, or a network hiccup) the published live.json stands in
+// for that refresh only, so one failed request never leaves the page on the published file for the rest of the night
+async function getLive(){ try{ return await espnLive(); }catch(e){ return get("live"); } }
 // keeps the live data current: every 20 s while games are on, else every 2 min; re-renders the two tabs that show it
 async function refreshLive(){ const l=await getLive(); if(l) D.live=l; if(TAB==="tonight"||TAB==="live") render(); }
 let LIVE_T=0; setInterval(()=>{ const on=(D.live?.games||[]).some(g=>g.state==="in"); if(document.visibilityState==="visible"&&(on||++LIVE_T%6===0)) refreshLive(); },20000);
