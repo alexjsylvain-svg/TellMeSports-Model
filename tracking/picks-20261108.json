@@ -1,7 +1,7 @@
 {
  "date": "20261108",
- "frozenAt": "2026-11-08T19:10:09.592Z",
- "dataGenerated": "2026-11-08T19:04:50.5513179Z",
+ "frozenAt": "2026-11-08T20:29:44.483Z",
+ "dataGenerated": "2026-11-08T20:26:59.3805104Z",
  "sims": 50000,
  "modelWeight": 0.4,
  "model": {
@@ -55,9 +55,10 @@
   "book": "FAN"
  },
  "stake": "each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64% (the flat 1-unit record is graded too)",
- "lockedGames": [],
+ "lockedGames": [
+  "401909945"
+ ],
  "refrozenGames": [
-  "401909945",
   "401909946",
   "401909947",
   "401909948",
@@ -65,15 +66,15 @@
   "401909950",
   "401909951"
  ],
- "previousFreeze": "2026-11-08T12:52:04.087Z",
+ "previousFreeze": "2026-11-08T19:10:09.592Z",
  "gameFrozenAt": {
   "401909945": "2026-11-08T19:10:09.592Z",
-  "401909946": "2026-11-08T19:10:09.592Z",
-  "401909947": "2026-11-08T19:10:09.592Z",
-  "401909948": "2026-11-08T19:10:09.592Z",
-  "401909949": "2026-11-08T19:10:09.592Z",
-  "401909950": "2026-11-08T19:10:09.592Z",
-  "401909951": "2026-11-08T19:10:09.592Z"
+  "401909946": "2026-11-08T20:29:44.502Z",
+  "401909947": "2026-11-08T20:29:44.502Z",
+  "401909948": "2026-11-08T20:29:44.502Z",
+  "401909949": "2026-11-08T20:29:44.502Z",
+  "401909950": "2026-11-08T20:29:44.502Z",
+  "401909951": "2026-11-08T20:29:44.502Z"
  },
  "notes": "recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
  "bets": [
@@ -247,45 +248,6 @@
   },
   {
    "set": "recommended",
-   "gid": "401909948",
-   "game": "BKN @ DAL",
-   "mkt": "Prop",
-   "bet": "Cooper Flagg under 6.5 AST",
-   "book": "FAN",
-   "odds": -150,
-   "side": "Under",
-   "hl": null,
-   "tl": null,
-   "player": "Cooper Flagg",
-   "stat": "AST",
-   "line": 6.5,
-   "thr": null,
-   "pSim": 0.67566,
-   "pBlend": 0.6378762383057804,
-   "ev": 0.06312706384296729,
-   "top": false,
-   "stake": 0.5,
-   "mean": 5.51548,
-   "season": {
-    "hit": 5,
-    "n": 8,
-    "vals": [
-     2,
-     6,
-     11,
-     8,
-     6,
-     6,
-     5,
-     7
-    ],
-    "opp": "BKN",
-    "h2h": []
-   },
-   "def": "Julius Randle"
-  },
-  {
-   "set": "recommended",
    "gid": "401909951",
    "game": "MIA @ SAC",
    "mkt": "Prop",
@@ -354,8 +316,8 @@
    "winner": "DET",
    "winProb": 0.66018,
    "homeWinProb": 0.66018,
-   "mlHome": -269,
-   "mlAway": 220,
+   "mlHome": -264,
+   "mlAway": 217,
    "spread": -7.5,
    "atsPick": "H",
    "atsProb": 0.50576,
@@ -394,8 +356,8 @@
    "winner": "DAL",
    "winProb": 0.65804,
    "homeWinProb": 0.65804,
-   "mlHome": -325,
-   "mlAway": 262,
+   "mlHome": -305,
+   "mlAway": 248,
    "spread": -7.5,
    "atsPick": "H",
    "atsProb": 0.5086,
@@ -412,18 +374,18 @@
    "time": "2026-11-09T01:00Z",
    "lineBook": "DK",
    "winner": "BOS",
-   "winProb": 0.7653,
-   "homeWinProb": 0.2347,
-   "mlHome": 530,
-   "mlAway": -750,
+   "winProb": 0.7458,
+   "homeWinProb": 0.2542,
+   "mlHome": 527,
+   "mlAway": -740,
    "spread": 12.5,
-   "atsPick": "A",
-   "atsProb": 0.50346,
-   "fairSpread": 13.03236,
-   "total": 222.5,
+   "atsPick": "H",
+   "atsProb": 0.52364,
+   "fairSpread": 11.8028,
+   "total": 221.5,
    "totalPick": "O",
-   "totalProb": 0.5279,
-   "fairTotal": 224.0812
+   "totalProb": 0.50064,
+   "fairTotal": 221.91716
   },
   {
    "gid": "401909950",
