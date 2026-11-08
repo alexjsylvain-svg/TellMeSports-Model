@@ -6,6 +6,7 @@
 //                                                                    games still ahead, for the board) and re-freeze only them
 // Writes a markdown report to report.md, and picks-changed.txt = a one-line "added …; dropped …" when the card changed.
 import fs from "node:fs";
+import { execSync } from "node:child_process";
 import puppeteer from "puppeteer-core";
 
 const args = process.argv.slice(2), D = args[0], OUT = args[1] && !args[1].startsWith("--") ? args[1] : "picks-report.md";
@@ -13,6 +14,7 @@ const ONLY = (args.find(a => a.startsWith("--only=")) || "").slice(7).split(",")
 const NOTE = (args.find(a => a.startsWith("--note=")) || "").slice(7);
 if (!/^\d{8}$/.test(D)) { console.error("date YYYYMMDD required"); process.exit(2); }
 fs.writeFileSync("picks-changed.txt", "");
+fs.rmSync("picks-skip.txt", { force: true });
 const chrome = process.env.CHROME_PATH || "/usr/bin/google-chrome";
 const browser = await puppeteer.launch({ executablePath: chrome, headless: true, protocolTimeout: 15 * 60000,
   args: ["--no-sandbox", "--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows"] });
@@ -24,10 +26,30 @@ const fail = async msg => { console.error(msg); fs.writeFileSync(OUT, `### Picks
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const t0 = Date.now(), secs = () => Math.round((Date.now() - t0) / 1000);
 const picksOf = doc => (doc?.bets || []).filter(b => b.set === "recommended");
+const PICKS = `tracking/picks-${D}.json`;
+// On GitHub the checkout is from when the run started and the sims take about 5 minutes; meanwhile the PC's pre-tip lineup
+// check, a placed bet or the user's lock may land on GitHub (Nov 7: Run 18 clashed with the PC's 7:06 PM lineup re-freeze and
+// couldn't push). So right before freezing, take GitHub's newest card: the freeze then builds on it (its previousFreeze is that
+// card's frozenAt, which push-site.ps1 checks before settling a clash), and a card locked in the meantime is left alone.
+async function takeLatestCard() {
+  if (process.env.GITHUB_ACTIONS) {
+    let txt = null;
+    try { execSync("git fetch -q origin main", { stdio: "inherit" }); txt = execSync(`git show FETCH_HEAD:${PICKS}`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }); }
+    catch (e) { console.log(`no newer card from GitHub (${e.message.split("\n")[0]}); freezing on the checkout's`); }
+    if (txt !== null && txt !== (fs.existsSync(PICKS) ? fs.readFileSync(PICKS, "utf8") : null)) {
+      fs.writeFileSync(PICKS, txt); console.log(`took GitHub's newer card (frozen ${JSON.parse(txt).frozenAt})`); }
+  }
+  const doc = fs.existsSync(PICKS) ? JSON.parse(fs.readFileSync(PICKS, "utf8")) : null;
+  if (doc?.final) {
+    const msg = `### Picks ${D}: not re-frozen\n\nTonight's card was locked (final) while the sims ran; nothing changed.\n`;
+    console.log(msg); fs.writeFileSync(OUT, msg); fs.writeFileSync("picks-skip.txt", "final"); await browser.close(); process.exit(0);
+  }
+  return doc;
+}
 
 const url = ONLY.length ? `http://localhost:8765/?view=full&sims=50000&norun=1&lineups=${D}` : `http://localhost:8765/?view=full&sims=50000&run=${D}`;
 await page.goto(url, { waitUntil: "load", timeout: 120000 });
-const prevDoc = await page.evaluate(async d => await fetch(`/tracking/picks-${d}.json?x=` + Date.now()).then(r => r.ok ? r.json() : null), D);
+let prevDoc = await page.evaluate(async d => await fetch(`/tracking/picks-${d}.json?x=` + Date.now()).then(r => r.ok ? r.json() : null), D);
 let fr;
 if (!ONLY.length) {
   let last = "";
@@ -42,6 +64,7 @@ if (!ONLY.length) {
     await wait(5000);
   }
   console.log(`sims done in ${secs()}s`);
+  prevDoc = (await takeLatestCard()) || prevDoc;
   fr = await page.evaluate(() => freezePicks({ overwrite: true }));
 } else {
   for (;;) { const d = await page.evaluate(() => typeof SLATE !== "undefined" && SLATE ? SLATE.date : null); if (d === D) break;
@@ -50,6 +73,7 @@ if (!ONLY.length) {
   // changed games first, then every other game that hasn't tipped (so the board covers them)
   const order = await page.evaluate(only => [...only, ...SLATE.games.filter(g => !only.includes(g.espnId) && new Date(g.time).getTime() > Date.now() + 10 * 60000).map(g => g.espnId)], ONLY);
   for (const id of order) { await page.evaluate(id => runOne(SLATE.games.find(g => g.espnId === id)).then(() => true), id); console.log(`${secs()}s simulated ${id}`); }
+  prevDoc = (await takeLatestCard()) || prevDoc;
   fr = await page.evaluate(only => freezePicks({ overwrite: true, only }), ONLY);
 }
 console.log("freezePicks:", JSON.stringify(fr));

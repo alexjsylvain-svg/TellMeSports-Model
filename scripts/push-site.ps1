@@ -32,9 +32,44 @@ git commit -q -m $Message 2>$null
 if($LASTEXITCODE -ne 0){ throw "git commit failed (exit $LASTEXITCODE)" }
 "committed $($staged.Count) files: $(($Message -split "`n")[0])"
 if($NoPush){ "not pushed (-NoPush)"; exit 0 }
-# GitHub Actions also commits here (nightly grading), so take its commits first and put ours on top
+# GitHub Actions and the PC both commit here (picks refreshes, lineup re-freezes, grading), so take GitHub's commits first and
+# put ours on top. Two freezes can clash in the data files: on Nov 7 GitHub's 7:05 PM refresh and the PC's 7:06 lineup re-freeze
+# both rewrote tonight's card, the refresh couldn't push, and a Re-run (same old checkout) failed the same way.
+# A clash only in the generated data files is settled by keeping our files when that is safe: our card was frozen on top of
+# GitHub's (its previousFreeze is GitHub's frozenAt), GitHub's card isn't locked, and every bet placed on GitHub's card is still
+# placed on ours. Otherwise our commit is set aside on a branch and local main is matched to GitHub, so the next run starts clean.
+function Get-Card($rev){ $t = (git show "${rev}:tracking/picks-$D.json" 2>$null) -join "`n"; if($LASTEXITCODE -ne 0 -or -not $t){ return $null }; $t | ConvertFrom-Json }
+function Set-Aside([string]$why, [switch]$Fail){
+  git rebase --abort 2>$null
+  $b = "unpushed/$D-$(Get-Date -Format HHmmss)"; git branch -f $b HEAD 2>$null
+  if(@(git status --porcelain --untracked-files=no).Count){ git stash push -q -m "push-site: changes left when setting aside $b" 2>$null }
+  git reset -q --hard origin/main 2>$null
+  $msg = "$why. Our commit is kept on branch $b, not pushed; local main now matches GitHub."
+  if($Fail){ throw $msg }; $msg; exit 0
+}
 $out = git -c core.autocrlf=false pull --rebase --autostash -q origin main 2>&1 | % { "$_" }
-if($LASTEXITCODE -ne 0){ git rebase --abort 2>$null; $out; throw "git pull --rebase failed (exit $LASTEXITCODE); local commit kept, not pushed" }
+if($LASTEXITCODE -ne 0){
+  $out
+  $conf = @(git diff --name-only --diff-filter=U)
+  # not a content clash (network, sign-in): keep our commit here for the next try, as before
+  if(-not $conf.Count){ git rebase --abort 2>$null; throw "git pull --rebase failed; local commit kept, not pushed" }
+  $gen = '^(docs/[^/]+\.json|site/(slate|live)\.json|tracking/(board|picks)-\d{8}\.json|tracking/live-state-\d{8}\.json)$'
+  $other = @($conf | ? { $_ -notmatch $gen })
+  if($other.Count){ Set-Aside "git pull --rebase clashed in $($other -join ', '), which isn't generated data" -Fail }
+  $gh = Get-Card "HEAD"; $mine = Get-Card "REBASE_HEAD"   # mid-rebase, HEAD is GitHub's tip and REBASE_HEAD is our commit
+  if($gh.final){ Set-Aside "tonight's card was locked on GitHub meanwhile, and a locked card never changes" }
+  if($gh -and $mine){
+    if("$($mine.previousFreeze)" -ne "$($gh.frozenAt)" -and "$($mine.frozenAt)" -ne "$($gh.frozenAt)"){
+      Set-Aside "GitHub has a newer card (frozen $($gh.frozenAt)) than the one ours was built on ($($mine.previousFreeze))" -Fail }
+    $lost = @($gh.bets | ? { $_.placed } | ? { $p = $_; -not @($mine.bets | ? { $_.placed -and $_.gid -eq $p.gid -and $_.bet -eq $p.bet }).Count } | % { $_.bet })
+    if($lost.Count){ Set-Aside "our card would drop placed bets ($($lost -join '; '))" -Fail }
+  }
+  foreach($f in $conf){ git checkout --theirs -- $f 2>$null; git add -- $f 2>$null }
+  $env:GIT_EDITOR = "true"
+  $out = git -c core.autocrlf=false -c core.safecrlf=false rebase --continue 2>&1 | % { "$_" }
+  if($LASTEXITCODE -ne 0){ $out; Set-Aside "couldn't finish the rebase after settling $($conf -join ', ')" -Fail }
+  "settled a clash in $($conf -join ', '): our card was frozen on top of GitHub's newest, so ours is kept"
+}
 $out = git push origin main 2>&1 | % { "$_" }
 if($LASTEXITCODE -ne 0){ $out; throw "git push failed (exit $LASTEXITCODE)" }
 "pushed to GitHub"
