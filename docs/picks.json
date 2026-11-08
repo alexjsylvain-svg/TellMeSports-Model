@@ -1,799 +1,781 @@
 {
-    "date":  "20261107",
-    "frozenAt":  "2026-11-07T21:37:10.265Z",
-    "dataGenerated":  "2026-11-07T21:33:19.8625467Z",
-    "sims":  50000,
-    "modelWeight":  0.4,
-    "model":  {
-                  "hca":  1,
-                  "effAdj":  0,
-                  "paceSD":  0.035,
-                  "minSD":  0.15,
-                  "teamDefW":  0.3,
-                  "oneStat":  false,
-                  "formP":  0.05,
-                  "formU":  0.22,
-                  "formR":  0.22,
-                  "formT":  0.015,
-                  "fouls":  true,
-                  "nsFoul":  0.1,
-                  "blowDyn":  true,
-                  "rotBench":  4,
-                  "anchor":  1,
-                  "stPlus":  0,
-                  "stKnee":  99,
-                  "stSlope":  1,
-                  "usgExp":  1.25,
-                  "defW":  1,
-                  "curOn":  true,
-                  "curK":  1.5,
-                  "curRateK":  150,
-                  "curAstK":  null,
-                  "curAstKMoved":  null,
-                  "benchCap":  true,
-                  "benchCapPlus":  3,
-                  "benchCapTo":  "hard",
-                  "curDef":  true,
-                  "curDefK":  10,
-                  "defMatch":  "threat",
-                  "formF":  0,
-                  "mktTeamW":  1,
-                  "foulDef":  1.5,
-                  "benchFoul":  1.5,
-                  "foulCaution":  true,
-                  "ownGap":  0,
-                  "ownGapLine":  false,
-                  "seasonMin":  0.5,
-                  "seasonMinN":  3,
-                  "ownW":  0,
-                  "underMinGap":  0,
-                  "newMinG":  3,
-                  "teamAst":  false,
-                  "teamAstK":  5,
-                  "astCtx":  0.5,
-                  "astCtxRef":  71,
-                  "book":  "FAN"
-              },
-    "stake":  "each bet\u0027s stake field: 2u at 66%+, 1.5u at 64â€“66%, 0.5u at 60â€“64% (the flat 1-unit record is graded too)",
-    "lockedGames":  [
-
-                    ],
-    "refrozenGames":  [
-                          "401909938",
-                          "401909939",
-                          "401909940",
-                          "401909941",
-                          "401909942",
-                          "401909943",
-                          "401909944"
-                      ],
-    "previousFreeze":  "2026-11-07T20:15:46.470Z",
-    "gameFrozenAt":  {
-                         "401909938":  "2026-11-07T21:37:10.416Z",
-                         "401909939":  "2026-11-07T21:37:10.416Z",
-                         "401909940":  "2026-11-07T21:37:10.416Z",
-                         "401909941":  "2026-11-07T21:37:10.416Z",
-                         "401909942":  "2026-11-07T21:37:10.416Z",
-                         "401909943":  "2026-11-07T21:37:10.416Z",
-                         "401909944":  "2026-11-07T21:37:10.416Z"
-                     },
-    "notes":  "recommended = the page\u0027s two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game\u0027s picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
-    "bets":  [
-                 {
-                     "set":  "recommended",
-                     "gid":  "401909944",
-                     "game":  "SA @ POR",
-                     "mkt":  "Prop",
-                     "bet":  "Scoot Henderson under 3.5 AST",
-                     "book":  "FAN",
-                     "odds":  -140,
-                     "side":  "Under",
-                     "hl":  null,
-                     "tl":  null,
-                     "player":  "Scoot Henderson",
-                     "stat":  "AST",
-                     "line":  3.5,
-                     "thr":  null,
-                     "pSim":  0.81884,
-                     "pBlend":  0.7394526053660757,
-                     "ev":  0.2676330377704156,
-                     "top":  true,
-                     "stake":  2,
-                     "mean":  2.148,
-                     "season":  {
-                                    "hit":  8,
-                                    "n":  8,
-                                    "vals":  [
-                                                 1,
-                                                 2,
-                                                 3,
-                                                 0,
-                                                 1,
-                                                 2,
-                                                 1,
-                                                 0
-                                             ],
-                                    "opp":  "SA",
-                                    "h2h":  [
-
-                                            ]
-                                },
-                     "def":  "De\u0027Aaron Fox",
-                     "placed":  true,
-                     "placedAt":  "2026-11-07T22:18:13.7123921Z"
-                 },
-                 {
-                     "set":  "recommended",
-                     "gid":  "401909939",
-                     "game":  "BKN @ ATL",
-                     "mkt":  "Prop",
-                     "bet":  "Nolan Traore under 4.5 AST",
-                     "book":  "FAN",
-                     "odds":  -150,
-                     "side":  "Under",
-                     "hl":  null,
-                     "tl":  null,
-                     "player":  "Nolan Traore",
-                     "stat":  "AST",
-                     "line":  4.5,
-                     "thr":  null,
-                     "pSim":  0.6837,
-                     "pBlend":  0.6434025532908568,
-                     "ev":  0.0723375888180946,
-                     "top":  true,
-                     "stake":  1.5,
-                     "mean":  3.6909,
-                     "season":  {
-                                    "hit":  6,
-                                    "n":  8,
-                                    "vals":  [
-                                                 0,
-                                                 0,
-                                                 5,
-                                                 3,
-                                                 2,
-                                                 6,
-                                                 4,
-                                                 2
-                                             ],
-                                    "opp":  "ATL",
-                                    "h2h":  [
-
-                                            ]
-                                },
-                     "def":  "CJ McCollum",
-                     "placed":  true,
-                     "placedAt":  "2026-11-07T22:18:13.7123921Z"
-                 },
-                 {
-                     "set":  "recommended",
-                     "gid":  "401909939",
-                     "game":  "BKN @ ATL",
-                     "mkt":  "Prop",
-                     "bet":  "CJ McCollum over 19.5 PRA",
-                     "book":  "FAN",
-                     "odds":  -115,
-                     "side":  "Over",
-                     "hl":  null,
-                     "tl":  null,
-                     "player":  "CJ McCollum",
-                     "stat":  "PRA",
-                     "line":  19.5,
-                     "thr":  null,
-                     "pSim":  0.72604,
-                     "pBlend":  0.6194728861824526,
-                     "ev":  0.15814496112371557,
-                     "top":  false,
-                     "stake":  0.5,
-                     "mean":  25.12724,
-                     "season":  {
-                                    "hit":  5,
-                                    "n":  10,
-                                    "vals":  [
-                                                 24,
-                                                 16,
-                                                 20,
-                                                 24,
-                                                 16,
-                                                 16,
-                                                 18,
-                                                 34,
-                                                 25,
-                                                 11
-                                             ],
-                                    "opp":  "BKN",
-                                    "h2h":  [
-
-                                            ]
-                                },
-                     "def":  "Nolan Traore"
-                 },
-                 {
-                     "set":  "recommended",
-                     "gid":  "401909941",
-                     "game":  "WSH @ OKC",
-                     "mkt":  "Prop",
-                     "bet":  "Alex Caruso over 13.5 PRA",
-                     "book":  "FAN",
-                     "odds":  -115,
-                     "side":  "Over",
-                     "hl":  null,
-                     "tl":  null,
-                     "player":  "Alex Caruso",
-                     "stat":  "PRA",
-                     "line":  13.5,
-                     "thr":  null,
-                     "pSim":  0.77392,
-                     "pBlend":  0.6491465294636093,
-                     "ev":  0.21362177247544334,
-                     "top":  true,
-                     "stake":  1.5,
-                     "mean":  18.92508,
-                     "season":  {
-                                    "hit":  5,
-                                    "n":  6,
-                                    "vals":  [
-                                                 16,
-                                                 16,
-                                                 25,
-                                                 14,
-                                                 14,
-                                                 13
-                                             ],
-                                    "opp":  "WSH",
-                                    "h2h":  [
-
-                                            ]
-                                },
-                     "def":  "Kyshawn George",
-                     "placed":  true,
-                     "placedAt":  "2026-11-07T22:18:13.7123921Z"
-                 },
-                 {
-                     "set":  "recommended",
-                     "gid":  "401909941",
-                     "game":  "WSH @ OKC",
-                     "mkt":  "Prop",
-                     "bet":  "AJ Dybantsa under 24.5 PRA",
-                     "book":  "FAN",
-                     "odds":  -105,
-                     "side":  "Under",
-                     "hl":  null,
-                     "tl":  null,
-                     "player":  "AJ Dybantsa",
-                     "stat":  "PRA",
-                     "line":  24.5,
-                     "thr":  null,
-                     "pSim":  0.7282,
-                     "pBlend":  0.6111439095731925,
-                     "ev":  0.19318572821432828,
-                     "top":  false,
-                     "stake":  0.5,
-                     "mean":  20.10418,
-                     "season":  {
-                                    "hit":  3,
-                                    "n":  5,
-                                    "vals":  [
-                                                 23,
-                                                 26,
-                                                 28,
-                                                 18,
-                                                 23
-                                             ],
-                                    "opp":  "OKC",
-                                    "h2h":  [
-
-                                            ]
-                                },
-                     "def":  "Ajay Mitchell"
-                 },
-                 {
-                     "set":  "recommended",
-                     "gid":  "401909944",
-                     "game":  "SA @ POR",
-                     "mkt":  "Prop",
-                     "bet":  "Stephon Castle under 6.5 AST",
-                     "book":  "FAN",
-                     "odds":  -150,
-                     "side":  "Under",
-                     "hl":  null,
-                     "tl":  null,
-                     "player":  "Stephon Castle",
-                     "stat":  "AST",
-                     "line":  6.5,
-                     "thr":  null,
-                     "pSim":  0.68472,
-                     "pBlend":  0.6441062663806423,
-                     "ev":  0.07351044396773704,
-                     "top":  true,
-                     "stake":  1.5,
-                     "mean":  5.41606,
-                     "season":  {
-                                    "hit":  6,
-                                    "n":  9,
-                                    "vals":  [
-                                                 1,
-                                                 5,
-                                                 8,
-                                                 5,
-                                                 8,
-                                                 4,
-                                                 4,
-                                                 3,
-                                                 7
-                                             ],
-                                    "opp":  "POR",
-                                    "h2h":  [
-
-                                            ]
-                                },
-                     "def":  "Damian Lillard"
-                 }
-             ],
-    "calls":  [
-                  {
-                      "gid":  "401909938",
-                      "away":  "DEN",
-                      "home":  "IND",
-                      "time":  "2026-11-07T22:00Z",
-                      "lineBook":  "DK",
-                      "winner":  "DEN",
-                      "winProb":  0.6980999999999999,
-                      "homeWinProb":  0.3019,
-                      "mlHome":  261,
-                      "mlAway":  -324,
-                      "spread":  7.5,
-                      "atsPick":  "A",
-                      "atsProb":  0.55286,
-                      "fairSpread":  8.47562,
-                      "total":  229.5,
-                      "totalPick":  "U",
-                      "totalProb":  0.52864,
-                      "fairTotal":  228.50146
-                  },
-                  {
-                      "gid":  "401909939",
-                      "away":  "BKN",
-                      "home":  "ATL",
-                      "time":  "2026-11-08T00:30Z",
-                      "lineBook":  "DK",
-                      "winner":  "ATL",
-                      "winProb":  0.62632,
-                      "homeWinProb":  0.62632,
-                      "mlHome":  -283,
-                      "mlAway":  231,
-                      "spread":  -6.5,
-                      "atsPick":  "H",
-                      "atsProb":  0.50482,
-                      "fairSpread":  -5.89412,
-                      "total":  226.5,
-                      "totalPick":  "U",
-                      "totalProb":  0.50458,
-                      "fairTotal":  226.48184
-                  },
-                  {
-                      "gid":  "401909940",
-                      "away":  "NY",
-                      "home":  "CLE",
-                      "time":  "2026-11-08T01:00Z",
-                      "lineBook":  "DK",
-                      "winner":  "NY",
-                      "winProb":  0.62524,
-                      "homeWinProb":  0.37476,
-                      "mlHome":  179,
-                      "mlAway":  -216,
-                      "spread":  5.5,
-                      "atsPick":  "A",
-                      "atsProb":  0.52934,
-                      "fairSpread":  5.05146,
-                      "total":  223.5,
-                      "totalPick":  "U",
-                      "totalProb":  0.51988,
-                      "fairTotal":  222.82454
-                  },
-                  {
-                      "gid":  "401909941",
-                      "away":  "WSH",
-                      "home":  "OKC",
-                      "time":  "2026-11-08T01:00Z",
-                      "lineBook":  "DK",
-                      "winner":  "OKC",
-                      "winProb":  0.7789,
-                      "homeWinProb":  0.7789,
-                      "mlHome":  -570,
-                      "mlAway":  427,
-                      "spread":  -11.5,
-                      "atsPick":  "H",
-                      "atsProb":  0.54244,
-                      "fairSpread":  -12.6,
-                      "total":  223.5,
-                      "totalPick":  "O",
-                      "totalProb":  0.52318,
-                      "fairTotal":  224.89188
-                  },
-                  {
-                      "gid":  "401909942",
-                      "away":  "ORL",
-                      "home":  "GS",
-                      "time":  "2026-11-08T01:30Z",
-                      "lineBook":  "DK",
-                      "winner":  "GS",
-                      "winProb":  0.6605,
-                      "homeWinProb":  0.6605,
-                      "mlHome":  -284,
-                      "mlAway":  231,
-                      "spread":  -7.5,
-                      "atsPick":  "H",
-                      "atsProb":  0.51772,
-                      "fairSpread":  -7.18822,
-                      "total":  219.5,
-                      "totalPick":  "U",
-                      "totalProb":  0.5065,
-                      "fairTotal":  219.57018
-                  },
-                  {
-                      "gid":  "401909943",
-                      "away":  "HOU",
-                      "home":  "PHX",
-                      "time":  "2026-11-08T02:00Z",
-                      "lineBook":  "DK",
-                      "winner":  "HOU",
-                      "winProb":  0.6683600000000001,
-                      "homeWinProb":  0.33164,
-                      "mlHome":  221,
-                      "mlAway":  -270,
-                      "spread":  6.5,
-                      "atsPick":  "A",
-                      "atsProb":  0.54056,
-                      "fairSpread":  6.94208,
-                      "total":  224.5,
-                      "totalPick":  "U",
-                      "totalProb":  0.52136,
-                      "fairTotal":  223.77972
-                  },
-                  {
-                      "gid":  "401909944",
-                      "away":  "SA",
-                      "home":  "POR",
-                      "time":  "2026-11-08T03:00Z",
-                      "lineBook":  "DK",
-                      "winner":  "SA",
-                      "winProb":  0.61206,
-                      "homeWinProb":  0.38794,
-                      "mlHome":  171,
-                      "mlAway":  -205,
-                      "spread":  5.5,
-                      "atsPick":  "A",
-                      "atsProb":  0.5142,
-                      "fairSpread":  5.01244,
-                      "total":  229.5,
-                      "totalPick":  "U",
-                      "totalProb":  0.50104,
-                      "fairTotal":  229.752
-                  }
-              ],
-    "starters":  {
-                     "401909938":  {
-                                       "DEN":  [
-                                                   {
-                                                       "name":  "Christian Braun",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Aaron Gordon",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Cameron Johnson",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Nikola Jokic",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Jamal Murray",
-                                                       "inj":  null
-                                                   }
-                                               ],
-                                       "IND":  [
-                                                   {
-                                                       "name":  "Andrew Nembhard",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Aaron Nesmith",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Kelly Oubre Jr.",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Pascal Siakam",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Ivica Zubac",
-                                                       "inj":  null
-                                                   }
-                                               ]
-                                   },
-                     "401909939":  {
-                                       "BKN":  [
-                                                   {
-                                                       "name":  "Chaney Johnson",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Michael Porter Jr.",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Julius Randle",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Day\u0027Ron Sharpe",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Nolan Traore",
-                                                       "inj":  null
-                                                   }
-                                               ],
-                                       "ATL":  [
-                                                   {
-                                                       "name":  "Nickeil Alexander-Walker",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Dyson Daniels",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Kingston Flemings",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Jalen Johnson",
-                                                       "inj":  "Prob"
-                                                   },
-                                                   {
-                                                       "name":  "Onyeka Okongwu",
-                                                       "inj":  null
-                                                   }
-                                               ]
-                                   },
-                     "401909940":  {
-                                       "NY":  [
-                                                  {
-                                                      "name":  "OG Anunoby",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Mikal Bridges",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Jalen Brunson",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Landry Shamet",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Karl-Anthony Towns",
-                                                      "inj":  null
-                                                  }
-                                              ],
-                                       "CLE":  [
-                                                   {
-                                                       "name":  "James Harden",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Donovan Mitchell",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Evan Mobley",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Meleek Thomas",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Peyton Watson",
-                                                       "inj":  null
-                                                   }
-                                               ]
-                                   },
-                     "401909941":  {
-                                       "WSH":  [
-                                                   {
-                                                       "name":  "Anthony Davis",
-                                                       "inj":  "Ques"
-                                                   },
-                                                   {
-                                                       "name":  "AJ Dybantsa",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Kyshawn George",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Alex Sarr",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Trae Young",
-                                                       "inj":  null
-                                                   }
-                                               ],
-                                       "OKC":  [
-                                                   {
-                                                       "name":  "Alex Caruso",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Shai Gilgeous-Alexander",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Isaiah Hartenstein",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Ajay Mitchell",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Kenrich Williams",
-                                                       "inj":  null
-                                                   }
-                                               ]
-                                   },
-                     "401909942":  {
-                                       "ORL":  [
-                                                   {
-                                                       "name":  "Anthony Black",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Wendell Carter Jr.",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Tristan da Silva",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Jase Richardson",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Franz Wagner",
-                                                       "inj":  null
-                                                   }
-                                               ],
-                                       "GS":  [
-                                                  {
-                                                      "name":  "Stephen Curry",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Draymond Green",
-                                                      "inj":  "Ques"
-                                                  },
-                                                  {
-                                                      "name":  "Yaxel Lendeborg",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Brandin Podziemski",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Gui Santos",
-                                                      "inj":  "Ques"
-                                                  }
-                                              ]
-                                   },
-                     "401909943":  {
-                                       "HOU":  [
-                                                   {
-                                                       "name":  "Kevin Durant",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Alperen Sengun",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Jabari Smith Jr.",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Amen Thompson",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Fred VanVleet",
-                                                       "inj":  null
-                                                   }
-                                               ],
-                                       "PHX":  [
-                                                   {
-                                                       "name":  "Devin Booker",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Miles Bridges",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Dillon Brooks",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Jalen Green",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Oso Ighodaro",
-                                                       "inj":  null
-                                                   }
-                                               ]
-                                   },
-                     "401909944":  {
-                                       "SA":  [
-                                                  {
-                                                      "name":  "Stephon Castle",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "De\u0027Aaron Fox",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Dylan Harper",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Devin Vassell",
-                                                      "inj":  null
-                                                  },
-                                                  {
-                                                      "name":  "Victor Wembanyama",
-                                                      "inj":  null
-                                                  }
-                                              ],
-                                       "POR":  [
-                                                   {
-                                                       "name":  "Deni Avdija",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Toumani Camara",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Donovan Clingan",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Scoot Henderson",
-                                                       "inj":  null
-                                                   },
-                                                   {
-                                                       "name":  "Damian Lillard",
-                                                       "inj":  null
-                                                   }
-                                               ]
-                                   }
-                 }
+ "date": "20261107",
+ "frozenAt": "2026-11-08T00:06:34.327Z",
+ "dataGenerated": "2026-11-08T00:03:34.7021522Z",
+ "sims": 50000,
+ "modelWeight": 0.4,
+ "model": {
+  "hca": 1,
+  "effAdj": 0,
+  "paceSD": 0.035,
+  "minSD": 0.15,
+  "teamDefW": 0.3,
+  "oneStat": false,
+  "formP": 0.05,
+  "formU": 0.22,
+  "formR": 0.22,
+  "formT": 0.015,
+  "fouls": true,
+  "nsFoul": 0.1,
+  "blowDyn": true,
+  "rotBench": 4,
+  "anchor": 1,
+  "stPlus": 0,
+  "stKnee": 99,
+  "stSlope": 1,
+  "usgExp": 1.25,
+  "defW": 1,
+  "curOn": true,
+  "curK": 1.5,
+  "curRateK": 150,
+  "curAstK": null,
+  "curAstKMoved": null,
+  "benchCap": true,
+  "benchCapPlus": 3,
+  "benchCapTo": "hard",
+  "curDef": true,
+  "curDefK": 10,
+  "defMatch": "threat",
+  "formF": 0,
+  "mktTeamW": 1,
+  "foulDef": 1.5,
+  "benchFoul": 1.5,
+  "foulCaution": true,
+  "ownGap": 0,
+  "ownGapLine": false,
+  "seasonMin": 0.5,
+  "seasonMinN": 3,
+  "ownW": 0,
+  "underMinGap": 0,
+  "newMinG": 3,
+  "teamAst": false,
+  "teamAstK": 5,
+  "astCtx": 0.5,
+  "astCtxRef": 71,
+  "book": "FAN"
+ },
+ "stake": "each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64% (the flat 1-unit record is graded too)",
+ "lockedGames": [
+  "401909938"
+ ],
+ "refrozenGames": [
+  "401909939"
+ ],
+ "previousFreeze": "2026-11-07T21:37:10.265Z",
+ "gameFrozenAt": {
+  "401909938": "2026-11-07T21:37:10.416Z",
+  "401909939": "2026-11-08T00:06:34.328Z",
+  "401909940": "2026-11-07T21:37:10.416Z",
+  "401909941": "2026-11-07T21:37:10.416Z",
+  "401909942": "2026-11-07T21:37:10.416Z",
+  "401909943": "2026-11-07T21:37:10.416Z",
+  "401909944": "2026-11-07T21:37:10.416Z"
+ },
+ "notes": "recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
+ "bets": [
+  {
+   "set": "recommended",
+   "gid": "401909944",
+   "game": "SA @ POR",
+   "mkt": "Prop",
+   "bet": "Scoot Henderson under 3.5 AST",
+   "book": "FAN",
+   "odds": -140,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Scoot Henderson",
+   "stat": "AST",
+   "line": 3.5,
+   "thr": null,
+   "pSim": 0.81884,
+   "pBlend": 0.7394526053660757,
+   "ev": 0.2676330377704156,
+   "top": true,
+   "stake": 2,
+   "mean": 2.148,
+   "season": {
+    "hit": 8,
+    "n": 8,
+    "vals": [
+     1,
+     2,
+     3,
+     0,
+     1,
+     2,
+     1,
+     0
+    ],
+    "opp": "SA",
+    "h2h": []
+   },
+   "def": "De'Aaron Fox",
+   "placed": true,
+   "placedAt": "2026-11-07T22:18:13.7123921Z"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909939",
+   "game": "BKN @ ATL",
+   "mkt": "Prop",
+   "bet": "Nolan Traore under 4.5 AST",
+   "book": "FAN",
+   "odds": -150,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Nolan Traore",
+   "stat": "AST",
+   "line": 4.5,
+   "thr": null,
+   "pSim": 0.6837,
+   "pBlend": 0.6434025532908568,
+   "ev": 0.0723375888180946,
+   "top": true,
+   "stake": 1.5,
+   "mean": 3.6909,
+   "season": {
+    "hit": 6,
+    "n": 8,
+    "vals": [
+     0,
+     0,
+     5,
+     3,
+     2,
+     6,
+     4,
+     2
+    ],
+    "opp": "ATL",
+    "h2h": []
+   },
+   "def": "CJ McCollum",
+   "placed": true,
+   "placedAt": "2026-11-07T22:18:13.7123921Z"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909941",
+   "game": "WSH @ OKC",
+   "mkt": "Prop",
+   "bet": "Alex Caruso over 13.5 PRA",
+   "book": "FAN",
+   "odds": -115,
+   "side": "Over",
+   "hl": null,
+   "tl": null,
+   "player": "Alex Caruso",
+   "stat": "PRA",
+   "line": 13.5,
+   "thr": null,
+   "pSim": 0.77392,
+   "pBlend": 0.6491465294636093,
+   "ev": 0.21362177247544334,
+   "top": true,
+   "stake": 1.5,
+   "mean": 18.92508,
+   "season": {
+    "hit": 5,
+    "n": 6,
+    "vals": [
+     16,
+     16,
+     25,
+     14,
+     14,
+     13
+    ],
+    "opp": "WSH",
+    "h2h": []
+   },
+   "def": "Kyshawn George",
+   "placed": true,
+   "placedAt": "2026-11-07T22:18:13.7123921Z"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909941",
+   "game": "WSH @ OKC",
+   "mkt": "Prop",
+   "bet": "AJ Dybantsa under 24.5 PRA",
+   "book": "FAN",
+   "odds": -105,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "AJ Dybantsa",
+   "stat": "PRA",
+   "line": 24.5,
+   "thr": null,
+   "pSim": 0.7282,
+   "pBlend": 0.6111439095731925,
+   "ev": 0.19318572821432828,
+   "top": false,
+   "stake": 0.5,
+   "mean": 20.10418,
+   "season": {
+    "hit": 3,
+    "n": 5,
+    "vals": [
+     23,
+     26,
+     28,
+     18,
+     23
+    ],
+    "opp": "OKC",
+    "h2h": []
+   },
+   "def": "Ajay Mitchell"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909944",
+   "game": "SA @ POR",
+   "mkt": "Prop",
+   "bet": "Stephon Castle under 6.5 AST",
+   "book": "FAN",
+   "odds": -150,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Stephon Castle",
+   "stat": "AST",
+   "line": 6.5,
+   "thr": null,
+   "pSim": 0.68472,
+   "pBlend": 0.6441062663806423,
+   "ev": 0.07351044396773704,
+   "top": true,
+   "stake": 1.5,
+   "mean": 5.41606,
+   "season": {
+    "hit": 6,
+    "n": 9,
+    "vals": [
+     1,
+     5,
+     8,
+     5,
+     8,
+     4,
+     4,
+     3,
+     7
+    ],
+    "opp": "POR",
+    "h2h": []
+   },
+   "def": "Damian Lillard"
+  },
+  {
+   "set": "recommended",
+   "gid": "401909939",
+   "game": "BKN @ ATL",
+   "mkt": "Prop",
+   "bet": "Luguentz Dort under 15.5 PRA",
+   "book": "FAN",
+   "odds": -115,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Luguentz Dort",
+   "stat": "PRA",
+   "line": 15.5,
+   "thr": null,
+   "pSim": 0.7578,
+   "pBlend": 0.6121271082948346,
+   "ev": 0.14441155029034292,
+   "top": false,
+   "stake": 0.5,
+   "mean": 11.84088,
+   "season": {
+    "hit": 7,
+    "n": 10,
+    "vals": [
+     12,
+     16,
+     12,
+     14,
+     14,
+     11,
+     14,
+     16,
+     12,
+     36
+    ],
+    "opp": "BKN",
+    "h2h": []
+   },
+   "def": "Tyler Bilodeau"
+  }
+ ],
+ "calls": [
+  {
+   "gid": "401909938",
+   "away": "DEN",
+   "home": "IND",
+   "time": "2026-11-07T22:00Z",
+   "lineBook": "DK",
+   "winner": "DEN",
+   "winProb": 0.6980999999999999,
+   "homeWinProb": 0.3019,
+   "mlHome": 261,
+   "mlAway": -324,
+   "spread": 7.5,
+   "atsPick": "A",
+   "atsProb": 0.55286,
+   "fairSpread": 8.47562,
+   "total": 229.5,
+   "totalPick": "U",
+   "totalProb": 0.52864,
+   "fairTotal": 228.50146
+  },
+  {
+   "gid": "401909940",
+   "away": "NY",
+   "home": "CLE",
+   "time": "2026-11-08T01:00Z",
+   "lineBook": "DK",
+   "winner": "NY",
+   "winProb": 0.62524,
+   "homeWinProb": 0.37476,
+   "mlHome": 179,
+   "mlAway": -216,
+   "spread": 5.5,
+   "atsPick": "A",
+   "atsProb": 0.52934,
+   "fairSpread": 5.05146,
+   "total": 223.5,
+   "totalPick": "U",
+   "totalProb": 0.51988,
+   "fairTotal": 222.82454
+  },
+  {
+   "gid": "401909941",
+   "away": "WSH",
+   "home": "OKC",
+   "time": "2026-11-08T01:00Z",
+   "lineBook": "DK",
+   "winner": "OKC",
+   "winProb": 0.7789,
+   "homeWinProb": 0.7789,
+   "mlHome": -570,
+   "mlAway": 427,
+   "spread": -11.5,
+   "atsPick": "H",
+   "atsProb": 0.54244,
+   "fairSpread": -12.6,
+   "total": 223.5,
+   "totalPick": "O",
+   "totalProb": 0.52318,
+   "fairTotal": 224.89188
+  },
+  {
+   "gid": "401909942",
+   "away": "ORL",
+   "home": "GS",
+   "time": "2026-11-08T01:30Z",
+   "lineBook": "DK",
+   "winner": "GS",
+   "winProb": 0.6605,
+   "homeWinProb": 0.6605,
+   "mlHome": -284,
+   "mlAway": 231,
+   "spread": -7.5,
+   "atsPick": "H",
+   "atsProb": 0.51772,
+   "fairSpread": -7.18822,
+   "total": 219.5,
+   "totalPick": "U",
+   "totalProb": 0.5065,
+   "fairTotal": 219.57018
+  },
+  {
+   "gid": "401909943",
+   "away": "HOU",
+   "home": "PHX",
+   "time": "2026-11-08T02:00Z",
+   "lineBook": "DK",
+   "winner": "HOU",
+   "winProb": 0.6683600000000001,
+   "homeWinProb": 0.33164,
+   "mlHome": 221,
+   "mlAway": -270,
+   "spread": 6.5,
+   "atsPick": "A",
+   "atsProb": 0.54056,
+   "fairSpread": 6.94208,
+   "total": 224.5,
+   "totalPick": "U",
+   "totalProb": 0.52136,
+   "fairTotal": 223.77972
+  },
+  {
+   "gid": "401909944",
+   "away": "SA",
+   "home": "POR",
+   "time": "2026-11-08T03:00Z",
+   "lineBook": "DK",
+   "winner": "SA",
+   "winProb": 0.61206,
+   "homeWinProb": 0.38794,
+   "mlHome": 171,
+   "mlAway": -205,
+   "spread": 5.5,
+   "atsPick": "A",
+   "atsProb": 0.5142,
+   "fairSpread": 5.01244,
+   "total": 229.5,
+   "totalPick": "U",
+   "totalProb": 0.50104,
+   "fairTotal": 229.752
+  },
+  {
+   "gid": "401909939",
+   "away": "BKN",
+   "home": "ATL",
+   "time": "2026-11-08T00:30Z",
+   "lineBook": "DK",
+   "winner": "ATL",
+   "winProb": 0.62274,
+   "homeWinProb": 0.62274,
+   "mlHome": -283,
+   "mlAway": 231,
+   "spread": -6.5,
+   "atsPick": "A",
+   "atsProb": 0.50218,
+   "fairSpread": -5.5037,
+   "total": 226.5,
+   "totalPick": "U",
+   "totalProb": 0.5039,
+   "fairTotal": 226.62802
+  }
+ ],
+ "starters": {
+  "401909938": {
+   "DEN": [
+    {
+     "name": "Christian Braun",
+     "inj": null
+    },
+    {
+     "name": "Aaron Gordon",
+     "inj": null
+    },
+    {
+     "name": "Cameron Johnson",
+     "inj": null
+    },
+    {
+     "name": "Nikola Jokic",
+     "inj": null
+    },
+    {
+     "name": "Jamal Murray",
+     "inj": null
+    }
+   ],
+   "IND": [
+    {
+     "name": "Andrew Nembhard",
+     "inj": null
+    },
+    {
+     "name": "Aaron Nesmith",
+     "inj": null
+    },
+    {
+     "name": "Kelly Oubre Jr.",
+     "inj": null
+    },
+    {
+     "name": "Pascal Siakam",
+     "inj": null
+    },
+    {
+     "name": "Ivica Zubac",
+     "inj": null
+    }
+   ]
+  },
+  "401909939": {
+   "BKN": [
+    {
+     "name": "Chaney Johnson",
+     "inj": null
+    },
+    {
+     "name": "Michael Porter Jr.",
+     "inj": null
+    },
+    {
+     "name": "Julius Randle",
+     "inj": null
+    },
+    {
+     "name": "Day'Ron Sharpe",
+     "inj": null
+    },
+    {
+     "name": "Nolan Traore",
+     "inj": null
+    }
+   ],
+   "ATL": [
+    {
+     "name": "Nickeil Alexander-Walker",
+     "inj": null
+    },
+    {
+     "name": "Dyson Daniels",
+     "inj": null
+    },
+    {
+     "name": "Kingston Flemings",
+     "inj": null
+    },
+    {
+     "name": "Jalen Johnson",
+     "inj": null
+    },
+    {
+     "name": "Onyeka Okongwu",
+     "inj": null
+    }
+   ]
+  },
+  "401909940": {
+   "NY": [
+    {
+     "name": "OG Anunoby",
+     "inj": null
+    },
+    {
+     "name": "Mikal Bridges",
+     "inj": null
+    },
+    {
+     "name": "Jalen Brunson",
+     "inj": null
+    },
+    {
+     "name": "Landry Shamet",
+     "inj": null
+    },
+    {
+     "name": "Karl-Anthony Towns",
+     "inj": null
+    }
+   ],
+   "CLE": [
+    {
+     "name": "James Harden",
+     "inj": null
+    },
+    {
+     "name": "Donovan Mitchell",
+     "inj": null
+    },
+    {
+     "name": "Evan Mobley",
+     "inj": null
+    },
+    {
+     "name": "Meleek Thomas",
+     "inj": null
+    },
+    {
+     "name": "Peyton Watson",
+     "inj": null
+    }
+   ]
+  },
+  "401909941": {
+   "WSH": [
+    {
+     "name": "Anthony Davis",
+     "inj": "Ques"
+    },
+    {
+     "name": "AJ Dybantsa",
+     "inj": null
+    },
+    {
+     "name": "Kyshawn George",
+     "inj": null
+    },
+    {
+     "name": "Alex Sarr",
+     "inj": null
+    },
+    {
+     "name": "Trae Young",
+     "inj": null
+    }
+   ],
+   "OKC": [
+    {
+     "name": "Alex Caruso",
+     "inj": null
+    },
+    {
+     "name": "Shai Gilgeous-Alexander",
+     "inj": null
+    },
+    {
+     "name": "Isaiah Hartenstein",
+     "inj": null
+    },
+    {
+     "name": "Ajay Mitchell",
+     "inj": null
+    },
+    {
+     "name": "Kenrich Williams",
+     "inj": null
+    }
+   ]
+  },
+  "401909942": {
+   "ORL": [
+    {
+     "name": "Anthony Black",
+     "inj": null
+    },
+    {
+     "name": "Wendell Carter Jr.",
+     "inj": null
+    },
+    {
+     "name": "Tristan da Silva",
+     "inj": null
+    },
+    {
+     "name": "Jase Richardson",
+     "inj": null
+    },
+    {
+     "name": "Franz Wagner",
+     "inj": null
+    }
+   ],
+   "GS": [
+    {
+     "name": "Stephen Curry",
+     "inj": null
+    },
+    {
+     "name": "Draymond Green",
+     "inj": "Ques"
+    },
+    {
+     "name": "Yaxel Lendeborg",
+     "inj": null
+    },
+    {
+     "name": "Brandin Podziemski",
+     "inj": null
+    },
+    {
+     "name": "Gui Santos",
+     "inj": "Ques"
+    }
+   ]
+  },
+  "401909943": {
+   "HOU": [
+    {
+     "name": "Kevin Durant",
+     "inj": null
+    },
+    {
+     "name": "Alperen Sengun",
+     "inj": null
+    },
+    {
+     "name": "Jabari Smith Jr.",
+     "inj": null
+    },
+    {
+     "name": "Amen Thompson",
+     "inj": null
+    },
+    {
+     "name": "Fred VanVleet",
+     "inj": null
+    }
+   ],
+   "PHX": [
+    {
+     "name": "Devin Booker",
+     "inj": null
+    },
+    {
+     "name": "Miles Bridges",
+     "inj": null
+    },
+    {
+     "name": "Dillon Brooks",
+     "inj": null
+    },
+    {
+     "name": "Jalen Green",
+     "inj": null
+    },
+    {
+     "name": "Oso Ighodaro",
+     "inj": null
+    }
+   ]
+  },
+  "401909944": {
+   "SA": [
+    {
+     "name": "Stephon Castle",
+     "inj": null
+    },
+    {
+     "name": "De'Aaron Fox",
+     "inj": null
+    },
+    {
+     "name": "Dylan Harper",
+     "inj": null
+    },
+    {
+     "name": "Devin Vassell",
+     "inj": null
+    },
+    {
+     "name": "Victor Wembanyama",
+     "inj": null
+    }
+   ],
+   "POR": [
+    {
+     "name": "Deni Avdija",
+     "inj": null
+    },
+    {
+     "name": "Toumani Camara",
+     "inj": null
+    },
+    {
+     "name": "Donovan Clingan",
+     "inj": null
+    },
+    {
+     "name": "Scoot Henderson",
+     "inj": null
+    },
+    {
+     "name": "Damian Lillard",
+     "inj": null
+    }
+   ]
+  }
+ }
 }
