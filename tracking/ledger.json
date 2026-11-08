@@ -1,5 +1,5 @@
 {
-    "updated":  "2026-11-08T12:01:01.9100098Z",
+    "updated":  "2026-11-08T12:16:01.5953152Z",
     "nights":  [
                    {
                        "date":  "20261021",
@@ -923,14 +923,14 @@
                        "sets":  {
                                     "recommended":  {
                                                         "w":  5,
-                                                        "l":  2,
+                                                        "l":  3,
                                                         "p":  0,
                                                         "void":  0,
                                                         "pending":  0,
-                                                        "units":  1.58,
-                                                        "roi":  0.226,
-                                                        "staked":  0.53,
-                                                        "risked":  8
+                                                        "units":  0.59,
+                                                        "roi":  0.074,
+                                                        "staked":  -0.97,
+                                                        "risked":  9.5
                                                     },
                                     "page":  {
                                                  "w":  0,
@@ -979,12 +979,12 @@
     "toDate":  {
                    "recommended":  {
                                        "w":  90,
-                                       "l":  62,
+                                       "l":  63,
                                        "p":  0,
-                                       "units":  9.36,
-                                       "roi":  0.062,
-                                       "staked":  14.28,
-                                       "risked":  76.0
+                                       "units":  8.37,
+                                       "roi":  0.055,
+                                       "staked":  12.78,
+                                       "risked":  77.5
                                    },
                    "page":  {
                                 "w":  10,

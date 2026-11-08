@@ -1,19 +1,19 @@
 {
     "date":  "20261107",
-    "gradedAt":  "2026-11-08T12:01:01.8248064Z",
+    "gradedAt":  "2026-11-08T12:16:01.5403055Z",
     "gamesFinal":  7,
     "gamesTotal":  7,
     "sets":  {
                  "recommended":  {
                                      "w":  5,
-                                     "l":  2,
+                                     "l":  3,
                                      "p":  0,
                                      "void":  0,
                                      "pending":  0,
-                                     "units":  1.58,
-                                     "roi":  0.226,
-                                     "staked":  0.53,
-                                     "risked":  8
+                                     "units":  0.59,
+                                     "roi":  0.074,
+                                     "staked":  -0.97,
+                                     "risked":  9.5
                                  },
                  "page":  {
                               "w":  0,
@@ -59,14 +59,14 @@
               },
     "bets":  [
                  {
-                     "set":  "placed",
+                     "set":  "recommended",
                      "game":  "WSH @ OKC",
                      "gid":  "401909941",
                      "mkt":  "Prop",
                      "bet":  "AJ Dybantsa under 26.5 PRA",
                      "book":  "FAN",
                      "odds":  -120,
-                     "pBlend":  0.65,
+                     "pBlend":  0.6523,
                      "result":  "LOSS",
                      "actual":  "28 PRA",
                      "units":  -1,

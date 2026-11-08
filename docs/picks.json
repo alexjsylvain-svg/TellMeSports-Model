@@ -81,7 +81,7 @@
  "notes": "recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
  "bets": [
   {
-   "set": "placed",
+   "set": "recommended",
    "gid": "401909941",
    "game": "WSH @ OKC",
    "mkt": "Prop",
@@ -95,11 +95,15 @@
    "stat": "PRA",
    "line": 26.5,
    "thr": null,
-   "pBlend": 0.65,
+   "pSim": 0.7716,
+   "pBlend": 0.6523,
+   "ev": 0.1958,
+   "top": false,
+   "mean": 20.79,
    "stake": 1.5,
    "placed": true,
    "placedAt": "2026-11-08T00:10:00Z",
-   "note": "the user's own bet, off the locked card (the 7:05 PM run's pick, which never saved); graded, not counted in the card's record"
+   "note": "model pick from the 7:05 PM run (its save failed in a clash with the PC's lineup check), placed by the user before the final freeze; counts in the card's record like the other placed picks"
   },  {
    "set": "recommended",
    "gid": "401909944",
