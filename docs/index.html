@@ -1659,6 +1659,9 @@ async function freezePicks(opts={}){
   const isPlaced=b=>placed.some(x=>x.gid===b.gid&&x.bet===b.bet);
   const recommended=[...placed, ...kept.filter(b=>b.set==="recommended"&&!isPlaced(b)),
     ...open.flatMap(g=>gamePicks(g.espnId, placed.filter(b=>b.gid===g.espnId)).filter(b=>!isPlaced(b)).map(b=>slim(b,"recommended")))];
+  // plus-money alternatives: listed under the card, graded as set "alt"; a placed one is a card pick (placed:true) instead
+  const alts=[...kept.filter(b=>b.set==="alt"&&!isPlaced(b)),
+    ...open.flatMap(g=>gamePicks(g.espnId, placed.filter(b=>b.gid===g.espnId), {alts:true}).filter(b=>b.tier==="value"&&!isPlaced(b)).map(b=>slim(b,"alt")))];
   const board=[]; // the best-bets board is gone: only the two picks per game are tracked
   const keptCalls=(prev?.calls||[]).filter(c=>held.has(c.gid));
   // the projected starters (and their injury tags) each game's picks were made with, so a pre-tip check can spot lineup changes
@@ -1671,7 +1674,7 @@ async function freezePicks(opts={}){
   const doc={date:SLATE.date, frozenAt:new Date().toISOString(), dataGenerated:SLATE.generated, sims:sims(), modelWeight:modelW(), model:{...G}, stake:"each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%, 0.5u on plus-money value picks (tier \"value\": +100..+150, 50%+, 10%+ edge) (the flat 1-unit record is graded too)",
     lockedGames:[...locked], refrozenGames:open.map(g=>g.espnId), previousFreeze:prev?.frozenAt||null,
     gameFrozenAt:Object.fromEntries(SLATE.games.map(g=>[g.espnId, held.has(g.espnId)? (prev?.gameFrozenAt?.[g.espnId]||prev?.frozenAt||null) : new Date().toISOString()])),
-    notes:"recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen", bets:[...recommended,...board], calls, starters};
+    notes:"recommended = the page's two picks per game (props only, ranked by win probability); alt = plus-money alternatives (+100..+150, 50%+, 10%+ edge, 0.5u), listed under the card and graded on their own, not part of the card; calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen", bets:[...recommended,...alts,...board], calls, starters};
   const r=await fetch(`/upload?name=picks-${SLATE.date}.json${opts.overwrite?"&overwrite=1":""}`,{method:"POST",body:JSON.stringify(doc,null,1)});
   if(r.status===409) return {ok:false, error:`picks-${SLATE.date}.json already exists; pass {overwrite:true} to replace tonight's picks`};
   return {ok:r.ok, date:SLATE.date, recommended:recommended.length, calls:calls.length, lockedGames:locked.size, refrozen:open.map(g=>`${g.away.abbr}@${g.home.abbr}`), keptFromEarlierFreeze:kept.length+keptCalls.length};
@@ -1687,7 +1690,7 @@ function seasonLog(pl,stat){
   return {seasonG:c.g, seasonMin:c.min, log:c.log.map(r=>({d:r.d, opp:r.opp||null, min:r.min, v:val(r), s:[r.pts,r.reb,r.ast,r.fg3]}))}; }
 async function exportBoard(){
   let frozen=null; try{ const r=await fetch(`/tracking/picks-${SLATE.date}.json`,{cache:"no-store"}); if(r.ok) frozen=await r.json(); }catch(e){}
-  const picked=new Set((frozen?.bets||[]).filter(b=>b.set==="recommended").map(b=>b.gid+"|"+b.bet)), rows=[];
+  const picked=new Set((frozen?.bets||[]).filter(b=>b.set==="recommended").map(b=>b.gid+"|"+b.bet)), alted=new Set((frozen?.bets||[]).filter(b=>b.set==="alt").map(b=>b.gid+"|"+b.bet)), rows=[];
   for(const g of SLATE.games){ const gid=g.espnId, P=PRICED[gid], res=RESULTS[gid]; if(!P) continue;
     const unproven=p=>(p.prior||(p.yr&&p.yr.startsWith("2024-25"))) && !(G.newMinG>0 && curGames(p)>=G.newMinG);
     const status=new Map(); res.P.forEach(p=>{ if(p.status==="q") status.set(p.name,"questionable"); else if(unproven(p)) status.set(p.name,p.prior?"rookie, few games":"2024-25 data, few games"); });
@@ -1695,7 +1698,7 @@ async function exportBoard(){
     const lean=new Map();
     for(const b0 of P.props){ const b=ownBlend(b0), k=b.player+"|"+b.stat, cur=lean.get(k); if(!cur||b.p>cur.p) lean.set(k,b); }
     for(const b of lean.values()){ const pl=findPlayer(res,b.player), team=pl?.team||null;
-      const reason = picked.has(gid+"|"+b.bet) ? "pick"
+      const reason = picked.has(gid+"|"+b.bet) ? "pick" : alted.has(gid+"|"+b.bet) ? "plus-money alternative"
         : b.stat==="3PM" ? "no 3PM" : (b.stat==="AST"&&b.side==="Over") ? "no AST overs" : (b.stat==="PRA"&&b.side==="Over") ? "no PRA overs"
         : b.p<MIN_P ? "under 60%" : b.ev<0.05 ? "edge under 5%" : (+b.odds<-150||+b.odds>150) ? "price outside ±150"
         : why.has(b.player) ? why.get(b.player) : (ownGapHit(b)||lossRuleHit(gid,b)) ? "season-rate rule" : "game's 2 picks taken";
@@ -1810,7 +1813,9 @@ function ownBlend(b){
   return {...b, p, pl, ev:evOf(p,pl,b.odds)}; }
 // taken: bets already placed in this game (frozen earlier, placed:true). They fill slots and block their player (and stat, with G.oneStat)
 // like any pick, and only the new picks are returned.
-function gamePicks(gid, taken=[]){
+// alts:true also returns the plus-money value picks (tier "value"). Since Nov 9 (the user's call) they are frozen as set "alt":
+// shown under the card as alternatives and graded as their own record, never counted in the card's plays, units or record.
+function gamePicks(gid, taken=[], {alts=false}={}){
   const P=PRICED[gid]; if(!P) return [];
   // rookies and players on 2024-25 data are judged on this season once they have G.newMinG games; before that they're left out
   // (with fewer than two games they went 2-7 in the Oct 21–28 backtest; none with three or more qualified there, so that part is untested)
@@ -1828,7 +1833,7 @@ function gamePicks(gid, taken=[]){
   // Plus-money value (Nov 9, the user asked to use any edge the data backs): +100..+150 at 50%+ to win with a 10%+ edge, 0.5u,
   // after the main picks, up to three picks a game. 17 nights (scripts\odds-eval.ps1): +6.2u (27-19), 10-11 +0.4u in the first
   // half and 17-8 +5.8u in the second; mostly assist unders. Past +150 only moneyline dogs qualified, and they went 0-8, so the cap stays.
-  const v=all.filter(b=>!c.includes(b)&&+b.odds>=VALUE.lo&&+b.odds<=VALUE.hi&&b.p>=VALUE.minP&&b.ev>=VALUE.minEv);
+  const v=!alts?[]:all.filter(b=>!c.includes(b)&&+b.odds>=VALUE.lo&&+b.odds<=VALUE.hi&&b.p>=VALUE.minP&&b.ev>=VALUE.minEv);
   const picks=[...taken];
   for(const b of [...c.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev)), ...v.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev)).map(b=>({...b,tier:"value"}))]){ if(picks.length>=(b.tier?VALUE.max:2)) continue;
     if(picks.some(p=>p.bet===b.bet||(b.player?p.player===b.player||(G.oneStat&&p.stat===b.stat):!p.player))) continue;
@@ -2196,7 +2201,7 @@ function spark(b){ const row=b.player&&boardRow(b.player,b.stat);
 function pickCard(b){
   const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side);
   return `<article class="pa-card">
-    <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?stake+"u":"track"}</span></div>
+    <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.set==="alt"?` · <span class="pa-st n">alternative</span>`:b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?stake+"u":"track"}</span></div>
     <div><div class="pa-player">${esc(b.player||b.bet)}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div>
     <div class="pa-nums"><div><b>${P1(b.pBlend)}</b><span>win chance</span></div><div><b>${oddsTxt(b.odds)}</b><span>${BOOK[b.book]||esc(b.book)}</span></div><div><b class="up">${SGN(b.ev*100)}%</b><span>exp. profit</span></div></div>
     ${spark(b)}
@@ -2232,6 +2237,11 @@ function parlayCard(list,note,stake=.5){ const ps=[2,3].map(n=>parlayOf(list,n))
     ${x.legs.map(l=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span style="min-width:0">${l.label}</span><span class="pa-small">${oddsTxt(l.odds)} · ${P1(l.p)}</span></div>`).join("")}
     <div class="pa-nums"><div><b>${oddsTxt(x.odds)}</b><span>parlay price</span></div><div><b>${P1(x.p)}</b><span>model chance</span></div><div><b class="${x.ev>0?"up":"dn"}">${SGN(x.ev*100)}%</b><span>exp. profit</span></div></div>
     <p class="pa-note">Wins ${(stake*(x.d-1)).toFixed(2)}u on ${stake}u if every leg hits; a push drops that leg.</p></div>`).join("")}<div class="pa-small" style="margin:-4px 2px 12px">${note}</div>`; }
+// plus-money alternatives (set "alt"): under the card, not part of it; their own record from the season file when there is one
+function altSection(){ const as=(D.picks?.bets||[]).filter(b=>b.set==="alt").sort((a,b)=>(new Date(tip(a.gid)||0)-new Date(tip(b.gid)||0))||(b.pBlend-a.pBlend));
+  if(!as.length) return "";
+  return `<div class="pa-h">Plus-money alternatives</div><div class="pa-card"><div class="pa-small">Not part of the card. Priced +100 to +150, at least a 50% chance to win and a 10%+ edge: the model's best value plays below the card's 60% bar. In testing (17 nights) they went 27-19, +6.2u at 0.5u each, but they're new, so they're tracked separately until they earn a spot on the card.</div></div>
+    ${as.map(pickCard).join("")}`; }
 function rTonight(){
   const P=D.picks; if(!P) return empty("No card yet","Tonight's picks show here once the model has run.");
   const bs=picks().slice().sort((a,b)=>(new Date(tip(a.gid)||0)-new Date(tip(b.gid)||0))||(b.pBlend-a.pBlend));
@@ -2241,10 +2251,11 @@ function rTonight(){
     return `<div class="pa-game"><div class="pa-row"><span class="pa-teams">${esc(A)} <span class="muted" style="font-size:.85rem">@</span> ${esc(H)}</span><span class="pa-small">${clock(c.time)}${n?` · <b>${n} pick${n>1?"s":""}</b>`:""}</span></div>
       <div class="pa-small">Model: <b>${esc(fav)} ${P1(c.winProb)}</b> · fair ${esc(H)} ${SGN(c.fairSpread)} (book ${c.spread>0?"+":""}${c.spread}) · total <b>${c.fairTotal.toFixed(1)}</b> (book ${c.total})</div></div>`; }).join("");
   return `<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win</span></div></div>
-      <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%. Plus-money value plays (+100 to +150, 50%+ to win, 10%+ edge): 0.5u.</div></div>
+      <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%.</div></div>
     ${bs.length?bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
     ${parlayCard(bs.filter(b=>b.tier!=="value"&&!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>({g:b.gid, p:b.pBlend, odds:b.odds, label:`<b>${esc(b.player||b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${esc(short(b.side,b.line,b.stat))}</span>`:""}`})),
       "Built from tonight's likeliest picks, one per game, from games that haven't tipped. Backtest, 17 nights (Oct 21–Nov 8), 1u each: 2 legs 8-7, +9.6u; 3 legs 4-10, +7.1u. One missed leg loses the whole parlay, so keep it small.")}
+    ${altSection()}
     ${myTonight()}
     ${calls.length?`<div class="pa-h">The slate</div><div class="pa-card">${games}</div>`:""}${foot()}`; }
 

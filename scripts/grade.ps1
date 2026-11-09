@@ -87,7 +87,7 @@ function Summ($rows, $field){
   return [ordered]@{ w=$w; l=$l; p=$p; void=$v; pending=$pd }
 }
 $sets = [ordered]@{}
-foreach($name in 'recommended','page','board'){
+foreach($name in 'recommended','alt','page','board'){
   $rows = @($graded | ? { $_.set -eq $name }); $s = Summ $rows 'result'
   $risked = $s.w + $s.l; $units = 0.0; foreach($r in $rows){ $units += $r.units }; $units = [math]::Round($units,2)
   $s['units'] = $units; $s['roi'] = if($risked){ [math]::Round($units/$risked,3) } else { $null }
@@ -110,7 +110,7 @@ $ledPath = Join-Path $trk "ledger.json"
 $ledger = if(Test-Path $ledPath){ Get-Content $ledPath -Raw | ConvertFrom-Json } else { [pscustomobject]@{ nights=@() } }
 $nights = @($ledger.nights | ? { $_.date -ne $Date }) + [pscustomobject]@{ date=$Date; gamesFinal=$finals; sets=$sets; calls=$callSum }
 $tot = [ordered]@{}
-foreach($name in 'recommended','page','board'){ $w=0;$l=0;$p=0;$u=0.0;$st=0.0;$rk=0.0;$hasSt=$false; foreach($n in $nights){ $s=$n.sets.$name; if($s){ $w+=$s.w; $l+=$s.l; $p+=$s.p; $u+=$s.units
+foreach($name in 'recommended','alt','page','board'){ $w=0;$l=0;$p=0;$u=0.0;$st=0.0;$rk=0.0;$hasSt=$false; foreach($n in $nights){ $s=$n.sets.$name; if($s){ $w+=$s.w; $l+=$s.l; $p+=$s.p; $u+=$s.units
       if($s.PSObject.Properties['staked'] -or ($s -is [System.Collections.IDictionary] -and $s.Contains('staked'))){ $st+=$s.staked; $rk+=$s.risked; $hasSt=$true } } }
   $tot[$name] = [ordered]@{ w=$w; l=$l; p=$p; units=[math]::Round($u,2); roi=$(if($w+$l){ [math]::Round($u/($w+$l),3) } else { $null }) }
   if($hasSt){ $tot[$name]['staked'] = [math]::Round($st,2); $tot[$name]['risked'] = [math]::Round($rk,2) } }
