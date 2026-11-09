@@ -171,7 +171,28 @@ body.phone .wrap{display:none}
 .nf-scr{border-top:1px solid var(--rule);padding-top:8px;margin-top:8px;display:grid;gap:3px}
 .nf-share{display:inline-block;height:6px;border-radius:3px;background:var(--over);vertical-align:1px;margin-right:6px}
 .nf-kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 8px}
-.nf-kp div{display:grid;gap:1px}.nf-kp b{font-family:var(--f-display);font-size:1.15rem}.nf-kp span{font-size:.72rem;color:var(--mute)}
+.nf-kp div{display:grid;gap:1px}
+.nf-cmp{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,58px);column-gap:4px}
+.nf-cmp>div{padding:7px 0;border-bottom:1px solid var(--rule);min-width:0}
+.nf-cmp>div:nth-last-child(-n+4){border-bottom:0}
+.nf-cmp .h{font-family:var(--f-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);text-align:right;padding-top:0}
+.nf-cmp .l{font-size:.86rem;line-height:1.25}
+.nf-cmp small{display:block;font-size:.68rem;color:var(--mute);font-weight:400;font-family:var(--f-mono);letter-spacing:0;text-transform:none}
+.nf-cmp .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:.92rem;color:var(--mute)}
+.nf-cmp .cur{color:var(--ink)}
+.nf-cmp .v small{white-space:nowrap;font-size:.6rem;letter-spacing:-.02em}
+.nf-cmp .v.cur{background:var(--warn-soft);border-radius:6px;padding-right:6px}
+.nf-mg{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--rule)}.nf-mg:first-child{border-top:0}
+.nf-mg i{font-style:normal;font-family:var(--f-display);font-weight:700;font-size:1.05rem;margin-left:12px}.nf-mg small{font-family:var(--f-mono);font-size:.62rem;color:var(--mute);margin-left:2px}
+.nf-wk{display:grid;grid-template-columns:34px 1fr 1fr 78px;gap:6px;padding:6px 0;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums;font-size:.88rem}
+.nf-wk span:not(:first-child){text-align:right}
+.nf-wk.h{border-top:0;padding-top:0;font-family:var(--f-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}
+.nf-team{display:grid;grid-template-columns:40px minmax(0,1fr) 92px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--rule)}
+.nf-team b{font-family:var(--f-display);font-size:1.05rem}
+.nf-tm{font-size:.78rem;line-height:1.3;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nf-div{position:relative;height:18px;background:linear-gradient(var(--rule),var(--rule)) center/1px 100% no-repeat}
+.nf-div i{position:absolute;top:4px;height:10px;border-radius:2px;opacity:.85}
+.nf-div em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--f-mono);font-size:.7rem;font-weight:600;text-shadow:0 0 3px var(--sheet),0 0 3px var(--sheet)}.nf-kp b{font-family:var(--f-display);font-size:1.15rem}.nf-kp span{font-size:.72rem;color:var(--mute)}
 .pa-tabs[hidden]{display:none}
 .nf-pilotbar{display:grid;gap:3px;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);border-radius:10px;padding:10px 12px;font-size:.82rem;line-height:1.35;margin-bottom:10px}
 .nf-pilotbar b{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
@@ -2452,25 +2473,35 @@ function nfGames(){ const c=NF.card, m=nfMnf(); if(!c?.sims?.length&&!m) return 
     ${gs.map(x=>nfGame(x.g,x.n)).join("")}`; }
 // ---- Trends: how spreads and totals have played out (nfl/trends.json) ----
 const nfRec=r=>r?`${r.w}-${r.l}${r.p?`-${r.p}`:""}`:"";
-const nfPct=r=>r&&(r.w+r.l)?` <span class="pa-small">${Math.round(r.w/(r.w+r.l)*100)}%</span>`:"";
+const nfPc=r=>r&&(r.w+r.l)?Math.round(r.w/(r.w+r.l)*100):null;
+// one comparison row: label, then each season's value (a record shows its % big and the record small)
+function nfCmpRow(L,label,f,{rec=false,sub=""}={}){ return `<div class="l">${label}${sub?`<small>${sub}</small>`:""}</div>${L.map((s,i)=>{ const x=f(s);
+    const cls=i===L.length-1?"v cur":"v"; if(!rec) return `<div class="${cls}">${x??"–"}</div>`;
+    const p=nfPc(x); return `<div class="${cls}">${p==null?"–":p+"%"}<small>${nfRec(x)}</small></div>`; }).join("")}`; }
+function nfCmp(L,title,rows){ return `<div class="pa-h">${title}</div><div class="pa-card"><div class="nf-cmp"><div class="l h"></div>${L.map((s,i)=>`<div class="h${i===L.length-1?" cur":""}">${s.season}${i===L.length-1?`<small>wk 1–${s.weeks}</small>`:""}</div>`).join("")}${rows.join("")}</div></div>`; }
 function nfTrends(){ const t=NF.trends; if(!t) return empty("No trends yet","");
-  const L=t.league||[], cur=L[L.length-1]||{}, row=(name,fn)=>`<tr><td>${name}</td>${L.map(s=>`<td class="n">${fn(s)}</td>`).join("")}</tr>`;
-  const teams=(t.teams||[]).slice().sort((a,b)=>b.cover-a.cover);
-  return `<div class="pa-card"><div class="pa-small">Through ${esc(t.through)}. Records are overs-unders and covers-non-covers (pushes last).</div>
-    <div class="nf-kp"><div><b>${nfRec(cur.overs)}</b><span>overs ${cur.season}</span></div><div><b>${cur.points} / ${cur.totalLine}</b><span>avg points / avg total</span></div><div><b>${nfRec(cur.favATS)}</b><span>favorites ATS</span></div>
-      <div><b>${nfRec(cur.homeATS)}</b><span>home teams ATS</span></div><div><b>${cur.homeMargin} / ${cur.homeSpread}</b><span>home margin / avg spread</span></div><div><b>${nfRec(cur.fav7)}</b><span>7+ pt favorites ATS</span></div></div></div>
-    <div class="pa-h">By season</div><div class="pa-card" style="padding:8px 10px"><table class="nf-tbl"><tr><th></th>${L.map(s=>`<th class="n">${s.season}</th>`).join("")}</tr>
-      ${row("Games",s=>s.games)}${row("Avg total line",s=>s.totalLine)}${row("Avg points",s=>s.points)}${row("Overs",s=>nfRec(s.overs)+nfPct(s.overs))}
-      ${row("Favorites ATS",s=>nfRec(s.favATS)+nfPct(s.favATS))}${row("7+ pt favorites ATS",s=>nfRec(s.fav7)+nfPct(s.fav7))}${row("Home ATS",s=>nfRec(s.homeATS)+nfPct(s.homeATS))}${row("Home straight up",s=>nfRec(s.homeSU))}
-      ${row("Home margin vs spread",s=>`${s.homeMargin} vs ${s.homeSpread}`)}${row("Totals ≤41: overs",s=>nfRec(s.low41)+nfPct(s.low41))}${row("Totals ≥47: overs",s=>nfRec(s.high47)+nfPct(s.high47))}
-      ${row("Dome: overs",s=>nfRec(s.dome))}${row("Outdoors: overs",s=>nfRec(s.outdoors))}${row("Miss vs spread (sd)",s=>s.sdMargin)}${row("Miss vs total (sd)",s=>s.sdTotal)}
-      ${row("Most common margins",s=>(s.margins||[]).slice(0,3).map(x=>`${x.m} (${Math.round(x.share*100)}%)`).join("<br>"))}</table></div>
-    ${(t.weeks||[]).length?`<div class="pa-h">${cur.season} week by week</div><div class="pa-card" style="padding:8px 10px"><table class="nf-tbl"><tr><th>Week</th><th class="n">Overs</th><th class="n">Fav ATS</th><th class="n">Points / line</th></tr>
-      ${t.weeks.map(w=>`<tr><td>${w.week}</td><td class="n">${nfRec(w.overs)}</td><td class="n">${nfRec(w.favATS)}</td><td class="n ${w.points>w.line?"up":"dn"}">${w.points} / ${w.line}</td></tr>`).join("")}</table></div>`:""}
-    ${teams.length?`<div class="pa-h">Teams, ${cur.season} (best cover margin first)</div><div class="pa-card" style="padding:8px 10px"><table class="nf-tbl"><tr><th>Team</th><th class="n">W-L</th><th class="n">ATS</th><th class="n">O/U</th><th class="n">Pts / allowed</th><th class="n">Vs spread</th></tr>
-      ${teams.map(x=>`<tr><td><b>${esc(x.team)}</b></td><td class="n">${esc(x.su)}</td><td class="n">${esc(x.ats)}</td><td class="n">${esc(x.ou)}</td><td class="n">${x.ppg} / ${x.papg}</td><td class="n ${x.cover>0?"up":"dn"}">${SGN(x.cover)}</td></tr>`).join("")}</table>
-      <div class="pa-small">Vs spread: average points a game the team beat (or missed) the spread by.</div></div>`:""}
-    ${(t.notes||[]).length?`<div class="pa-h">What it means for the model</div><div class="pa-card">${t.notes.map(n=>`<div class="pa-small" style="margin-bottom:6px">${esc(n)}</div>`).join("")}</div>`:""}`; }
+  const L=t.league||[], cur=L[L.length-1]||{}, sgn=x=>`${x>0?"+":x<0?"−":""}${Math.abs(x).toFixed(1)}`;
+  const key=NF.tsort||"cover", sorts={cover:["Vs spread",x=>x.cover],ats:["ATS",x=>{ const [w,l]=String(x.ats).split("-").map(Number); return w/Math.max(1,w+l); }],ou:["Overs",x=>{ const [w,l]=String(x.ou).split("-").map(Number); return w/Math.max(1,w+l); }],ppg:["Points",x=>x.ppg]};
+  const teams=(t.teams||[]).slice().sort((a,b)=>sorts[key][1](b)-sorts[key][1](a)), mx=Math.max(1,...teams.map(x=>Math.abs(x.cover)));
+  const wk=t.weeks||[];
+  return `<div class="pa-card"><div class="pa-small" style="margin-bottom:8px">${esc(cur.season)} through week ${cur.weeks}, ${cur.games} games with a final score.</div>
+    <div class="nf-kp"><div><b>${nfRec(cur.overs)}</b><span>overs-unders</span></div><div><b>${cur.points}</b><span>avg points (line ${cur.totalLine})</span></div><div><b>${nfRec(cur.favATS)}</b><span>favorites ATS</span></div>
+      <div><b class="${nfPc(cur.homeATS)<46?"dn":""}">${nfRec(cur.homeATS)}</b><span>home teams ATS</span></div><div><b>${sgn(cur.homeMargin)}</b><span>home margin (spread ${sgn(cur.homeSpread)})</span></div><div><b class="${nfPc(cur.fav7)<46?"dn":""}">${nfRec(cur.fav7)}</b><span>7+ pt favorites ATS</span></div></div></div>
+    ${nfCmp(L,"Totals",[nfCmpRow(L,"Avg total line",s=>s.totalLine),nfCmpRow(L,"Avg points",s=>s.points),nfCmpRow(L,"Overs",s=>s.overs,{rec:true}),
+      nfCmpRow(L,"Low totals",s=>s.low41,{rec:true,sub:"line ≤ 41"}),nfCmpRow(L,"High totals",s=>s.high47,{rec:true,sub:"line ≥ 47"}),
+      nfCmpRow(L,"Dome overs",s=>s.dome,{rec:true}),nfCmpRow(L,"Outdoor overs",s=>s.outdoors,{rec:true})])}
+    ${nfCmp(L,"Spreads",[nfCmpRow(L,"Favorites ATS",s=>s.favATS,{rec:true}),nfCmpRow(L,"7+ pt favs ATS",s=>s.fav7,{rec:true}),
+      nfCmpRow(L,"Home ATS",s=>s.homeATS,{rec:true}),nfCmpRow(L,"Home wins",s=>s.homeSU,{rec:true}),
+      nfCmpRow(L,"Home margin",s=>`${sgn(s.homeMargin)}<small>line ${sgn(s.homeSpread)}</small>`,{}),
+      nfCmpRow(L,"Miss vs spread",s=>`±${s.sdMargin}`),nfCmpRow(L,"Miss vs total",s=>`±${s.sdTotal}`)])}
+    <div class="pa-h">Most common final margins</div><div class="pa-card">${L.map(s=>`<div class="nf-mg"><span class="pa-small">${s.season}</span><span>${(s.margins||[]).slice(0,4).map(x=>`<i>${x.m}<small>${Math.round(x.share*100)}%</small></i>`).join("")}</span></div>`).join("")}</div>
+    ${wk.length?`<div class="pa-h">${cur.season} week by week</div><div class="pa-card"><div class="nf-wk h"><span>Wk</span><span>Overs</span><span>Fav ATS</span><span>Pts vs line</span></div>
+      ${wk.map(w=>{ const d=w.points-w.line; return `<div class="nf-wk"><span>${w.week}</span><span>${nfRec(w.overs)}</span><span>${nfRec(w.favATS)}</span><span class="${d>0?"up":"dn"}">${sgn(d)}</span></div>`; }).join("")}</div>`:""}
+    ${teams.length?`<div class="pa-h">Teams, ${cur.season}</div><div class="pa-card"><div class="nf-chips" style="margin-bottom:8px">${Object.entries(sorts).map(([k,[n]])=>`<button data-ts="${k}" aria-pressed="${k===key}">${n}</button>`).join("")}</div>
+      ${teams.map(x=>{ const w=Math.abs(x.cover)/mx*50; return `<div class="nf-team"><b>${esc(x.team)}</b><span class="nf-tm">${esc(x.su)} · ATS ${esc(x.ats)}<br><span class="muted">O/U ${esc(x.ou)} · ${x.ppg}–${x.papg}</span></span>
+        <span class="nf-div"><i style="${x.cover>=0?`left:50%;width:${w}%;background:var(--over)`:`right:50%;width:${w}%;background:var(--under)`}"></i><em class="${x.cover>0?"up":"dn"}">${sgn(x.cover)}</em></span></div>`; }).join("")}
+      <div class="pa-small" style="margin-top:8px">Second line: over-under record, then points scored–allowed a game. The bar is how many points a game the team has beaten (green) or missed (red) the spread by.</div></div>`:""}
+    ${(t.notes||[]).length?`<div class="pa-h">What it means for the model</div><div class="pa-card">${t.notes.map(n=>`<p class="pa-note" style="margin:0 0 8px">${esc(n)}</p>`).join("")}</div>`:""}`; }
 function nfBacktest(){ const b=NF.bt; if(!b) return empty("No backtest yet","");
   const roi=x=>`${(x*100).toFixed(1)}%`, wk=b.weekly26||[], mx=Math.max(1,...wk.map(w=>Math.abs(w.staked)));
   return `<div class="pa-card"><div class="pa-small">${esc(b.note)}</div>
@@ -2512,6 +2543,7 @@ app.addEventListener("click",e=>{
   const sp=e.target.closest("[data-sport]"); if(sp){ SPORT=sp.dataset.sport; try{ localStorage.setItem("pa-sport",SPORT); }catch(x){} render(); window.scrollTo(0,0); return; }
   const nt=e.target.closest("[data-nt]"); if(nt){ NTAB=nt.dataset.nt; render(); window.scrollTo(0,0); return; }
   const nm=e.target.closest("[data-nm]"); if(nm){ NF.mkt=nm.dataset.nm; render(); return; }
+  const ts=e.target.closest("[data-ts]"); if(ts){ NF.tsort=ts.dataset.ts; render(); return; }
   const t=e.target.closest("[data-pt]"); if(t){ TAB=t.dataset.pt; try{ localStorage.setItem("pa-tab",TAB); }catch(x){} render(); window.scrollTo(0,0); if(TAB==="live") refreshLive(); return; }
   const c=e.target.closest("[data-calc]"); if(c){ const [pl,st,side,line,odds]=c.dataset.calc.split("|"); openCalc(pl,st,{side:side||undefined, line:line?+line:undefined, odds:odds?+odds:undefined}); return; }
   const s=e.target.closest("[data-ps]"); if(s){ PF.stat=s.dataset.ps; PF.n=60; render(); return; }
