@@ -114,8 +114,8 @@ window.__PX = (n=10000, tag="")=>{ window.__PXdone=false; window.__PXp=(async()=
       // why gamePicks would call him shaky, kept apart so each reason can be tested: rookie prior, 2024-25 data, questionable, role mismatch
       const why={prior:!!pl?.prior, y24:!!(pl?.yr&&pl.yr.startsWith("2024-25")), q:pl?.status==="q", mis:mis.has(b.player)};
       out.push({d:SLATE.date, gid:g.espnId, k:"P", player:b.player, stat:b.stat, side:b.side, line:b.line, odds:+b.odds, pm:b.pm, pSim:b.pSim/Math.max(1e-9,1-pu), push:pu, bench:b.bench, churn:b.churn,
-        why, curG:raw?.cur?.g||0, moved:!!b.moved, rule:b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(g.espnId,b),
-        ok:!shaky.has(b.player)&&b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(g.espnId,b), p:b.p, a, u:d>0?dec(b.odds)-1:d<0?-1:0}); }
+        why, curG:raw?.cur?.g||0, moved:!!b.moved, rule:b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!(b.stat==="PRA"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(g.espnId,b),
+        ok:!shaky.has(b.player)&&b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!(b.stat==="PRA"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(g.espnId,b), p:b.p, a, u:d>0?dec(b.odds)-1:d<0?-1:0}); }
     // double-doubles: every player the sim used, with his chance of 10+ in two of PTS/REB/AST/STL/BLK when he plays,
     // the same shaky reasons as props, his season-to-date double-double rate (PTS/REB/AST only; the log has no STL/BLK),
     // and whether he got one. Odds are joined offline from FanDuel's cached "Player Double Double" market (dd-eval.ps1).

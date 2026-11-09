@@ -1630,7 +1630,7 @@ async function exportBoard(){
     for(const b0 of P.props){ const b=ownBlend(b0), k=b.player+"|"+b.stat, cur=lean.get(k); if(!cur||b.p>cur.p) lean.set(k,b); }
     for(const b of lean.values()){ const pl=findPlayer(res,b.player), team=pl?.team||null;
       const reason = picked.has(gid+"|"+b.bet) ? "pick"
-        : b.stat==="3PM" ? "no 3PM" : (b.stat==="AST"&&b.side==="Over") ? "no AST overs"
+        : b.stat==="3PM" ? "no 3PM" : (b.stat==="AST"&&b.side==="Over") ? "no AST overs" : (b.stat==="PRA"&&b.side==="Over") ? "no PRA overs"
         : b.p<MIN_P ? "under 60%" : b.ev<0.05 ? "edge under 5%" : (+b.odds<-150||+b.odds>150) ? "price outside ±150"
         : why.has(b.player) ? why.get(b.player) : (ownGapHit(b)||lossRuleHit(gid,b)) ? "season-rate rule" : "game's 2 picks taken";
       // for the calculator: the sim's whole outcome distribution (counts from lo up), the other side's price, the blend weight,
@@ -1752,7 +1752,11 @@ function gamePicks(gid, taken=[]){
   RESULTS[gid].P.forEach(p=>{ if(p.status==="q"||unproven(p)) shaky.add(p.name); });
   // Game lines (moneyline, spread, total) compete under the same bar, at most one per game. Over the first 33 graded games none
   // cleared it, and the sim's own side lost money in all three markets (ML −1.0u, spread 14-19, totals 15-18), so they rarely will.
-  const c=[...P.props.filter(b=>!shaky.has(b.player)&&b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(gid,b)).map(b=>ownBlend(b)), ...P.game]
+  // No PRA overs (Nov 9): over 17 nights (Oct 21–Nov 8, current model, scripts\overs-eval.ps1) every PRA over that cleared the bar
+  // was priced near 64% and won 28% (5-13); the card without them went 94-54 +20.1u staked → 90-45 +26.2u (13.9% → 19.6% on stake),
+  // even in Oct 21–28 and +6.2u in Oct 30–Nov 8. Halving the sim's say on overs picked the same card; a lower PRA weight on both
+  // sides gave up profitable PRA unders.
+  const c=[...P.props.filter(b=>!shaky.has(b.player)&&b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!(b.stat==="PRA"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(gid,b)).map(b=>ownBlend(b)), ...P.game]
     .filter(b=>+b.odds>=-150&&+b.odds<=150&&b.ev>=0.05&&b.p>=MIN_P);
   const picks=[...taken];
   for(const b of c.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev))){ if(picks.length>=2) break;
@@ -1980,6 +1984,7 @@ function verdict(row,side,line,odds,r){
   const R=RULES(), why=[];
   if(row.excl) why.push(row.excl);
   if(row.stat==="AST"&&side==="Over") why.push("no AST overs");
+  if(row.stat==="PRA"&&side==="Over") why.push("no PRA overs");
   if(!why.includes("role mismatch")&&(row.min<12||Math.abs(row.mean-line)>Math.max(4,.5*line)||r.gap)) why.push("role mismatch");
   if(odds<R.oddsLo||odds>R.oddsHi) why.push("price outside −150 to +150");
   if(r.p<R.minP) why.push(`win chance under ${Math.round(R.minP*100)}%`);
