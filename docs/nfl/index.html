@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TellMe NFL Pilot</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#14181f;--mut:#5b6472;--line:#e3e6eb;--acc:#0b6bcb;--win:#16794c;--loss:#b42318;--chip:#eef2f7}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1216;--card:#171b21;--ink:#e8ebf0;--mut:#9aa3b2;--line:#2a3039;--acc:#5aa9ff;--win:#4cc38a;--loss:#ff7b72;--chip:#222833}}
+:root[data-theme="dark"]{--bg:#0f1216;--card:#171b21;--ink:#e8ebf0;--mut:#9aa3b2;--line:#2a3039;--acc:#5aa9ff;--win:#4cc38a;--loss:#ff7b72;--chip:#222833}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:16px;border-bottom:1px solid var(--line);background:var(--card)}header h1{margin:0;font-size:19px}header p{margin:4px 0 0;color:var(--mut);font-size:13px}
+main{max-width:860px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+.card h2{margin:0 0 8px;font-size:16px}.mut{color:var(--mut);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--mut);font-weight:600;font-size:12px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:1px 8px;font-size:12px;color:var(--mut)}
+.W{color:var(--win);font-weight:600}.L{color:var(--loss);font-weight:600}
+.banner{border-left:4px solid var(--acc)}
+@media (max-width:600px){.hide-s{display:none}th,td{padding:6px 4px;font-size:13px}}
+</style>
+</head>
+<body>
+<header><h1>TellMe Sports · NFL pilot</h1><p>Paper picks only while the model is tested. Fanatics player props: passing, rushing and receiving.</p></header>
+<main id="app"><div class="card">Loading…</div></main>
+<script>
+// ===================== model (shared by the page, the backtest and the weekly card) =====================
+const NFL = (()=>{
+const STATS={PASS_YDS:'pyds',PASS_CMP:'cmp',PASS_ATT:'att',RUSH_YDS:'ryds',RUSH_ATT:'car',REC_YDS:'recyds',REC:'rec'};
+const COUNT={PASS_CMP:1,PASS_ATT:1,RUSH_ATT:1,REC:1};
+const GROUP={PASS_YDS:'pass',PASS_CMP:'pass',PASS_ATT:'pass',RUSH_YDS:'rush',RUSH_ATT:'rush',REC_YDS:'rec',REC:'rec'};
+const LABEL={PASS_YDS:'pass yds',PASS_CMP:'completions',PASS_ATT:'pass att',RUSH_YDS:'rush yds',RUSH_ATT:'rush att',REC_YDS:'rec yds',REC:'receptions'};
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[.'\-,]/g,' ').replace(/\b(jr|sr|ii|iii|iv|v)\b/g,'').replace(/\s+/g,' ').trim();
+const impl=o=>o>0?100/(o+100):-o/(-o+100), dec=o=>o>0?1+o/100:1+100/-o;
+const lg=x=>{x=Math.min(.99,Math.max(.01,x));return Math.log(x/(1-x));}, sg=x=>1/(1+Math.exp(-x));
+// Settings from the Nov 9 backtest (fit on 2025, tested on 2026 weeks 1-8). History: games weighted by a 12-game half-life,
+// last season's at 0.4 (shorter half-lives and other weights all scored within .006 log loss). Sim weights in the blend with
+// the OPENING line, fitted on 2025 openers: against the opener the blend beat the market out of sample on receptions
+// (.6811 -> .6773), receiving yards (.6937 -> .6919), passing yards and rushing; against Fanatics' near-close price it lost.
+// Pass attempts and completions got worse out of sample (.6926 -> .7018), so they're priced but never carded (NOCARD).
+const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8}, beta:.02, gamma:.5, k:4, K:400,
+  w:{PASS_YDS:.3,PASS_CMP:.4,PASS_ATT:.35,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.3,REC:.3}};
+const NOCARD=new Set(['PASS_ATT','PASS_CMP']);
+function prep(D){
+  const gk={};
+  for(const a of D.games){ const g={}; D.gameCols.forEach((c,i)=>g[c]=a[i]); gk[`${g.season}|${g.week}|${g.home}`]=g; gk[`${g.season}|${g.week}|${g.away}`]=g; }
+  const R=D.rows.map(a=>{ const r={}; D.rowCols.forEach((c,i)=>r[c]=a[i]); r.ord=r.season*100+r.week; r.pg=r.pos==='FB'?'RB':r.pos;
+    const g=gk[`${r.season}|${r.week}|${r.team}`]; if(g&&g.total!=null&&g.spread!=null){ const s=g.home===r.team?1:-1; r.tt=g.total/2+s*g.spread/2; r.sp=s*g.spread; } return r; });
+  const byP={}, byName={};
+  for(const r of R){ (byP[r.pid]??=[]).push(r); (byName[norm(r.name)]??=new Set()).add(r.pid); }
+  for(const k in byP) byP[k].sort((a,b)=>a.ord-b.ord);
+  // what each defense allowed, per game, by position group and stat; league per-team-game averages by season
+  const def={}, lgSum={}, lgN={};
+  for(const r of R){ const e=((def[`${r.opp}|${r.season}`]??={})[r.week]??={});
+    for(const st in STATS){ const k=r.pg+'|'+st; e[k]=(e[k]||0)+(r[STATS[st]]||0); lgSum[r.season+'|'+k]=(lgSum[r.season+'|'+k]||0)+(r[STATS[st]]||0); } }
+  const teamGames={}; for(const r of R){ teamGames[r.season]??=new Set(); teamGames[r.season].add(r.opp+'|'+r.week); }
+  for(const s in teamGames) lgN[s]=teamGames[s].size;
+  return {gk,R,byP,byName,def,lgSum,lgN};
+}
+function oppFactor(M,opp,s,w,pg,st,k){
+  const lgAvg=(M.lgSum[(s-1)+'|'+pg+'|'+st]??M.lgSum[s+'|'+pg+'|'+st]??0)/(M.lgN[s-1]??M.lgN[s]??1); if(!(lgAvg>0)) return 1;
+  const d=M.def[`${opp}|${s}`]||{}; let sum=0,n=0; for(const wk in d){ if(+wk<w){ sum+=d[wk][pg+'|'+st]||0; n++; } }
+  return ((sum+k*lgAvg)/(n+k))/lgAvg;
+}
+// projected mean for a player's stat in a game; null when he has too few games
+function project(M,pid,st,s,w,ctx,P){
+  const all=M.byP[pid]; if(!all) return null; const f=STATS[st], ord=s*100+w;
+  const hist=all.filter(r=>r.ord<ord&&r.season>=s-1&&!(r.snap!=null&&r.snap<P.minSnap));
+  if(hist.length<P.minG) return null;
+  let sw=0,sx=0,stt=0,swt=0,ssp=0;
+  for(let i=hist.length-1,age=0;i>=0;i--,age++){ const r=hist[i], wt=Math.pow(.5,age/P.hl)*(r.season<s?P.prevW:1);
+    sw+=wt; sx+=wt*(r[f]||0); if(r.tt!=null){ stt+=wt*r.tt; swt+=wt; ssp+=wt*r.sp; } }
+  const last=hist[hist.length-1], base=sx/sw; let m=base;
+  if(ctx.tt!=null&&swt>0){ m*=Math.pow(ctx.tt/(stt/swt),P.alpha[GROUP[st]]); if(GROUP[st]==='rush') m*=Math.exp(P.beta*(ctx.sp-ssp/swt)); }
+  const of=oppFactor(M,ctx.opp,s,w,last.pg,st,P.k); m*=Math.pow(of,P.gamma);
+  return {m,base,n:hist.length,of,pos:last.pg,team:last.team};
+}
+// win chance of the over from the projection: the training props whose projections were closest (at most K, and at most
+// 15% of the market, min 80), each outcome scaled by the ratio of the projections, counted against the line
+function makeDist(train){ const by={}; for(const t of train){ (by[t.st]??=[]).push(t); } for(const st in by) by[st].sort((a,b)=>a.lm-b.lm); return by; }
+function pOver(dist,st,m,line,K){
+  const a=dist[st]; if(!a||!a.length) return null; const lm=Math.log(Math.max(m,.1));
+  const KK=Math.min(K,Math.max(80,Math.round(.15*a.length)),a.length);
+  let lo=0,hi=a.length; while(lo<hi){ const mid=(lo+hi)>>1; if(a[mid].lm<lm) lo=mid+1; else hi=mid; }
+  let i=lo-1,j=lo,ov=0,un=0,c=0;
+  while(c<KK){ let t; if(j>=a.length||(i>=0&&lm-a[i].lm<=a[j].lm-lm)){ t=a[i--]; } else { t=a[j++]; } c++;
+    const x=t.a*m/Math.max(t.m,.1); if(x>line) ov++; else if(x<line) un++; }
+  return {pS:ov/c, push:(c-ov-un)/c};
+}
+function findPid(M,name,teams,s,w){
+  const c=M.byName[norm(name)]; if(!c) return null; let best=null,bo=-1;
+  for(const pid of c){ const h=M.byP[pid].filter(r=>r.ord<s*100+w||r.season===s); const last=h[h.length-1]; if(!last) continue;
+    const onTeam=h.filter(r=>r.season===s&&teams.includes(r.team)).length?2:teams.includes(last.team)?1:0; const o=onTeam*1e6+last.ord; if(onTeam&&o>bo){ bo=o; best=pid; } }
+  return best;
+}
+// every Fanatics prop side of a week, priced: {game, player, pid, st, side, line, odds, pm, pS, p, ev, proj, actual?}
+function priceWeek(M,L,dist,P,{book='FAN',grade=true}={}){
+  const out=[]; const s=L.season,w=L.week;
+  for(const g of L.games){ const gm=M.gk[`${s}|${w}|${g.home}`];
+    const tot=gm?.total, spr=gm?.spread;
+    for(const q of g.props){ if(q.book!==book) continue; const pid=findPid(M,q.player,[g.away,g.home],s,w); if(!pid) continue;
+      const hist=M.byP[pid]; const played=hist.find(r=>r.season===s&&r.week===w);
+      const team=played?.team ?? hist.filter(r=>r.ord<s*100+w).slice(-1)[0]?.team; if(!team) continue;
+      const home=team===g.home, opp=home?g.away:g.home;
+      const ctx={opp, tt:tot!=null&&spr!=null?tot/2+(home?1:-1)*spr/2:null, sp:spr!=null?(home?1:-1)*spr:0};
+      const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
+      const d=pOver(dist,q.stat,pr.m,q.line,P.K); if(!d) continue;
+      const fair=impl(q.over)/(impl(q.over)+impl(q.under)); const actual=played?played[STATS[q.stat]]||0:null;
+      for(const side of ['Over','Under']){ const odds=side==='Over'?q.over:q.under, pmS=side==='Over'?fair:1-fair, pS=side==='Over'?d.pS:1-d.pS-d.push;
+        const pSW=pS/Math.max(1e-9,1-d.push), wt=P.w[q.stat]??.3, p=sg((1-wt)*lg(pmS)+wt*lg(pSW))*(1-d.push), pl=Math.max(0,1-p-d.push);
+        const r={s,w,game:`${g.away} @ ${g.home}`, gid:g.anId, start:g.start, player:q.player, pid, team, pos:pr.pos, st:q.stat, side, line:q.line, odds, oo:side==='Over'?q.under:q.over,
+          pm:pmS, pS:pSW, p, ev:p*(dec(odds)-1)-pl, proj:pr.m, base:pr.base, n:pr.n, of:pr.of};
+        if(grade&&played){ r.actual=actual; const dd=side==='Over'?actual-q.line:q.line-actual; r.u=dd>0?dec(odds)-1:dd<0?-1:0; }
+        out.push(r); } } }
+  return out;
+}
+// training rows for the distribution: one per prop (any book), projection and actual
+function trainRows(M,weeks,P){
+  const out=[], seen=new Set();
+  for(const L of weeks){ const s=L.season,w=L.week;
+    for(const g of L.games){ const gm=M.gk[`${s}|${w}|${g.home}`];
+      for(const q of g.props){ const pid=findPid(M,q.player,[g.away,g.home],s,w); if(!pid) continue; const key=`${pid}|${s}|${w}|${q.stat}`; if(seen.has(key)) continue; seen.add(key);
+        const played=M.byP[pid].find(r=>r.season===s&&r.week===w); if(!played) continue; const home=played.team===g.home;
+        const ctx={opp:home?g.away:g.home, tt:gm?.total!=null&&gm?.spread!=null?gm.total/2+(home?1:-1)*gm.spread/2:null, sp:gm?.spread!=null?(home?1:-1)*gm.spread:0};
+        const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
+        out.push({st:q.stat, m:pr.m, lm:Math.log(Math.max(pr.m,.1)), a:played[STATS[q.stat]]||0, line:q.line, s, w}); } } }
+  return out;
+}
+// card: per game, sides at -150..+150 with p>=minP and ev>=minEv, best chance first, two a game, one per player
+function card(rows,R={minP:.60,minEv:.05,lo:-150,hi:150,perGame:2}){
+  const by={}; for(const r of rows){ if(NOCARD.has(r.st)||r.out||r.odds<R.lo||r.odds>R.hi||r.p<R.minP||r.ev<R.minEv) continue; (by[r.s+'|'+r.w+'|'+r.game]??=[]).push(r); }
+  const out=[]; for(const k in by){ const pk=[]; for(const r of by[k].sort((a,b)=>(b.p-a.p)||(b.ev-a.ev))){ if(pk.length>=R.perGame) break; if(pk.some(x=>x.pid===r.pid)) continue; pk.push(r); } out.push(...pk); }
+  return out;
+}
+const stake=p=>p>=.66?2:p>=.64?1.5:.5;
+return {STATS,LABEL,P0,NOCARD,prep,project,makeDist,pOver,priceWeek,trainRows,card,stake,impl,dec,lg,sg,norm};
+})();
+
+// ===================== backtest harness (local only: needs the server's /nfl/data.json and lines files) =====================
+// await NFLBT.load(); NFLBT.EV(P) fits the distribution and per-market sim weights on 2025 and tests on 2026 weeks 1..test
+window.NFLBT={
+  async load(){ const D=await fetch('/nfl/data.json',{cache:'no-store'}).then(r=>r.json()); this.M=NFL.prep(D); this.D=D; const wk=[];
+    for(const s of [2025,2026]) for(let w=1;w<=18;w++){ const L=await fetch(`/nfl/lines-${s}-w${String(w).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.ok?r.json():null); if(L&&L.games.length) wk.push(L); }
+    this.WK=wk; return {weeks:wk.length, players:Object.keys(this.M.byP).length}; },
+  EV(P,{test=8,keep=false}={}){ const M=this.M, WK=this.WK;
+    const W25=WK.filter(L=>L.season===2025), W26=WK.filter(L=>L.season===2026&&L.week<=test);
+    const dist=NFL.makeDist(NFL.trainRows(M,W25,P));
+    const price=(ws,PP)=>ws.flatMap(L=>NFL.priceWeek(M,L,dist,PP)).filter(r=>r.u!=null);
+    const ll=(y,p)=>{p=Math.min(.99,Math.max(.01,p)); return -(y*Math.log(p)+(1-y)*Math.log(1-p));}, avg=(a,f)=>a.reduce((s,r)=>s+f(r),0)/a.length;
+    const P2={...P,w:{...P.w}}; const r25=price(W25,{...P,w:Object.fromEntries(Object.keys(NFL.STATS).map(k=>[k,0]))}).filter(r=>r.side==='Over'&&r.u!==0);
+    const fit={};
+    for(const st of Object.keys(NFL.STATS)){ const a=r25.filter(r=>r.st===st); if(!a.length) continue; let bw=0,bl=1e9;
+      for(let w=0;w<=1.001;w+=.05){ const s=avg(a,r=>ll(r.u>0?1:0,NFL.sg((1-w)*NFL.lg(r.pm)+w*NFL.lg(r.pS)))); if(s<bl){bl=s;bw=+w.toFixed(2);} }
+      fit[st]={n:a.length, llM:+avg(a,r=>ll(r.u>0?1:0,r.pm)).toFixed(4), llS:+avg(a,r=>ll(r.u>0?1:0,r.pS)).toFixed(4), w:bw}; P2.w[st]=bw; }
+    const r26=price(W26,P2), r25b=price(W25,P2), o26=r26.filter(r=>r.side==='Over'&&r.u!==0), test26={};
+    for(const st of Object.keys(NFL.STATS)){ const a=o26.filter(r=>r.st===st); if(!a.length) continue;
+      test26[st]={n:a.length, llM:+avg(a,r=>ll(r.u>0?1:0,r.pm)).toFixed(4), llS:+avg(a,r=>ll(r.u>0?1:0,r.pS)).toFixed(4), llB:+avg(a,r=>ll(r.u>0?1:0,r.p)).toFixed(4), w:P2.w[st]}; }
+    const sum=(pk,name)=>{ const risk=pk.reduce((s,r)=>s+NFL.stake(r.p),0), staked=pk.reduce((s,r)=>s+r.u*NFL.stake(r.p),0);
+      return {name, w:pk.filter(r=>r.u>0).length, l:pk.filter(r=>r.u<0).length, flat:+pk.reduce((s,r)=>s+r.u,0).toFixed(2), staked:+staked.toFixed(2), roi:+(risk?staked/risk:0).toFixed(3)}; };
+    const bySide=pk=>Object.entries(pk.reduce((a,r)=>{(a[r.st+' '+r.side]??=[]).push(r); return a;},{})).map(([k,v])=>`${k} ${v.filter(r=>r.u>0).length}-${v.filter(r=>r.u<0).length} ${v.reduce((s,r)=>s+r.u,0).toFixed(1)}u`);
+    const c26=NFL.card(r26), c25=NFL.card(r25b);
+    const out={fit, test26, card25:sum(c25,'2025 card (in sample)'), card26:sum(c26,`2026 weeks 1-${test} card (held out)`), by26:bySide(c26), by25:bySide(c25), w:P2.w};
+    if(keep){ this.r26=r26; this.r25=r25b; this.dist=dist; this.P2=P2; } return out; },
+  // the week's paper card: priced at the earliest line we have for each prop (the opener; Fanatics once it's the only one),
+  // distribution trained on every graded prop so far; players listed Out/Doubtful on this week's injury report are left out
+  async freeze(season,week,{books=['OPEN','FAN']}={}){ const M=this.M;
+    const L=await fetch(`/nfl/lines-${season}-w${String(week).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.json());
+    const train=this.WK.filter(x=>x.season<season||(x.season===season&&x.week<week)); const dist=NFL.makeDist(NFL.trainRows(M,train,NFL.P0));
+    const inj=this.D.inj||{}, have=new Set(), rows=[];
+    for(const b of books){ const add=NFL.priceWeek(M,L,dist,NFL.P0,{book:b,grade:false}).filter(r=>!have.has(`${r.pid}|${r.st}`));
+      for(const r of add){ const ij=inj[`${r.player}|${r.team}`]; if(ij&&ij[1]===week){ r.inj=ij[0]; if(/out|doubtful/i.test(ij[0])) r.out=true; }
+        r.book=b; rows.push(r); }
+      for(const r of add) have.add(`${r.pid}|${r.st}`); }
+    const picks=NFL.card(rows).map(r=>({...r, stake:NFL.stake(r.p)}));
+    const board=rows.filter(r=>!NFL.NOCARD.has(r.st)).sort((a,b)=>b.ev-a.ev).slice(0,60);
+    const games=L.games.map(g=>({game:`${g.away} @ ${g.home}`, start:g.start, open:g.props.filter(q=>q.book==='OPEN').length, fan:g.props.filter(q=>q.book==='FAN').length}));
+    return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, picks, board, games}; }
+};
+
+// ===================== page: the frozen paper card and the backtest summary =====================
+(async()=>{
+  if(new URLSearchParams(location.search).has('norun')) return;
+  const app=document.getElementById('app'), j=u=>fetch(u,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const [c,bt]=await Promise.all([j('card.json'),j('backtest.json')]);
+  const odds=o=>o>0?'+'+o:''+o, pct=x=>(100*x).toFixed(1)+'%', when=t=>new Date(t).toLocaleString([], {weekday:'short',hour:'numeric',minute:'2-digit'});
+  let h='';
+  h+=`<div class="card banner"><b>Pilot, no real stakes.</b> <span class="mut">Picks are tracked on paper until the model has earned trust over several weeks. Card rules match the NBA card: price −150 to +150, 60%+ win chance, 5%+ expected profit, two picks a game, one per player.</span></div>`;
+  if(c){
+    h+=`<div class="card"><h2>${c.season} week ${c.week} paper card</h2><div class="mut">Frozen ${new Date(c.frozenAt).toLocaleString()} · ${c.picks.length} picks${c.note?' · '+c.note:''}</div>`;
+    if(c.picks.length){ h+=`<table><tr><th>Game</th><th>Pick</th><th class="n">Price</th><th class="n">Win</th><th class="n hide-s">Proj</th><th class="n">Stake</th><th class="n">Result</th></tr>`;
+      for(const p of c.picks){ const res=p.u==null?'<span class="mut">'+when(p.start)+'</span>':p.u>0?`<span class="W">W ${p.actual}</span>`:p.u<0?`<span class="L">L ${p.actual}</span>`:`push`;
+        h+=`<tr><td>${p.game}</td><td>${p.player} ${p.side.toLowerCase()} ${p.line} ${NFL.LABEL[p.st]}</td><td class="n">${odds(p.odds)}</td><td class="n">${pct(p.p)}</td><td class="n hide-s">${p.proj.toFixed(1)}</td><td class="n">${p.stake}u</td><td class="n">${res}</td></tr>`; }
+      h+=`</table>`; } else h+=`<p class="mut">No prop cleared the bar.</p>`;
+    h+=`</div>`;
+    const near=(c.board||[]).filter(r=>!c.picks.some(p=>p.pid===r.pid&&p.st===r.st)).slice(0,8);
+    if(near.length){ h+=`<div class="card"><h2>Closest to the bar</h2><div class="mut">Best expected profit among props that didn't make the card.</div><table><tr><th>Game</th><th>Prop</th><th class="n">Price</th><th class="n">Win</th><th class="n">Edge</th></tr>`;
+      for(const r of near) h+=`<tr><td>${r.game}</td><td>${r.player} ${r.side.toLowerCase()} ${r.line} ${NFL.LABEL[r.st]} <span class="chip">${r.book==='OPEN'?'opener':'Fanatics'}</span></td><td class="n">${odds(r.odds)}</td><td class="n">${pct(r.p)}</td><td class="n">${pct(r.ev)}</td></tr>`;
+      h+=`</table></div>`; }
+  }
+  if(bt){
+    h+=`<div class="card"><h2>Backtest</h2><div class="mut">${bt.note||''}</div><table><tr><th>Set</th><th class="n">Record</th><th class="n">Flat</th><th class="n">Staked</th><th class="n">Return</th></tr>`;
+    for(const r of bt.rows) h+=`<tr><td>${r.name}</td><td class="n">${r.w}-${r.l}</td><td class="n">${r.flat.toFixed(2)}u</td><td class="n">${r.staked.toFixed(2)}u</td><td class="n">${pct(r.roi)}</td></tr>`;
+    h+=`</table>`; if(bt.markets){ h+=`<table style="margin-top:10px"><tr><th>Market (2026, held out)</th><th class="n">Props</th><th class="n">Log loss market</th><th class="n">Model+market</th><th class="n">Sim weight</th></tr>`;
+      for(const m of bt.markets) h+=`<tr><td>${NFL.LABEL[m.st]}</td><td class="n">${m.n}</td><td class="n">${m.llM.toFixed(4)}</td><td class="n">${m.llB.toFixed(4)}</td><td class="n">${m.w.toFixed(2)}</td></tr>`; h+=`</table>`; }
+    h+=`</div>`;
+  }
+  app.innerHTML=h||'<div class="card">No card yet.</div>';
+})();
+</script>
+</body>
+</html>

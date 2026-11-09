@@ -23,3 +23,6 @@ tracking/placed*
 # runtime
 tracking/*.pid
 *.log
+
+# NFL pilot: the model's data bundle (rebuilt by scripts\nfl-data.ps1)
+tracking/nfl/data.json

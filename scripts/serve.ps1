@@ -23,6 +23,13 @@ while ($l.IsListening) {
     $f = Join-Path (Join-Path (Split-Path $VideoDir) "tracking") $matches[1]
     if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
     $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
+  } elseif ($path -eq '/nfl' -or $path -eq '/nfl/') {
+    # NFL pilot page (nfl.html next to the NBA page) and its data files (tracking\nfl)
+    $b = [IO.File]::ReadAllBytes((Join-Path (Split-Path $Page) "nfl.html")); $c.Response.ContentType = "text/html; charset=utf-8"
+  } elseif ($path -match '^/nfl/([\w\-.]+\.json)$') {
+    $f = Join-Path (Join-Path (Join-Path (Split-Path $VideoDir) "tracking") "nfl") $matches[1]
+    if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
+    $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
   } elseif ($path -eq '/harness.js') {
     # backtest harness for the local preview (scripts\harness.js)
     $b = [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "harness.js")); $c.Response.ContentType = "text/javascript"
