@@ -35,7 +35,12 @@ foreach($s in $seasons){
 $inj = @{}
 foreach($r in (Import-Csv (Get-File "injuries" "injuries_$Season.csv" $true))){ if($r.game_type -ne 'REG'){ continue }
   $k = "$($r.full_name)|$($r.team)"; if(-not $inj[$k] -or [int]$inj[$k][1] -le [int]$r.week){ $inj[$k] = @($r.report_status, [int]$r.week, $r.report_primary_injury) } }
-$obj = [ordered]@{ built=(Get-Date).ToUniversalTime().ToString("o"); season=$Season
+# every week's Out/Doubtful players (last season and this), so backtests know who was missing: "season|week" -> ["name|team", ...]
+$injW = @{}
+foreach($s in ($Season-1)..$Season){
+  foreach($r in (Import-Csv (Get-File "injuries" "injuries_$s.csv" ($s -eq $Season)))){ if($r.game_type -ne 'REG' -or $r.report_status -notmatch 'Out|Doubtful'){ continue }
+    $k = "$s|$([int]$r.week)"; if(-not $injW[$k]){ $injW[$k] = New-Object System.Collections.ArrayList }; [void]$injW[$k].Add("$($r.full_name)|$($r.team)") } }
+$obj = [ordered]@{ built=(Get-Date).ToUniversalTime().ToString("o"); season=$Season; injW=$injW
   gameCols=@("id","season","week","date","away","home","spread","total","awayScore","homeScore","roof","wind"); games=$games
   rowCols=@("pid","name","pos","season","week","team","opp","att","cmp","pyds","car","ryds","tgt","rec","recyds","snap","rtd","rectd"); rows=$rows
   inj=$inj }
