@@ -8,7 +8,8 @@ $root = Split-Path $PSScriptRoot -Parent; $raw = Join-Path $root "raw/nfl"; $out
 New-Item -ItemType Directory -Force $raw, $out | Out-Null
 $UA = @{"User-Agent"="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36"}
 $TYPES = [ordered]@{ "core_bet_type_9_passing_yards"="PASS_YDS"; "core_bet_type_10_pass_completions"="PASS_CMP"; "core_bet_type_30_passing_attempts"="PASS_ATT";
-  "core_bet_type_12_rushing_yards"="RUSH_YDS"; "core_bet_type_18_rushing_attempts"="RUSH_ATT"; "core_bet_type_16_receiving_yards"="REC_YDS"; "core_bet_type_15_receptions"="REC" }
+  "core_bet_type_12_rushing_yards"="RUSH_YDS"; "core_bet_type_18_rushing_attempts"="RUSH_ATT"; "core_bet_type_16_receiving_yards"="REC_YDS"; "core_bet_type_15_receptions"="REC";
+  "core_bet_type_66_rushing_receiving_yards"="RR_YDS"; "core_bet_type_62_anytime_touchdown_scorer"="ATD" }
 $BOOKS = [ordered]@{ "2988"="FAN"; "68"="DK"; "69"="FD"; "30"="OPEN" }
 # Action Network team abbreviations that differ from nflverse's
 $TEAM = @{ "LAR"="LA"; "JAC"="JAX"; "WSH"="WAS"; "LVR"="LV" }
@@ -31,7 +32,9 @@ foreach($w in $WK){
         $os = @($ev.$t | ? { $_ -and $_.event_id -eq $g.id -and -not $_.is_alt_market })
         foreach($grp in ($os | Group-Object player_id)){
           $o = $grp.Group | ? side -eq 'over' | Select-Object -First 1; $un = $grp.Group | ? side -eq 'under' | Select-Object -First 1; $pn = $nm[[string]$grp.Name]
-          if($pn -and $o -and $un -and $o.value -eq $un.value){ $props += [ordered]@{ player=$pn; stat=$TYPES[$t]; line=[double]$o.value; over=[int]$o.odds; under=[int]$un.odds; book=$BOOKS[$bk] } } } } }
+          if($pn -and $o -and $un -and $o.value -eq $un.value){ $props += [ordered]@{ player=$pn; stat=$TYPES[$t]; line=[double]$o.value; over=[int]$o.odds; under=[int]$un.odds; book=$BOOKS[$bk] } }
+          # anytime TD: a Yes price only ("noside"), kept as an over 0.5 with no under
+          elseif($pn -and $TYPES[$t] -eq "ATD"){ $y = $grp.Group | Select-Object -First 1; if($y.odds -ne $null){ $props += [ordered]@{ player=$pn; stat="ATD"; line=0.5; over=[int]$y.odds; under=$null; book=$BOOKS[$bk] } } } } } }
     $games += [ordered]@{ anId=$g.id; away=$a; home=$h; start=$g.start_time; props=$props }
   }
   $of = Join-Path $out ("lines-{0}-w{1:D2}.json" -f $Season,$w)

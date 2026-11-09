@@ -154,6 +154,26 @@ body.phone .wrap{display:none}
 .pa-tabs button{border:0;border-radius:7px;background:none;padding:7px 0;font-family:var(--f-display);font-size:1rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--mute);min-height:38px}
 .pa-tabs button[aria-selected="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .pa-tabs .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--under);margin-left:5px;vertical-align:2px}
+.pa-sport{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pa-sport button{border:1px solid var(--rule);border-radius:9px;background:var(--sheet);padding:8px 0;font-family:var(--f-display);font-size:1.05rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.pa-sport button[aria-selected="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.pa-sport .pa-pilot{font-family:var(--f-mono);font-size:.6rem;font-weight:500;letter-spacing:.05em;border:1px solid currentColor;border-radius:999px;padding:0 6px;opacity:.8}
+.pa-tabs.nfl{grid-template-columns:repeat(3,1fr)}
+.pa-tabs[hidden]{display:none}
+.nf-pilotbar{display:grid;gap:3px;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);border-radius:10px;padding:10px 12px;font-size:.82rem;line-height:1.35;margin-bottom:10px}
+.nf-pilotbar b{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
+.nf-pilotbar span{color:var(--ink)}
+.nf-chips{display:flex;flex-wrap:wrap;gap:6px}
+.nf-chips button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:4px 10px;font-size:.8rem;color:var(--mute);cursor:pointer}
+.nf-chips button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.nf-tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+.nf-tbl th,.nf-tbl td{padding:6px 4px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top;white-space:normal;overflow-wrap:anywhere}
+.nf-tbl th{font-family:var(--f-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);font-weight:500}
+.nf-tbl td.n,.nf-tbl th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nf-kept{color:var(--over);font-weight:600}
+.nf-bars{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;align-items:end;height:70px}
+.nf-bars i{display:block;border-radius:3px 3px 0 0;min-height:2px}
+.nf-bl{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;font-family:var(--f-mono);font-size:.6rem;color:var(--mute);text-align:center}
 .pa-sec{display:grid;gap:12px;padding-top:14px;min-width:0}
 .pa-card{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px;display:grid;gap:10px;min-width:0}
 .pa-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -296,6 +316,7 @@ button.pa-hb-col{cursor:pointer}
     <svg class="tm-banner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" role="img" aria-label="TellMe Sports: every prop, simulated possession by possession"> <defs> <linearGradient id="tmb-bg" x1="0" y1="0" x2="1" y2="1"> <stop offset="0" stop-color="#12233b"/><stop offset="1" stop-color="#070f1a"/> </linearGradient> <radialGradient id="tmb-glow" cx=".82" cy=".35" r=".55"> <stop offset="0" stop-color="#1fae6f" stop-opacity=".28"/><stop offset="1" stop-color="#1fae6f" stop-opacity="0"/> </radialGradient> <linearGradient id="tmb-bar" x1="0" y1="1" x2="0" y2="0"> <stop offset="0" stop-color="#1fae6f"/><stop offset="1" stop-color="#5ee6a6"/> </linearGradient> </defs> <rect width="1500" height="500" fill="url(#tmb-bg)"/> <rect width="1500" height="500" fill="url(#tmb-glow)"/> <path d="M1500 40a420 420 0 0 0 0 420" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/> <circle cx="1500" cy="250" r="120" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/> <g transform="translate(110 110) scale(.546875)"> <path d="M136 112h240a56 56 0 0 1 56 56v148a56 56 0 0 1-56 56H236l-72 58v-58h-28a56 56 0 0 1-56-56V168a56 56 0 0 1 56-56z" fill="#f4f7fb"/> <rect x="140" y="256" width="60" height="78" rx="12" fill="#c9d3df"/> <rect x="226" y="200" width="60" height="134" rx="12" fill="#c9d3df"/> <rect x="312" y="146" width="60" height="188" rx="12" fill="url(#tmb-bar)"/> <line x1="124" y1="222" x2="388" y2="222" stroke="#12233b" stroke-width="7" stroke-dasharray="16 12" stroke-linecap="round"/> <circle cx="342" cy="112" r="26" fill="#ff7a45"/> <path d="M316 112h52M342 86v52M323 93c12 9 12 29 0 38M361 93c-12 9-12 29 0 38" stroke="#12233b" stroke-width="4" fill="none" stroke-linecap="round"/> </g> <text x="420" y="262" font-family="'Archivo Black','Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="132" letter-spacing="-3" fill="#f4f7fb">Tell<tspan fill="#5ee6a6">Me</tspan></text> <text x="426" y="322" font-family="'IBM Plex Mono','SFMono-Regular',Consolas,monospace" font-size="34" letter-spacing="14" fill="#9fb0c4">SPORTS DASHBOARD</text> <text x="426" y="388" font-family="'Helvetica Neue',Arial,sans-serif" font-size="30" fill="#c9d3df">Every prop, simulated possession by possession.</text> <g transform="translate(1110 150)"> <line x1="-10" y1="118" x2="310" y2="118" stroke="#f4f7fb" stroke-opacity=".55" stroke-width="3" stroke-dasharray="10 8"/> <rect x="0" y="70" width="34" height="130" rx="6" fill="url(#tmb-bar)"/> <rect x="46" y="170" width="34" height="30" rx="6" fill="#ff6b6b"/> <rect x="92" y="90" width="34" height="110" rx="6" fill="url(#tmb-bar)"/> <rect x="138" y="140" width="34" height="60" rx="6" fill="#ff6b6b"/> <rect x="184" y="100" width="34" height="100" rx="6" fill="url(#tmb-bar)"/> <rect x="230" y="50" width="34" height="150" rx="6" fill="url(#tmb-bar)"/> <rect x="276" y="80" width="34" height="120" rx="6" fill="url(#tmb-bar)"/> <text x="310" y="236" text-anchor="end" font-family="'IBM Plex Mono',Consolas,monospace" font-size="22" fill="#9fb0c4">5 of 7 over the line</text> </g></svg>
     <div class="eyebrow" id="slateMeta">TellMe Sports · loading slate…</div>
     <h1>Tonight's NBA slate, simulated possession by possession</h1>
+    <p style="margin:0"><a href="?view=phone&amp;sport=nfl" style="font-weight:600">NFL pilot: this week's paper card and backtest →</a></p>
     <p class="muted">Every game runs thousands of times from last season's shot locations, make rates, assist habits, rebounding and defense, with tonight's rosters, injuries and expected starters. Results are priced against DraftKings, FanDuel, Fanatics and Caesars lines.</p>
     <div class="controls">
       <div class="field"><label for="nSims">Sims per game</label><select id="nSims"><option value="5000">5,000</option><option value="10000" selected>10,000</option><option value="25000">25,000</option><option value="50000">50,000</option><option value="100000">100,000</option></select></div>
@@ -362,7 +383,16 @@ button.pa-hb-col{cursor:pointer}
   <svg class="tm-banner tm-banner-ph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" role="img" aria-label="TellMe Sports: every prop, simulated possession by possession"> <defs> <linearGradient id="tmp-bg" x1="0" y1="0" x2="1" y2="1"> <stop offset="0" stop-color="#12233b"/><stop offset="1" stop-color="#070f1a"/> </linearGradient> <radialGradient id="tmp-glow" cx=".82" cy=".35" r=".55"> <stop offset="0" stop-color="#1fae6f" stop-opacity=".28"/><stop offset="1" stop-color="#1fae6f" stop-opacity="0"/> </radialGradient> <linearGradient id="tmp-bar" x1="0" y1="1" x2="0" y2="0"> <stop offset="0" stop-color="#1fae6f"/><stop offset="1" stop-color="#5ee6a6"/> </linearGradient> </defs> <rect width="1500" height="500" fill="url(#tmp-bg)"/> <rect width="1500" height="500" fill="url(#tmp-glow)"/> <path d="M1500 40a420 420 0 0 0 0 420" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/> <circle cx="1500" cy="250" r="120" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/> <g transform="translate(110 110) scale(.546875)"> <path d="M136 112h240a56 56 0 0 1 56 56v148a56 56 0 0 1-56 56H236l-72 58v-58h-28a56 56 0 0 1-56-56V168a56 56 0 0 1 56-56z" fill="#f4f7fb"/> <rect x="140" y="256" width="60" height="78" rx="12" fill="#c9d3df"/> <rect x="226" y="200" width="60" height="134" rx="12" fill="#c9d3df"/> <rect x="312" y="146" width="60" height="188" rx="12" fill="url(#tmp-bar)"/> <line x1="124" y1="222" x2="388" y2="222" stroke="#12233b" stroke-width="7" stroke-dasharray="16 12" stroke-linecap="round"/> <circle cx="342" cy="112" r="26" fill="#ff7a45"/> <path d="M316 112h52M342 86v52M323 93c12 9 12 29 0 38M361 93c-12 9-12 29 0 38" stroke="#12233b" stroke-width="4" fill="none" stroke-linecap="round"/> </g> <text x="420" y="262" font-family="'Archivo Black','Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="132" letter-spacing="-3" fill="#f4f7fb">Tell<tspan fill="#5ee6a6">Me</tspan></text> <text x="426" y="322" font-family="'IBM Plex Mono','SFMono-Regular',Consolas,monospace" font-size="34" letter-spacing="14" fill="#9fb0c4">SPORTS DASHBOARD</text> <text x="426" y="388" font-family="'Helvetica Neue',Arial,sans-serif" font-size="30" fill="#c9d3df">Every prop, simulated possession by possession.</text> <g transform="translate(1110 150)"> <line x1="-10" y1="118" x2="310" y2="118" stroke="#f4f7fb" stroke-opacity=".55" stroke-width="3" stroke-dasharray="10 8"/> <rect x="0" y="70" width="34" height="130" rx="6" fill="url(#tmp-bar)"/> <rect x="46" y="170" width="34" height="30" rx="6" fill="#ff6b6b"/> <rect x="92" y="90" width="34" height="110" rx="6" fill="url(#tmp-bar)"/> <rect x="138" y="140" width="34" height="60" rx="6" fill="#ff6b6b"/> <rect x="184" y="100" width="34" height="100" rx="6" fill="url(#tmp-bar)"/> <rect x="230" y="50" width="34" height="150" rx="6" fill="url(#tmp-bar)"/> <rect x="276" y="80" width="34" height="120" rx="6" fill="url(#tmp-bar)"/> <text x="310" y="236" text-anchor="end" font-family="'IBM Plex Mono',Consolas,monospace" font-size="22" fill="#9fb0c4">5 of 7 over the line</text> </g></svg>
   <header class="pa-top">
     <div class="pa-head"><div style="display:grid;gap:3px"><div class="tm-brand"><svg class="tm-mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"> <defs> <linearGradient id="tmm-bg" x1="0" y1="0" x2="1" y2="1"> <stop offset="0" stop-color="#12233b"/><stop offset="1" stop-color="#0a1422"/> </linearGradient> <linearGradient id="tmm-bar" x1="0" y1="1" x2="0" y2="0"> <stop offset="0" stop-color="#1fae6f"/><stop offset="1" stop-color="#5ee6a6"/> </linearGradient> </defs> <rect width="512" height="512" rx="112" fill="url(#tmm-bg)"/> <path d="M136 112h240a56 56 0 0 1 56 56v148a56 56 0 0 1-56 56H236l-72 58v-58h-28a56 56 0 0 1-56-56V168a56 56 0 0 1 56-56z" fill="#f4f7fb"/> <rect x="140" y="256" width="60" height="78" rx="12" fill="#c9d3df"/> <rect x="226" y="200" width="60" height="134" rx="12" fill="#c9d3df"/> <rect x="312" y="146" width="60" height="188" rx="12" fill="url(#tmm-bar)"/> <line x1="124" y1="222" x2="388" y2="222" stroke="#12233b" stroke-width="7" stroke-dasharray="16 12" stroke-linecap="round"/> <circle cx="342" cy="112" r="26" fill="#ff7a45"/> <path d="M316 112h52M342 86v52M323 93c12 9 12 29 0 38M361 93c-12 9-12 29 0 38" stroke="#12233b" stroke-width="4" fill="none" stroke-linecap="round"/></svg><span>Tell<b>Me</b> Sports</span></div><div class="pa-title" id="paDate">Tonight</div></div><div class="pa-stamp" id="paStamp"></div></div>
-    <nav class="pa-tabs" role="tablist" aria-label="Sections">
+    <nav class="pa-sport" role="tablist" aria-label="Sport">
+      <button role="tab" data-sport="nba" aria-selected="true">NBA</button>
+      <button role="tab" data-sport="nfl" aria-selected="false">NFL <span class="pa-pilot">pilot</span></button>
+    </nav>
+    <nav class="pa-tabs nfl" id="nflTabs" role="tablist" aria-label="NFL sections" hidden>
+      <button role="tab" data-nt="card" aria-selected="true">Card</button>
+      <button role="tab" data-nt="board" aria-selected="false">Board</button>
+      <button role="tab" data-nt="backtest" aria-selected="false">Backtest</button>
+    </nav>
+    <nav class="pa-tabs" id="nbaTabs" role="tablist" aria-label="Sections">
       <button role="tab" data-pt="tonight" aria-selected="true">Tonight</button>
       <button role="tab" data-pt="live" aria-selected="false">Live</button>
       <button role="tab" data-pt="props" aria-selected="false">Props</button>
@@ -1929,6 +1959,8 @@ const stakeFor=p=>(RULES().stakes.find(([q])=>p>=q)||[0,0])[1];
 let TAB="tonight"; try{ const t=localStorage.getItem("pa-tab"); if(["tonight","live","props","record"].includes(t)) TAB=t; }catch(e){}
 const PF={game:"all", stat:"all", q:"", all:false, n:60};
 let REC_ALL=false;
+let SPORT=(()=>{ const q=new URLSearchParams(location.search).get("sport"); if(q==="nfl"||q==="nba") return q; try{ return localStorage.getItem("pa-sport")==="nfl"?"nfl":"nba"; }catch(e){ return "nba"; } })();
+let NTAB="card"; const NF={card:null, bt:null, loaded:false, mkt:"all"};
 
 // ---- tracked bets (owner-only database) ----
 const TRK={db:null, owner:false, bets:[], state:"loading", note:""};
@@ -2326,7 +2358,50 @@ function rRecord(){
     <div class="pa-h">Night by night</div>${show.map(night).join("")}
     ${nights.length>3?`<button class="pa-btn" data-act="nights">${REC_ALL?"Show fewer nights":`Show all ${nights.length} nights`}</button>`:""}${foot()}`; }
 
+// ---- NFL (pilot): the paper card, the priced board and the backtest, from nfl/card.json and nfl/backtest.json ----
+const NFL_LABEL={PASS_YDS:"pass yds",PASS_CMP:"completions",PASS_ATT:"pass att",RUSH_YDS:"rush yds",RUSH_ATT:"rush att",REC_YDS:"rec yds",REC:"receptions",RR_YDS:"rush+rec yds",ATD:"anytime TD"};
+async function loadNFL(){ if(NF.loaded) return; NF.loaded=true; const g=n=>fetch(n,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
+  [NF.card,NF.bt]=await Promise.all([g("nfl/card.json"),g("nfl/backtest.json")]); render(); }
+const nfBet=r=>r.st==="ATD"?"Anytime TD":`${r.side} ${r.line} ${NFL_LABEL[r.st]||r.st}`;
+const nfBook=b=>b==="OPEN"?"opener":b==="FAN"?"Fanatics":b;
+const nfMx=r=>r.mx&&Math.abs(r.mx-1)>=.01?` · coverage matchup ${r.mx>1?"+":"−"}${Math.abs((r.mx-1)*100).toFixed(0)}%`:"";
+function nfPick(r){ return `<div class="pa-card"><div class="pa-row"><span class="pa-player">${esc(r.player)}</span><span class="pa-stake">${r.stake}u</span></div>
+  <div class="pa-row"><span class="pa-bet ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span><span class="pa-small">${esc(r.game)} · ${clock(r.start)}</span></div>
+  <div class="pa-nums"><div><b>${P1(r.p)}</b><span>win chance</span></div><div><b>${oddsTxt(r.odds)}</b><span>${nfBook(r.book)}</span></div><div><b>${r.st==="ATD"?r.proj.toFixed(2):r.proj.toFixed(1)}</b><span>${r.st==="ATD"?"exp. TDs":"projection"}</span></div></div>
+  <div class="pa-small">Market ${P1(r.pm)} · edge ${P1(r.ev)}${nfMx(r)}${r.inj?` · <span class="dn">${esc(r.inj)}</span>`:""}</div></div>`; }
+function nfCard(){ const c=NF.card; if(!c) return empty("No NFL card yet","The paper card shows here once the week's lines are priced.");
+  const pk=c.picks||[], risk=pk.reduce((a,r)=>a+r.stake,0), near=(c.board||[]).filter(r=>!pk.some(p=>p.pid===r.pid&&p.st===r.st)&&r.st!=="ATD").slice(0,6);
+  const games=(c.games||[]).slice().sort((a,b)=>new Date(a.start)-new Date(b.start)).map(g=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span>${esc(g.game)}</span><span class="pa-small">${ET(g.start,{weekday:"short",hour:"numeric",minute:"2-digit"})} · ${g.fan?`${g.fan} Fanatics`:"no Fanatics yet"}${g.open?` · ${g.open} openers`:""}</span></div>`).join("");
+  return `<div class="pa-card"><div class="pa-kpis"><div><b>${pk.length}</b><span>paper picks</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk (paper)</span></div><div><b>${(c.games||[]).filter(g=>g.fan||g.open).length}/${(c.games||[]).length}</b><span>games priced</span></div></div>
+    <div class="pa-small"><span class="pa-st n">pilot · no real stakes</span> Frozen ${ET(c.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET. Same bar as the NBA card: 60%+ to win, 5%+ edge, −150 to +150, two a game. Priced at the opening line where there is one: the backtest only found an edge early in the week.</div></div>
+    ${pk.length?pk.map(nfPick).join(""):empty("No paper picks yet","Nothing has cleared the bar. Most of the week's props open Tuesday–Wednesday.")}
+    ${near.length?`<div class="pa-h">Closest to the bar</div><div class="pa-card">${near.map(r=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span><b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span></span><span class="pa-small">${oddsTxt(r.odds)} ${nfBook(r.book)} · ${P1(r.p)} · edge ${P1(r.ev)}</span></div>`).join("")}</div>`:""}
+    <div class="pa-h">The week</div><div class="pa-card">${games}</div>`; }
+function nfBoard(){ const c=NF.card; if(!c) return empty("No board yet","");
+  const mk=[...new Set((c.board||[]).map(r=>r.st))]; const rows=(c.board||[]).filter(r=>NF.mkt==="all"||r.st===NF.mkt);
+  return `<div class="pa-card"><div class="pa-small">Every priced prop for the week, best edge first. Win chance blends the model with the opening line (Fanatics where no opener is posted).</div>
+    <div class="nf-chips">${["all",...mk].map(m=>`<button data-nm="${m}" aria-pressed="${NF.mkt===m}">${m==="all"?"All":esc(NFL_LABEL[m]||m)}</button>`).join("")}</div></div>
+    <div class="pa-card" style="padding:8px 10px"><table class="nf-tbl"><tr><th>Prop</th><th class="n">Price</th><th class="n">Win</th><th class="n">Edge</th></tr>
+    ${rows.slice(0,80).map(r=>`<tr><td><b>${esc(r.player)}</b><br><span class="pa-small">${esc(nfBet(r))} · ${esc(r.game)}${nfMx(r)}</span></td><td class="n">${oddsTxt(r.odds)}<br><span class="pa-small">${nfBook(r.book)}</span></td><td class="n">${P1(r.p)}</td><td class="n ${r.ev>0?"up":"dn"}">${P1(r.ev)}</td></tr>`).join("")}</table></div>`; }
+function nfBacktest(){ const b=NF.bt; if(!b) return empty("No backtest yet","");
+  const roi=x=>`${(x*100).toFixed(1)}%`, wk=b.weekly26||[], mx=Math.max(1,...wk.map(w=>Math.abs(w.staked)));
+  return `<div class="pa-card"><div class="pa-small">${esc(b.note)}</div>
+    <table class="nf-tbl"><tr><th>Set</th><th class="n">Record</th><th class="n">Staked</th><th class="n">Return</th></tr>${b.rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="n">${r.w}-${r.l}</td><td class="n ${r.staked>0?"up":"dn"}">${U(r.staked)}</td><td class="n">${roi(r.roi)}</td></tr>`).join("")}</table></div>
+    ${wk.length?`<div class="pa-h">2026 week by week (held out)</div><div class="pa-card"><div class="nf-bars">${wk.map(w=>`<i title="week ${w.week}: ${w.w}-${w.l}, ${U(w.staked)}" style="height:${Math.max(3,Math.abs(w.staked)/mx*68)}px;background:${w.staked>=0?"var(--over)":"var(--under)"}"></i>`).join("")}</div><div class="nf-bl">${wk.map(w=>`<span>W${w.week}<br>${SGN(w.staked)}</span>`).join("")}</div></div>`:""}
+    ${b.factors?`<div class="pa-h">Matchup factors</div><div class="pa-card"><div class="pa-small">Each factor tried alone on top of season stats, defense vs position and game script. Lower log loss is better (opening line alone: pass yds .6931, rec yds .6937, receptions .6811).</div>
+      <table class="nf-tbl"><tr><th>Factor</th><th class="n">Pass yds</th><th class="n">Rec yds</th><th class="n">Card</th></tr>${b.factors.map(f=>`<tr><td class="${f.kept?"nf-kept":""}">${esc(f.name)}</td><td class="n">${f.passYds.toFixed(4)}</td><td class="n">${f.recYds.toFixed(4)}</td><td class="n">${f.w}-${f.l} ${U(f.staked,1)}</td></tr>`).join("")}</table>
+      <div class="pa-small">No free data says which corner covers which receiver, so "primary defender" is approximated by what each defense allows to an offense's top target. It didn't help.</div></div>`:""}
+    ${b.markets?`<div class="pa-h">By market (2026, held out)</div><div class="pa-card"><table class="nf-tbl"><tr><th>Market</th><th class="n">Props</th><th class="n">Opener</th><th class="n">Model+opener</th></tr>${b.markets.map(m=>`<tr><td>${esc(NFL_LABEL[m.st]||m.st)}${m.card?"":` <span class="pa-small">(not carded)</span>`}</td><td class="n">${m.n}</td><td class="n">${m.llM.toFixed(4)}</td><td class="n ${m.llB<m.llM?"up":"dn"}">${m.llB.toFixed(4)}</td></tr>`).join("")}</table></div>`:""}`; }
+function renderNFL(){
+  for(const b of app.querySelectorAll("[data-nt]")) b.setAttribute("aria-selected",String(b.dataset.nt===NTAB));
+  const c=NF.card; document.getElementById("paDate").textContent=c?`NFL week ${c.week}`:"NFL"; document.getElementById("paStamp").innerHTML=c?`${(c.picks||[]).length} paper picks<br>pilot`:"";
+  if(!NF.loaded){ loadNFL(); body.innerHTML=`<div class="pa-card pa-empty"><span class="muted">Loading…</span></div>`; return; }
+  body.innerHTML=`<div class="nf-pilotbar"><b>NFL pilot · paper only</b><span>This model is new and still being tested. Its picks are tracked on paper, not recommended bets, and the record so far is a backtest, not live results.</span></div>`+({card:nfCard,board:nfBoard,backtest:nfBacktest})[NTAB]();
+}
 function render(){
+  for(const b of app.querySelectorAll("[data-sport]")) b.setAttribute("aria-selected",String(b.dataset.sport===SPORT));
+  document.getElementById("nbaTabs").hidden=SPORT!=="nba"; document.getElementById("nflTabs").hidden=SPORT!=="nfl";
+  if(SPORT==="nfl"){ renderNFL(); return; }
   for(const b of app.querySelectorAll("[data-pt]")){ b.setAttribute("aria-selected",String(b.dataset.pt===TAB)); }
   const inPlay=(D.live?.games||[]).some(g=>g.state==="in"); const lb=app.querySelector('[data-pt="live"]'); lb.innerHTML="Live"+(inPlay?`<span class="dot" aria-label="games in progress"></span>`:"");
   const date=tonight(); document.getElementById("paDate").textContent=date?ET(ymd(date),{weekday:"long",month:"short",day:"numeric"}):"Tonight";
@@ -2337,6 +2412,9 @@ function render(){
   body.innerHTML=({tonight:rTonight,live:rLive,props:rProps,record:rRecord})[TAB]();
 }
 app.addEventListener("click",e=>{
+  const sp=e.target.closest("[data-sport]"); if(sp){ SPORT=sp.dataset.sport; try{ localStorage.setItem("pa-sport",SPORT); }catch(x){} render(); window.scrollTo(0,0); return; }
+  const nt=e.target.closest("[data-nt]"); if(nt){ NTAB=nt.dataset.nt; render(); window.scrollTo(0,0); return; }
+  const nm=e.target.closest("[data-nm]"); if(nm){ NF.mkt=nm.dataset.nm; render(); return; }
   const t=e.target.closest("[data-pt]"); if(t){ TAB=t.dataset.pt; try{ localStorage.setItem("pa-tab",TAB); }catch(x){} render(); window.scrollTo(0,0); if(TAB==="live") refreshLive(); return; }
   const c=e.target.closest("[data-calc]"); if(c){ const [pl,st,side,line,odds]=c.dataset.calc.split("|"); openCalc(pl,st,{side:side||undefined, line:line?+line:undefined, odds:odds?+odds:undefined}); return; }
   const s=e.target.closest("[data-ps]"); if(s){ PF.stat=s.dataset.ps; PF.n=60; render(); return; }

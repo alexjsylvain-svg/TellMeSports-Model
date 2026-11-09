@@ -29,7 +29,7 @@ foreach($s in $seasons){
     $sp = $snap["$(Norm $r.player_display_name)|$($r.team)|$($r.week)"]; if($sp -ne $null){ $nsnap++ }
     [void]$rows.Add(@($r.player_id, $r.player_display_name, $r.position, [int]$r.season, [int]$r.week, $r.team, $r.opponent_team,
       [int](Num $r.attempts), [int](Num $r.completions), [int](Num $r.passing_yards), [int](Num $r.carries), [int](Num $r.rushing_yards),
-      [int](Num $r.targets), [int](Num $r.receptions), [int](Num $r.receiving_yards), $sp)) }
+      [int](Num $r.targets), [int](Num $r.receptions), [int](Num $r.receiving_yards), $sp, [int](Num $r.rushing_tds), [int](Num $r.receiving_tds))) }
   "$s : player games so far $($rows.Count), with snap share $nsnap"
 }
 $inj = @{}
@@ -37,7 +37,7 @@ foreach($r in (Import-Csv (Get-File "injuries" "injuries_$Season.csv" $true))){ 
   $k = "$($r.full_name)|$($r.team)"; if(-not $inj[$k] -or [int]$inj[$k][1] -le [int]$r.week){ $inj[$k] = @($r.report_status, [int]$r.week, $r.report_primary_injury) } }
 $obj = [ordered]@{ built=(Get-Date).ToUniversalTime().ToString("o"); season=$Season
   gameCols=@("id","season","week","date","away","home","spread","total","awayScore","homeScore","roof","wind"); games=$games
-  rowCols=@("pid","name","pos","season","week","team","opp","att","cmp","pyds","car","ryds","tgt","rec","recyds","snap"); rows=$rows
+  rowCols=@("pid","name","pos","season","week","team","opp","att","cmp","pyds","car","ryds","tgt","rec","recyds","snap","rtd","rectd"); rows=$rows
   inj=$inj }
 $of = Join-Path $out "data.json"; [IO.File]::WriteAllText($of, ($obj | ConvertTo-Json -Depth 5 -Compress))
 "wrote $of $((Get-Item $of).Length) bytes: $($games.Count) games, $($rows.Count) player games, $($inj.Count) injury entries"

@@ -23,6 +23,11 @@ while ($l.IsListening) {
     $f = Join-Path (Join-Path (Split-Path $VideoDir) "tracking") $matches[1]
     if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
     $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
+  } elseif ($path -eq '/next') {
+    # preview copy of the dashboard (dashboard-next.html), never published by push-site.ps1
+    $f = Join-Path (Split-Path $Page) "dashboard-next.html"
+    if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
+    $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "text/html; charset=utf-8"
   } elseif ($path -eq '/nfl' -or $path -eq '/nfl/') {
     # NFL pilot page (nfl.html next to the NBA page) and its data files (tracking\nfl)
     $b = [IO.File]::ReadAllBytes((Join-Path (Split-Path $Page) "nfl.html")); $c.Response.ContentType = "text/html; charset=utf-8"
@@ -36,6 +41,8 @@ while ($l.IsListening) {
   } elseif ($path -match '^/(slate|live|results|finals|picks|board|season|boxes)\.json$') {
     # picks, board, season and boxes are the phone view's files; they're only there when the -Data folder holds them
     $f = Join-Path (Split-Path $Data) ($matches[1] + ".json")
+    # the /next preview falls back to the published copy (docs\) so its NBA side shows the current card
+    if (-not (Test-Path $f) -and $c.Request.UrlReferrer -and $c.Request.UrlReferrer.AbsolutePath -eq '/next') { $f = Join-Path (Join-Path (Split-Path $PSScriptRoot) "docs") ($matches[1] + ".json") }
     if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
     $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
   } else {

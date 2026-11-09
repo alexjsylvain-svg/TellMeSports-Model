@@ -29,23 +29,107 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 const NFL = (()=>{
 const STATS={PASS_YDS:'pyds',PASS_CMP:'cmp',PASS_ATT:'att',RUSH_YDS:'ryds',RUSH_ATT:'car',REC_YDS:'recyds',REC:'rec'};
 const COUNT={PASS_CMP:1,PASS_ATT:1,RUSH_ATT:1,REC:1};
-const GROUP={PASS_YDS:'pass',PASS_CMP:'pass',PASS_ATT:'pass',RUSH_YDS:'rush',RUSH_ATT:'rush',REC_YDS:'rec',REC:'rec'};
-const LABEL={PASS_YDS:'pass yds',PASS_CMP:'completions',PASS_ATT:'pass att',RUSH_YDS:'rush yds',RUSH_ATT:'rush att',REC_YDS:'rec yds',REC:'receptions'};
+STATS.RR_YDS='rr'; STATS.ATD='td';
+const GROUP={PASS_YDS:'pass',PASS_CMP:'pass',PASS_ATT:'pass',RUSH_YDS:'rush',RUSH_ATT:'rush',REC_YDS:'rec',REC:'rec',RR_YDS:'rec',ATD:'td'};
+const LABEL={PASS_YDS:'pass yds',PASS_CMP:'completions',PASS_ATT:'pass att',RUSH_YDS:'rush yds',RUSH_ATT:'rush att',REC_YDS:'rec yds',REC:'receptions',RR_YDS:'rush+rec yds',ATD:'anytime TD'};
 const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[.'\-,]/g,' ').replace(/\b(jr|sr|ii|iii|iv|v)\b/g,'').replace(/\s+/g,' ').trim();
 const impl=o=>o>0?100/(o+100):-o/(-o+100), dec=o=>o>0?1+o/100:1+100/-o;
 const lg=x=>{x=Math.min(.99,Math.max(.01,x));return Math.log(x/(1-x));}, sg=x=>1/(1+Math.exp(-x));
-// Settings from the Nov 9 backtest (fit on 2025, tested on 2026 weeks 1-8). History: games weighted by a 12-game half-life,
+// Settings from the Nov 9 backtests (fit on 2025, tested on 2026 weeks 1-8). History: games weighted by a 12-game half-life,
 // last season's at 0.4 (shorter half-lives and other weights all scored within .006 log loss). Sim weights in the blend with
 // the OPENING line, fitted on 2025 openers: against the opener the blend beat the market out of sample on receptions
 // (.6811 -> .6773), receiving yards (.6937 -> .6919), passing yards and rushing; against Fanatics' near-close price it lost.
 // Pass attempts and completions got worse out of sample (.6926 -> .7018), so they're priced but never carded (NOCARD).
-const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8}, beta:.02, gamma:.5, k:4, K:400,
-  w:{PASS_YDS:.3,PASS_CMP:.4,PASS_ATT:.35,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.3,REC:.3}};
-const NOCARD=new Set(['PASS_ATT','PASS_CMP']);
-function prep(D){
+// Nov 9 matchup backtest (each factor alone, fit 2025, held out 2026 wk 1-8, blend log loss vs the opener):
+//   man/zone + coverage shell: kept. Pass yds .6917 -> .6858, rec yds .6919 -> .6914; card 57-39 +5.06u -> 52-32 +5.25u.
+//   blitz rate: dropped (pass yds slightly better, receptions worse, card +2.49u). Box count: no effect (rushing leans on the
+//   market, w .05). Top-target "primary defender" proxy: dropped (worse everywhere, card +2.68u).
+//   Shrinkage: splits at 30 team dropbacks per look, defense mix at 50 plays (120/150 left every multiplier within ±1%).
+// Anytime TD: expected TDs from carries/targets by field position only (tdMix 1: .4746 vs the opener's .4765; mixing in the
+// actual TD rate was worse). Margin on Yes-only TD prices 19.6% (2025 openers). No TD price cleared 5% edge in either season.
+// Rush+rec yards: blend worse than the opener out of sample (.6931 -> .7036), so priced but never carded.
+const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8,td:1}, beta:.02, gamma:.5, k:4, K:400,
+  w:{PASS_YDS:.3,PASS_CMP:.3,PASS_ATT:.35,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.25,REC:.3,RR_YDS:.35,ATD:.15},
+  fx:{blitz:false,mz:true,cov:true,box:false,top:false}, kP:30, kD:50, tdMix:1, atdHold:.196};
+const NOCARD=new Set(['PASS_ATT','PASS_CMP','RR_YDS']);
+// ---- matchup engine (play-by-play): per player-game production split by the defense's look, per defense-game the looks it
+// showed. Splits: blitz (FTN: 1+ blitzers) on dropbacks; man vs zone and coverage shell (pbp participation, 2025 only:
+// 2026 games use each defense's 2025 tendencies and each player's 2025 splits); box count on runs (FTN). Plus expected TDs
+// from each carry and target by field position (league TD rates by yard-line bucket, 2025).
+const COVF=c=>!c?null:/COVER_0|COVER_1|2_MAN/i.test(c)?'c01':/COVER_2/i.test(c)?'c2':/COVER_3/i.test(c)?'c3':/COVER_4|COVER_6|QUARTERS/i.test(c)?'c46':null;
+const BOXB=b=>b<0?null:b<=6?'lt7':b===7?'b7':'ge8';
+const YLB=y=>y<=2?0:y<=5?1:y<=10?2:y<=20?3:y<=40?4:5;
+function buildMX(PL){
+  const C=PL.cols, I=Object.fromEntries(C.map((c,i)=>[c,i])), id=k=>k>=0?PL.ids[k]:null;
+  const tdr={r:[0,0,0,0,0,0],rn:[0,0,0,0,0,0],t:[0,0,0,0,0,0],tn:[0,0,0,0,0,0]};
+  for(const p of PL.plays){ if(p[I.season]!==2025) continue; const b=YLB(p[I.yl]);
+    if(p[I.kind]===2&&p[I.rusher]>=0){ tdr.rn[b]++; if(p[I.td]===p[I.rusher]) tdr.r[b]++; }
+    if(p[I.kind]===1&&p[I.target]>=0){ tdr.tn[b]++; if(p[I.td]===p[I.target]) tdr.t[b]++; } }
+  const rateR=tdr.r.map((x,i)=>x/Math.max(1,tdr.rn[i])), rateT=tdr.t.map((x,i)=>x/Math.max(1,tdr.tn[i]));
+  const team={}, player={}, def={};
+  const cats=p=>({blitz:p[I.kind]===1&&p[I.blitz]>=0?(p[I.blitz]>0?'y':'n'):null, mz:p[I.kind]===1&&p[I.mz]?(p[I.mz]===1?'man':'zone'):null,
+    cov:p[I.kind]===1?COVF(p[I.cov]):null, box:p[I.kind]===2?BOXB(p[I.box]):null});
+  const bump=(o,k,v)=>{ o[k]=(o[k]||0)+v; };
+  for(const p of PL.plays){ const s=p[I.season], w=p[I.week], tk=`${s}|${w}|${p[I.off]}`, c=cats(p);
+    const T=(team[tk]??={db:0,runs:0,def:p[I.def]}); const D=((def[`${p[I.def]}|${s}`]??={})[w]??={db:0,runs:0});
+    if(p[I.kind]===1){ T.db++; D.db++; } else { T.runs++; D.runs++; }
+    for(const t in c){ if(c[t]){ bump(T,t+':'+c[t],1); bump(D,t+':'+c[t],1); } }
+    const touch=(pid,role)=>{ const g=((player[id(pid)]??={})[`${s}|${w}`]??={s,w,team:p[I.off],xtd:0}); return g; };
+    if(p[I.kind]===1&&p[I.target]>=0){ const g=touch(p[I.target]); const y=p[I.cmp]?p[I.yds]:0;
+      g.xtd+=rateT[YLB(p[I.yl])]; bump(g,'tgt',1); bump(g,'yds',y); for(const t of ['blitz','mz','cov']) if(c[t]){ bump(g,`${t}:${c[t]}:tgt`,1); bump(g,`${t}:${c[t]}:rec`,p[I.cmp]); bump(g,`${t}:${c[t]}:yds`,y); } }
+    if(p[I.kind]===1&&p[I.passer]>=0){ const g=touch(p[I.passer]); const y=p[I.cmp]?p[I.yds]:0;
+      for(const t of ['blitz','mz','cov']) if(c[t]){ bump(g,`${t}:${c[t]}:pyds`,y); bump(g,`${t}:${c[t]}:pcmp`,p[I.cmp]); } }
+    if(p[I.kind]===2&&p[I.rusher]>=0){ const g=touch(p[I.rusher]); g.xtd+=rateR[YLB(p[I.yl])]; if(c.box){ bump(g,`box:${c.box}:car`,1); bump(g,`box:${c.box}:ryds`,p[I.yds]); } } }
+  // "primary defender" proxy (no free coverage-assignment data): what each defense allowed to the offense's most-targeted
+  // player in each game, in yards per target-leader game
+  const lead={}; for(const pid in player) for(const k in player[pid]){ const g=player[pid][k]; const tk=`${g.s}|${g.w}|${g.team}`; if(!(g.tgt>0)) continue;
+    if(!lead[tk]||g.tgt>lead[tk].tgt) lead[tk]={tgt:g.tgt,yds:g.yds||0,s:g.s,w:g.w,def:team[tk]?.def}; }
+  const top={}; for(const tk in lead){ const l=lead[tk]; if(!l.def) continue; ((top[`${l.def}|${l.s}`]??={})[l.w]={yds:l.yds,tgt:l.tgt}); }
+  return {team,player,def,rateR,rateT,top};
+}
+function topMult(MX,pid,s,w,opp,P){
+  const games=MX.player[pid]; if(!games) return 1; const ord=s*100+w; let mine=0,all=0;
+  for(const k in games){ const g=games[k]; if(g.s*100+g.w>=ord||g.s<s-1) continue; const tm=MX.team[`${g.s}|${g.w}|${g.team}`]; if(!tm) continue; mine+=g.tgt||0; all+=tm.db||0; }
+  if(!all||mine/all<.2) return 1;   // only for a team's main target (20%+ of dropbacks)
+  const cache=(MX._c??={}); const avg=ss=>{ const key=`t|${ss}|${ss===s?w:99}`; if(key in cache) return cache[key]; let y=0,n=0; for(const k in MX.top){ if(!k.endsWith('|'+ss)) continue; for(const wk in MX.top[k]){ if(ss===s&&+wk>=w) continue; y+=MX.top[k][wk].yds; n++; } } return cache[key]=n?y/n:null; };
+  const lgY=avg(s-1)??avg(s); if(!lgY) return 1; const d=MX.top[`${opp}|${s}`]||{}; let y=0,n=0; for(const wk in d){ if(+wk<w){ y+=d[wk].yds; n++; } }
+  return ((y+6*lgY)/(n+6))/lgY;
+}
+// one split's multiplier: sum over the defense's looks (shrunk to the league's) of his rate in each look (shrunk to his overall
+// rate), over the same with the league's mix. num/den: his per-game measure and its denominator (team dropbacks, his carries)
+function splitMult(MX,pid,s,w,opp,T,cats,num,den,P,{prevOnly=false}={}){
+  const games=MX.player[pid]; if(!games) return 1; const ord=s*100+w;
+  const sums={}, dens={}; let tot=0,totD=0;
+  for(const k in games){ const g=games[k]; const o=g.s*100+g.w; if(o>=ord||g.s<s-1) continue; const wt=g.s<s?P.prevW:1;
+    const tm=MX.team[`${g.s}|${g.w}|${g.team}`]||{};
+    for(const c of cats){ const x=(g[`${T}:${c}:${num}`]||0)*wt, d=(den==='team'?(tm[`${T}:${c}`]||0):(g[`${T}:${c}:${den}`]||0))*wt; sums[c]=(sums[c]||0)+x; dens[c]=(dens[c]||0)+d; tot+=x; totD+=d; } }
+  if(totD<20) return 1; const rAll=tot/totD, r={}; for(const c of cats) r[c]=((sums[c]||0)+P.kP*rAll/ (den==='team'?1:6))/((dens[c]||0)+P.kP/(den==='team'?1:6));
+  const cache=(MX._c??={});
+  const look=(team,ss,before)=>{ const key=`d|${T}|${team}|${ss}|${before?w:99}`; if(cache[key]) return cache[key];
+    const n={}; let N=0; const d=MX.def[`${team}|${ss}`]||{}; for(const wk in d){ if(before&&+wk>=w) continue; for(const c of cats){ const v=d[wk][`${T}:${c}`]||0; n[c]=(n[c]||0)+v; N+=v; } }
+    return cache[key]={n,N}; };
+  // league mix: every defense last season (or this season to date when there's no last season)
+  const lgS=MX.def[`ARI|${s-1}`]?s-1:s, lk=`l|${T}|${lgS}|${lgS===s?w:99}`;
+  if(!cache[lk]){ const L={}; let LN=0; for(const k in MX.def){ const [t,ss]=k.split('|'); if(+ss!==lgS) continue; const d=MX.def[k]; for(const wk in d){ if(lgS===s&&+wk>=w) continue; for(const c of cats){ const v=d[wk][`${T}:${c}`]||0; L[c]=(L[c]||0)+v; LN+=v; } } } cache[lk]={L,LN}; }
+  const {L,LN}=cache[lk]; if(!LN) return 1;
+  let D=prevOnly?{n:{},N:0}:look(opp,s,true); if(D.N<50) D=look(opp,s-1,false);
+  let a=0,b=0; for(const c of cats){ const piL=(L[c]||0)/LN, piD=((D.n[c]||0)+P.kD*piL)/(D.N+P.kD); a+=piD*r[c]; b+=piL*r[c]; }
+  return b>0?a/b:1;
+}
+function matchup(MX,pid,st,s,w,opp,P,recShare){
+  if(!MX) return 1; let m=1; const fx=P.fx;
+  const recv=(num)=>{ let x=1; if(fx.blitz) x*=splitMult(MX,pid,s,w,opp,'blitz',['y','n'],num,'team',P);
+    if(fx.mz) x*=splitMult(MX,pid,s,w,opp,'mz',['man','zone'],num,'team',P); if(fx.cov) x*=splitMult(MX,pid,s,w,opp,'cov',['c01','c2','c3','c46'],num,'team',P); return x; };
+  if(st==='REC') m=recv('rec'); else if(st==='REC_YDS') m=recv('yds'); else if(st==='PASS_YDS') m=recv('pyds'); else if(st==='PASS_CMP') m=recv('pcmp');
+  else if(st==='RUSH_YDS'&&fx.box) m=splitMult(MX,pid,s,w,opp,'box',['lt7','b7','ge8'],'ryds','car',P);
+  else if(st==='RR_YDS'){ const mr=recv('yds')*(fx.top?topMult(MX,pid,s,w,opp,P):1), mb=fx.box?splitMult(MX,pid,s,w,opp,'box',['lt7','b7','ge8'],'ryds','car',P):1; m=recShare*mr+(1-recShare)*mb; }
+  if(fx.top&&(st==='REC'||st==='REC_YDS')) m*=topMult(MX,pid,s,w,opp,P);
+  return m;
+}
+function prep(D,PL){
   const gk={};
   for(const a of D.games){ const g={}; D.gameCols.forEach((c,i)=>g[c]=a[i]); gk[`${g.season}|${g.week}|${g.home}`]=g; gk[`${g.season}|${g.week}|${g.away}`]=g; }
-  const R=D.rows.map(a=>{ const r={}; D.rowCols.forEach((c,i)=>r[c]=a[i]); r.ord=r.season*100+r.week; r.pg=r.pos==='FB'?'RB':r.pos;
+  const R=D.rows.map(a=>{ const r={}; D.rowCols.forEach((c,i)=>r[c]=a[i]); r.ord=r.season*100+r.week; r.pg=r.pos==='FB'?'RB':r.pos; r.rr=(r.ryds||0)+(r.recyds||0); r.td=(r.rtd||0)+(r.rectd||0);
     const g=gk[`${r.season}|${r.week}|${r.team}`]; if(g&&g.total!=null&&g.spread!=null){ const s=g.home===r.team?1:-1; r.tt=g.total/2+s*g.spread/2; r.sp=s*g.spread; } return r; });
   const byP={}, byName={};
   for(const r of R){ (byP[r.pid]??=[]).push(r); (byName[norm(r.name)]??=new Set()).add(r.pid); }
@@ -56,7 +140,7 @@ function prep(D){
     for(const st in STATS){ const k=r.pg+'|'+st; e[k]=(e[k]||0)+(r[STATS[st]]||0); lgSum[r.season+'|'+k]=(lgSum[r.season+'|'+k]||0)+(r[STATS[st]]||0); } }
   const teamGames={}; for(const r of R){ teamGames[r.season]??=new Set(); teamGames[r.season].add(r.opp+'|'+r.week); }
   for(const s in teamGames) lgN[s]=teamGames[s].size;
-  return {gk,R,byP,byName,def,lgSum,lgN};
+  return {gk,R,byP,byName,def,lgSum,lgN,MX:PL?buildMX(PL):null};
 }
 function oppFactor(M,opp,s,w,pg,st,k){
   const lgAvg=(M.lgSum[(s-1)+'|'+pg+'|'+st]??M.lgSum[s+'|'+pg+'|'+st]??0)/(M.lgN[s-1]??M.lgN[s]??1); if(!(lgAvg>0)) return 1;
@@ -72,9 +156,16 @@ function project(M,pid,st,s,w,ctx,P){
   for(let i=hist.length-1,age=0;i>=0;i--,age++){ const r=hist[i], wt=Math.pow(.5,age/P.hl)*(r.season<s?P.prevW:1);
     sw+=wt; sx+=wt*(r[f]||0); if(r.tt!=null){ stt+=wt*r.tt; swt+=wt; ssp+=wt*r.sp; } }
   const last=hist[hist.length-1], base=sx/sw; let m=base;
+  // anytime TD: expected TDs = a mix of his expected TDs from his carries and targets by field position (play-by-play) and
+  // his actual TD rate, both weighted like the box-score history
+  if(st==='ATD'&&M.MX){ const g=M.MX.player[pid]; if(g){ const ks=Object.values(g).filter(x=>x.s*100+x.w<ord&&x.s>=s-1).sort((a,b)=>a.s*100+a.w-(b.s*100+b.w));
+      let xw=0,xs=0; for(let i=ks.length-1,age=0;i>=0;i--,age++){ const wt=Math.pow(.5,age/P.hl)*(ks[i].s<s?P.prevW:1); xw+=wt; xs+=wt*ks[i].xtd; }
+      if(ks.length>=2) m=P.tdMix*(xs/xw)+(1-P.tdMix)*base; } }
   if(ctx.tt!=null&&swt>0){ m*=Math.pow(ctx.tt/(stt/swt),P.alpha[GROUP[st]]); if(GROUP[st]==='rush') m*=Math.exp(P.beta*(ctx.sp-ssp/swt)); }
   const of=oppFactor(M,ctx.opp,s,w,last.pg,st,P.k); m*=Math.pow(of,P.gamma);
-  return {m,base,n:hist.length,of,pos:last.pg,team:last.team};
+  let rr=0,rc=0; for(const r of hist){ rr+=r.rr||0; rc+=r.recyds||0; }
+  const mx=matchup(M.MX,pid,st,s,w,ctx.opp,P,rr>0?rc/rr:.5); m*=mx;
+  return {m,base,n:hist.length,of,mx,pos:last.pg,team:last.team};
 }
 // win chance of the over from the projection: the training props whose projections were closest (at most K, and at most
 // 15% of the market, min 80), each outcome scaled by the ratio of the projections, counted against the line
@@ -105,12 +196,14 @@ function priceWeek(M,L,dist,P,{book='FAN',grade=true}={}){
       const home=team===g.home, opp=home?g.away:g.home;
       const ctx={opp, tt:tot!=null&&spr!=null?tot/2+(home?1:-1)*spr/2:null, sp:spr!=null?(home?1:-1)*spr:0};
       const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
-      const d=pOver(dist,q.stat,pr.m,q.line,P.K); if(!d) continue;
-      const fair=impl(q.over)/(impl(q.over)+impl(q.under)); const actual=played?played[STATS[q.stat]]||0:null;
-      for(const side of ['Over','Under']){ const odds=side==='Over'?q.over:q.under, pmS=side==='Over'?fair:1-fair, pS=side==='Over'?d.pS:1-d.pS-d.push;
+      // anytime TD: chance of 1+ = 1 - e^-expected TDs; the market chance from the Yes price less an assumed margin
+      const atd=q.stat==='ATD';
+      const d=atd?{pS:1-Math.exp(-Math.max(0,pr.m)), push:0}:pOver(dist,q.stat,pr.m,q.line,P.K); if(!d) continue;
+      const fair=atd?Math.min(.97,impl(q.over)/(1+P.atdHold)):impl(q.over)/(impl(q.over)+impl(q.under)); const actual=played?played[STATS[q.stat]]||0:null;
+      for(const side of atd?['Over']:['Over','Under']){ const odds=side==='Over'?q.over:q.under, pmS=side==='Over'?fair:1-fair, pS=side==='Over'?d.pS:1-d.pS-d.push;
         const pSW=pS/Math.max(1e-9,1-d.push), wt=P.w[q.stat]??.3, p=sg((1-wt)*lg(pmS)+wt*lg(pSW))*(1-d.push), pl=Math.max(0,1-p-d.push);
         const r={s,w,game:`${g.away} @ ${g.home}`, gid:g.anId, start:g.start, player:q.player, pid, team, pos:pr.pos, st:q.stat, side, line:q.line, odds, oo:side==='Over'?q.under:q.over,
-          pm:pmS, pS:pSW, p, ev:p*(dec(odds)-1)-pl, proj:pr.m, base:pr.base, n:pr.n, of:pr.of};
+          pm:pmS, pS:pSW, p, ev:p*(dec(odds)-1)-pl, proj:pr.m, base:pr.base, n:pr.n, of:pr.of, mx:pr.mx};
         if(grade&&played){ r.actual=actual; const dd=side==='Over'?actual-q.line:q.line-actual; r.u=dd>0?dec(odds)-1:dd<0?-1:0; }
         out.push(r); } } }
   return out;
@@ -120,7 +213,7 @@ function trainRows(M,weeks,P){
   const out=[], seen=new Set();
   for(const L of weeks){ const s=L.season,w=L.week;
     for(const g of L.games){ const gm=M.gk[`${s}|${w}|${g.home}`];
-      for(const q of g.props){ const pid=findPid(M,q.player,[g.away,g.home],s,w); if(!pid) continue; const key=`${pid}|${s}|${w}|${q.stat}`; if(seen.has(key)) continue; seen.add(key);
+      for(const q of g.props){ if(q.stat==='ATD') continue; const pid=findPid(M,q.player,[g.away,g.home],s,w); if(!pid) continue; const key=`${pid}|${s}|${w}|${q.stat}`; if(seen.has(key)) continue; seen.add(key);
         const played=M.byP[pid].find(r=>r.season===s&&r.week===w); if(!played) continue; const home=played.team===g.home;
         const ctx={opp:home?g.away:g.home, tt:gm?.total!=null&&gm?.spread!=null?gm.total/2+(home?1:-1)*gm.spread/2:null, sp:gm?.spread!=null?(home?1:-1)*gm.spread:0};
         const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
@@ -140,15 +233,18 @@ return {STATS,LABEL,P0,NOCARD,prep,project,makeDist,pOver,priceWeek,trainRows,ca
 // ===================== backtest harness (local only: needs the server's /nfl/data.json and lines files) =====================
 // await NFLBT.load(); NFLBT.EV(P) fits the distribution and per-market sim weights on 2025 and tests on 2026 weeks 1..test
 window.NFLBT={
-  async load(){ const D=await fetch('/nfl/data.json',{cache:'no-store'}).then(r=>r.json()); this.M=NFL.prep(D); this.D=D; const wk=[];
+  async load(){ const D=await fetch('/nfl/data.json',{cache:'no-store'}).then(r=>r.json()); const PL=await fetch('/nfl/plays.json',{cache:'no-store'}).then(r=>r.ok?r.json():null);
+    this.M=NFL.prep(D,PL); this.D=D; const wk=[];
     for(const s of [2025,2026]) for(let w=1;w<=18;w++){ const L=await fetch(`/nfl/lines-${s}-w${String(w).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.ok?r.json():null); if(L&&L.games.length) wk.push(L); }
     this.WK=wk; return {weeks:wk.length, players:Object.keys(this.M.byP).length}; },
-  EV(P,{test=8,keep=false}={}){ const M=this.M, WK=this.WK;
+  EV(P,{test=8,keep=false,book='OPEN'}={}){ const M=this.M, WK=this.WK;
     const W25=WK.filter(L=>L.season===2025), W26=WK.filter(L=>L.season===2026&&L.week<=test);
     const dist=NFL.makeDist(NFL.trainRows(M,W25,P));
-    const price=(ws,PP)=>ws.flatMap(L=>NFL.priceWeek(M,L,dist,PP)).filter(r=>r.u!=null);
+    const price=(ws,PP)=>ws.flatMap(L=>NFL.priceWeek(M,L,dist,PP,{book})).filter(r=>r.u!=null);
     const ll=(y,p)=>{p=Math.min(.99,Math.max(.01,p)); return -(y*Math.log(p)+(1-y)*Math.log(1-p));}, avg=(a,f)=>a.reduce((s,r)=>s+f(r),0)/a.length;
-    const P2={...P,w:{...P.w}}; const r25=price(W25,{...P,w:Object.fromEntries(Object.keys(NFL.STATS).map(k=>[k,0]))}).filter(r=>r.side==='Over'&&r.u!==0);
+    // anytime-TD margin: the one that makes the Yes prices' implied chances match how often 2025's TDs happened
+    const P1={...P}; { const a=price(W25,{...P,w:{ATD:0}}).filter(r=>r.st==='ATD'); if(a.length){ const imp=avg(a,r=>NFL.impl(r.odds)), hit=avg(a,r=>r.u>0?1:0); P1.atdHold=Math.max(0,imp/hit-1); } }
+    const P2={...P1,w:{...P.w}}; const r25=price(W25,{...P1,w:Object.fromEntries(Object.keys(NFL.STATS).map(k=>[k,0]))}).filter(r=>r.side==='Over'&&r.u!==0);
     const fit={};
     for(const st of Object.keys(NFL.STATS)){ const a=r25.filter(r=>r.st===st); if(!a.length) continue; let bw=0,bl=1e9;
       for(let w=0;w<=1.001;w+=.05){ const s=avg(a,r=>ll(r.u>0?1:0,NFL.sg((1-w)*NFL.lg(r.pm)+w*NFL.lg(r.pS)))); if(s<bl){bl=s;bw=+w.toFixed(2);} }
@@ -160,7 +256,7 @@ window.NFLBT={
       return {name, w:pk.filter(r=>r.u>0).length, l:pk.filter(r=>r.u<0).length, flat:+pk.reduce((s,r)=>s+r.u,0).toFixed(2), staked:+staked.toFixed(2), roi:+(risk?staked/risk:0).toFixed(3)}; };
     const bySide=pk=>Object.entries(pk.reduce((a,r)=>{(a[r.st+' '+r.side]??=[]).push(r); return a;},{})).map(([k,v])=>`${k} ${v.filter(r=>r.u>0).length}-${v.filter(r=>r.u<0).length} ${v.reduce((s,r)=>s+r.u,0).toFixed(1)}u`);
     const c26=NFL.card(r26), c25=NFL.card(r25b);
-    const out={fit, test26, card25:sum(c25,'2025 card (in sample)'), card26:sum(c26,`2026 weeks 1-${test} card (held out)`), by26:bySide(c26), by25:bySide(c25), w:P2.w};
+    const out={fit, test26, card25:sum(c25,'2025 card (in sample)'), card26:sum(c26,`2026 weeks 1-${test} card (held out)`), by26:bySide(c26), by25:bySide(c25), w:P2.w, atdHold:+P2.atdHold.toFixed(3)};
     if(keep){ this.r26=r26; this.r25=r25b; this.dist=dist; this.P2=P2; } return out; },
   // the week's paper card: priced at the earliest line we have for each prop (the opener; Fanatics once it's the only one),
   // distribution trained on every graded prop so far; players listed Out/Doubtful on this week's injury report are left out
@@ -173,7 +269,7 @@ window.NFLBT={
         r.book=b; rows.push(r); }
       for(const r of add) have.add(`${r.pid}|${r.st}`); }
     const picks=NFL.card(rows).map(r=>({...r, stake:NFL.stake(r.p)}));
-    const board=rows.filter(r=>!NFL.NOCARD.has(r.st)).sort((a,b)=>b.ev-a.ev).slice(0,60);
+    const board=rows.filter(r=>!NFL.NOCARD.has(r.st)).sort((a,b)=>b.ev-a.ev).slice(0,250);
     const games=L.games.map(g=>({game:`${g.away} @ ${g.home}`, start:g.start, open:g.props.filter(q=>q.book==='OPEN').length, fan:g.props.filter(q=>q.book==='FAN').length}));
     return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, picks, board, games}; }
 };
