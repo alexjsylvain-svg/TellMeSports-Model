@@ -1,4 +1,4 @@
-﻿param([string]$Tag = "nov9", [string]$Trk = "tracking")
+param([string]$Tag = "nov9", [string]$Trk = "tracking")
 # Over-side rules backtest (Nov 9). Reads every priced prop side dumped by harness __PXB (tracking\px-<date>-<Tag>.json),
 # re-prices the sides under each variant and picks the card with gamePicks' rules (rule flag: no 3PM / AST overs / own-gap /
 # loss rule; no questionable or role-mismatch players; rookies and 2024-25 players only at 3+ games; -150..+150, 60%+, 5%+ EV,
@@ -23,7 +23,7 @@ $chk = ($props | % { $w=[math]::Min(1.0,($SW[$_.stat])*$(if($_.bench){.8}else{1}
 # v: overMult (scales the sim weight on over sides), overMinP, noOver (stats with no overs)
 function price($r, $v){ $m = if($r.side -eq "Over"){ $v.overMult } else { 1 }
   $sw0=$SW[$r.stat]; if($r.stat -eq "PRA" -and $v.praW -ne $null){ $sw0=$v.praW }; $w=[math]::Min(1.0,$sw0*$(if($r.bench){.8}else{1})*$m); $p=(sg ((1-$w)*(lg $r.pm)+$w*(lg $r.pSim)))*(1-$r.push)
-  $pl=[math]::Max(0,1-$p-$r.push); [pscustomobject]@{ p=$p; ev=$p*((dec $r.odds)-1)-$pl } }
+  $pl=[math]::Max(0.0,1-$p-$r.push); [pscustomobject]@{ p=$p; ev=$p*((dec $r.odds)-1)-$pl } }
 function card($v, $nset){
   $all=@()
   foreach($grp in ($props | ? { $nset -contains $_.d } | Group-Object d,gid)){

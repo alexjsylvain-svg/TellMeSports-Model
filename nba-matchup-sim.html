@@ -1618,7 +1618,7 @@ async function freezePicks(opts={}){
   if(SLATE.date!==todayET) return {ok:false, error:`loaded slate is ${SLATE.date}, today is ${todayET}; nothing saved`};
   if(sims()<50000 && !opts.anySims) return {ok:false, error:`official picks use at least 50,000 sims per game; this run used ${sims().toLocaleString()} (load the page with ?sims=50000)`};
   const slim=(b,set)=>({set, gid:b.gid, game:b.game, mkt:b.mkt, bet:b.bet, book:b.book, odds:+b.odds, side:b.side??null, hl:b.hl??null, tl:b.tl??null,
-    player:b.player??null, stat:b.stat??null, line:b.line??null, thr:b.thr??null, pSim:b.pSim, pBlend:b.p, ev:b.ev, top:!!b.top, stake:b.stake??stakeOf(b.p), mean:b.mean??null, season:b.season??null, def:b.def??null});
+    player:b.player??null, stat:b.stat??null, line:b.line??null, thr:b.thr??null, pSim:b.pSim, pBlend:b.p, ev:b.ev, top:!!b.top, tier:b.tier??null, stake:b.stake??stakeOf(b.p), mean:b.mean??null, season:b.season??null, def:b.def??null});
   // Games that tip within 10 minutes (or already started) are locked: a re-freeze keeps their earlier frozen picks and calls,
   // so nothing is ever recorded after tip-off. Only games still ahead get new picks.
   // {only:[gid,...]} re-freezes just those games (a starter changed) and keeps every other game's earlier picks as they were.
@@ -1647,7 +1647,7 @@ async function freezePicks(opts={}){
     for(let s=0;s<N;s++){ const a=res.score[s*2],h=res.score[s*2+1],m=h-a,t=a+h; if(m>0) hw++; ms+=m; ts+=t; if(m+l.spread>0) hc++; else if(m+l.spread<0) ac++; if(t>l.total) ov++; else if(t<l.total) un++; }
     const ph=hw/N; return {gid:g.espnId, away:g.away.abbr, home:g.home.abbr, time:g.time, lineBook:g.lines.DK?"DK":"CONS", winner:ph>=.5?g.home.abbr:g.away.abbr, winProb:Math.max(ph,1-ph), homeWinProb:ph,
       mlHome:l.mlHome, mlAway:l.mlAway, spread:l.spread, atsPick:hc>=ac?"H":"A", atsProb:Math.max(hc,ac)/N, fairSpread:-ms/N, total:l.total, totalPick:ov>=un?"O":"U", totalProb:Math.max(ov,un)/N, fairTotal:ts/N }; })];
-  const doc={date:SLATE.date, frozenAt:new Date().toISOString(), dataGenerated:SLATE.generated, sims:sims(), modelWeight:modelW(), model:{...G}, stake:"each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64% (the flat 1-unit record is graded too)",
+  const doc={date:SLATE.date, frozenAt:new Date().toISOString(), dataGenerated:SLATE.generated, sims:sims(), modelWeight:modelW(), model:{...G}, stake:"each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%, 0.5u on plus-money value picks (tier \"value\": +100..+150, 50%+, 10%+ edge) (the flat 1-unit record is graded too)",
     lockedGames:[...locked], refrozenGames:open.map(g=>g.espnId), previousFreeze:prev?.frozenAt||null,
     gameFrozenAt:Object.fromEntries(SLATE.games.map(g=>[g.espnId, held.has(g.espnId)? (prev?.gameFrozenAt?.[g.espnId]||prev?.frozenAt||null) : new Date().toISOString()])),
     notes:"recommended = the page's two picks per game (props only, ranked by win probability); calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen", bets:[...recommended,...board], calls, starters};
@@ -1763,6 +1763,7 @@ const MIN_P=0.60, TOP_P=0.64;
 // (+3.5u), 60–64% 24-30 (−10.4u). Flat on the 81 picks at 60%+ that's −0.9u; staked 2 / 1.5 / 0.5 it would have been +12.1u.
 // The tiers were chosen on those same picks, so expect less going forward.
 const STAKES=[[0.66,2],[0.64,1.5],[MIN_P,0.5]];
+const VALUE={lo:100, hi:150, minP:0.50, minEv:0.10, stake:0.5, max:3};
 const stakeOf=p=>(STAKES.find(([q])=>p>=q)||[0,0])[1];
 // The published page shows the night's frozen picks (picks.json, made from 50,000 sims a game) rather than re-deriving them
 // from the lighter in-browser run, so what viewers see is exactly what gets graded. Locally there is no picks.json.
@@ -1801,13 +1802,17 @@ function gamePicks(gid, taken=[]){
   // was priced near 64% and won 28% (5-13); the card without them went 94-54 +20.1u staked → 90-45 +26.2u (13.9% → 19.6% on stake),
   // even in Oct 21–28 and +6.2u in Oct 30–Nov 8. Halving the sim's say on overs picked the same card; a lower PRA weight on both
   // sides gave up profitable PRA unders.
-  const c=[...P.props.filter(b=>!shaky.has(b.player)&&b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!(b.stat==="PRA"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(gid,b)).map(b=>ownBlend(b)), ...P.game]
-    .filter(b=>+b.odds>=-150&&+b.odds<=150&&b.ev>=0.05&&b.p>=MIN_P);
+  const all=[...P.props.filter(b=>!shaky.has(b.player)&&b.stat!=="3PM"&&!(b.stat==="AST"&&b.side==="Over")&&!(b.stat==="PRA"&&b.side==="Over")&&!ownGapHit(b)&&!lossRuleHit(gid,b)).map(b=>ownBlend(b)), ...P.game];
+  const c=all.filter(b=>+b.odds>=-150&&+b.odds<=150&&b.ev>=0.05&&b.p>=MIN_P);
+  // Plus-money value (Nov 9, the user asked to use any edge the data backs): +100..+150 at 50%+ to win with a 10%+ edge, 0.5u,
+  // after the main picks, up to three picks a game. 17 nights (scripts\odds-eval.ps1): +6.2u (27-19), 10-11 +0.4u in the first
+  // half and 17-8 +5.8u in the second; mostly assist unders. Past +150 only moneyline dogs qualified, and they went 0-8, so the cap stays.
+  const v=all.filter(b=>!c.includes(b)&&+b.odds>=VALUE.lo&&+b.odds<=VALUE.hi&&b.p>=VALUE.minP&&b.ev>=VALUE.minEv);
   const picks=[...taken];
-  for(const b of c.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev))){ if(picks.length>=2) break;
+  for(const b of [...c.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev)), ...v.sort((a,b)=>(b.p-a.p)||(b.ev-a.ev)).map(b=>({...b,tier:"value"}))]){ if(picks.length>=(b.tier?VALUE.max:2)) continue;
     if(picks.some(p=>p.bet===b.bet||(b.player?p.player===b.player||(G.oneStat&&p.stat===b.stat):!p.player))) continue;
     const pl=b.player?findPlayer(RESULTS[gid],b.player):null, d=pl?RESULTS[gid].P[pl.defG]:null;
-    picks.push({...b, top:b.p>=TOP_P, stake:stakeOf(b.p), season:seasonHit(gid,b), def:d?d.name:null}); }
+    picks.push({...b, top:!b.tier&&b.p>=TOP_P, stake:b.tier?VALUE.stake:stakeOf(b.p), season:seasonHit(gid,b), def:d?d.name:null}); }
   return picks.slice(taken.length);
 }
 // games he has played this season (0 when he has none or isn't on the slate)
@@ -2170,7 +2175,7 @@ function spark(b){ const row=b.player&&boardRow(b.player,b.stat);
 function pickCard(b){
   const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side);
   return `<article class="pa-card">
-    <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}</span><span class="pa-stake">${stake?stake+"u":"track"}</span></div>
+    <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?stake+"u":"track"}</span></div>
     <div><div class="pa-player">${esc(b.player||b.bet)}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div>
     <div class="pa-nums"><div><b>${P1(b.pBlend)}</b><span>win chance</span></div><div><b>${oddsTxt(b.odds)}</b><span>${BOOK[b.book]||esc(b.book)}</span></div><div><b class="up">${SGN(b.ev*100)}%</b><span>exp. profit</span></div></div>
     ${spark(b)}
@@ -2196,6 +2201,16 @@ function myTonight(){ if(TRK.state==="off") return ""; const d=tonight(), ts=TRK
   return `<div class="pa-h">Your bets tonight</div><div class="pa-card">${ts.length?`<div class="pa-small"><b>${ts.length}</b> placed · ${risk.toFixed(1)}u at risk · wins ${win.toFixed(2)}u${TRK.state==="slow"?" · may be out of date":""}</div>${ts.map(t=>trackRow(t,true)).join("")}`
     :`<div class="pa-small">Nothing tracked yet. Tap "I placed this" on a pick, or open any line in Props and save the price you got.</div>`}</div>`; }
 
+// Recommended parlays: the card's 2 and 3 likeliest main-tier picks, one leg per game (legs from different games are close to
+// independent, so the chance is the product). Shared by the NBA and NFL cards. legs: [{g, p, odds, label}]
+function parlayOf(list,n){ const legs=[]; for(const b of list.slice().sort((a,b)=>b.p-a.p)){ if(legs.length>=n) break; if(legs.some(x=>x.g===b.g)) continue; legs.push(b); }
+  if(legs.length<n) return null; const d=legs.reduce((m,b)=>m*dec(b.odds),1), p=legs.reduce((m,b)=>m*b.p,1);
+  return {legs, d, p, ev:p*d-1, odds:d>=2?Math.round((d-1)*100):Math.round(-100/(d-1))}; }
+function parlayCard(list,note,stake=.5){ const ps=[2,3].map(n=>parlayOf(list,n)).filter(Boolean); if(!ps.length) return "";
+  return `<div class="pa-h">Recommended parlays</div>${ps.map(x=>`<div class="pa-card"><div class="pa-row"><span class="pa-player">${x.legs.length}-leg parlay</span><span class="pa-stake">${stake}u</span></div>
+    ${x.legs.map(l=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span style="min-width:0">${l.label}</span><span class="pa-small">${oddsTxt(l.odds)} · ${P1(l.p)}</span></div>`).join("")}
+    <div class="pa-nums"><div><b>${oddsTxt(x.odds)}</b><span>parlay price</span></div><div><b>${P1(x.p)}</b><span>model chance</span></div><div><b class="${x.ev>0?"up":"dn"}">${SGN(x.ev*100)}%</b><span>exp. profit</span></div></div>
+    <p class="pa-note">Wins ${(stake*(x.d-1)).toFixed(2)}u on ${stake}u if every leg hits; a push drops that leg.</p></div>`).join("")}<div class="pa-small" style="margin:-4px 2px 12px">${note}</div>`; }
 function rTonight(){
   const P=D.picks; if(!P) return empty("No card yet","Tonight's picks show here once the model has run.");
   const bs=picks().slice().sort((a,b)=>(new Date(tip(a.gid)||0)-new Date(tip(b.gid)||0))||(b.pBlend-a.pBlend));
@@ -2205,8 +2220,10 @@ function rTonight(){
     return `<div class="pa-game"><div class="pa-row"><span class="pa-teams">${esc(A)} <span class="muted" style="font-size:.85rem">@</span> ${esc(H)}</span><span class="pa-small">${clock(c.time)}${n?` · <b>${n} pick${n>1?"s":""}</b>`:""}</span></div>
       <div class="pa-small">Model: <b>${esc(fav)} ${P1(c.winProb)}</b> · fair ${esc(H)} ${SGN(c.fairSpread)} (book ${c.spread>0?"+":""}${c.spread}) · total <b>${c.fairTotal.toFixed(1)}</b> (book ${c.total})</div></div>`; }).join("");
   return `<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win</span></div></div>
-      <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%.</div></div>
+      <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%. Plus-money value plays (+100 to +150, 50%+ to win, 10%+ edge): 0.5u.</div></div>
     ${bs.length?bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
+    ${parlayCard(bs.filter(b=>b.tier!=="value"&&!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>({g:b.gid, p:b.pBlend, odds:b.odds, label:`<b>${esc(b.player||b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${esc(short(b.side,b.line,b.stat))}</span>`:""}`})),
+      "Built from tonight's likeliest picks, one per game, from games that haven't tipped. Backtest, 17 nights (Oct 21–Nov 8), 1u each: 2 legs 8-7, +9.6u; 3 legs 4-10, +7.1u. One missed leg loses the whole parlay, so keep it small.")}
     ${myTonight()}
     ${calls.length?`<div class="pa-h">The slate</div><div class="pa-card">${games}</div>`:""}${foot()}`; }
 
@@ -2380,7 +2397,7 @@ async function loadNFL(){ if(NF.loaded) return; NF.loaded=true; const g=n=>fetch
 const nfBet=r=>r.st==="ATD"?"Anytime TD":`${r.side} ${r.line} ${NFL_LABEL[r.st]||r.st}`;
 const nfBook=b=>b==="OPEN"?"opener":b==="FAN"?"Fanatics":b;
 const nfMx=r=>r.mx&&Math.abs(r.mx-1)>=.01?` · coverage matchup ${r.mx>1?"+":"−"}${Math.abs((r.mx-1)*100).toFixed(0)}%`:"";
-function nfPick(r){ return `<div class="pa-card"><div class="pa-row"><span class="pa-player">${esc(r.player)}</span><span class="pa-stake">${r.stake}u</span></div>
+function nfPick(r){ return `<div class="pa-card"><div class="pa-row"><span class="pa-player">${esc(r.player)}${r.tier==="long"?` <span class="pa-st n">long shot</span>`:""}${r.role?` <span class="pa-small">${esc(r.role)}</span>`:""}</span><span class="pa-stake">${r.stake}u</span></div>
   <div class="pa-row"><span class="pa-bet ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span><span class="pa-small">${esc(r.game)} · ${clock(r.start)}</span></div>
   <div class="pa-nums"><div><b>${P1(r.p)}</b><span>win chance</span></div><div><b>${oddsTxt(r.odds)}</b><span>${nfBook(r.book)}</span></div><div><b>${r.st==="ATD"?r.proj.toFixed(2):r.proj.toFixed(1)}</b><span>${r.st==="ATD"?"exp. TDs":"projection"}</span></div></div>
   <div class="pa-small">Market ${P1(r.pm)}${r.pSim!=null?` · game sims ${P1(r.pSim)}`:""} · edge ${P1(r.ev)}${nfMx(r)}${r.inj?` · <span class="dn">${esc(r.inj)}</span>`:""}</div></div>`; }
@@ -2396,8 +2413,10 @@ function nfCard(){ const c=NF.card; if(!c) return empty("No NFL card yet","The p
     <div class="pa-h">Week ${c.week}</div>`:"";
   const games=(c.games||[]).slice().sort((a,b)=>new Date(a.start)-new Date(b.start)).map(g=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span>${esc(g.game)}</span><span class="pa-small">${ET(g.start,{weekday:"short",hour:"numeric",minute:"2-digit"})} · ${g.fan?`${g.fan} Fanatics`:"no Fanatics yet"}${g.open?` · ${g.open} openers`:""}</span></div>`).join("");
   return `${mon}<div class="pa-card"><div class="pa-kpis"><div><b>${pk.length}</b><span>paper picks</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk (paper)</span></div><div><b>${(c.games||[]).filter(g=>g.fan||g.open).length}/${(c.games||[]).length}</b><span>games priced</span></div></div>
-    <div class="pa-small"><span class="pa-st n">pilot · no real stakes</span> Frozen ${ET(c.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET. Same bar as the NBA card: 60%+ to win, 5%+ edge, −150 to +150, two a game. Priced at the opening line where there is one: the backtest only found an edge early in the week.</div></div>
+    <div class="pa-small"><span class="pa-st n">pilot · no real stakes</span> Frozen ${ET(c.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET. Same bar as the NBA card: 60%+ to win, 5%+ edge, −150 to +150, two a game. Plus long shots (+151 to +250, 5%+ edge, 0.5u), up to three picks a game. Priced at the opening line where there is one: the backtest only found an edge early in the week. Players are checked against today's NFL.com and ESPN rosters, injuries and depth charts${c.rostersFetched?` (fetched ${ET(c.rostersFetched,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET)`:""}.</div></div>
     ${pk.length?pk.map(nfPick).join(""):empty("No paper picks yet","Nothing has cleared the bar. Most of the week's props open Tuesday–Wednesday.")}
+    ${parlayCard(pk.filter(r=>r.tier!=="long"&&new Date(r.start)>Date.now()).map(r=>({g:r.game, p:r.p, odds:r.odds, label:`<b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span>`})),
+      "Paper only. The week's likeliest picks, one per game. Backtest at openers, 1u each: 2 legs went 1-6 (−3.8u) in 2025 and 3-6 (+1.1u) in 2026 weeks 1–9, so there's no proven edge in NFL parlays yet.")}
     ${near.length?`<div class="pa-h">Closest to the bar</div><div class="pa-card">${near.map(r=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span><b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span></span><span class="pa-small">${oddsTxt(r.odds)} ${nfBook(r.book)} · ${P1(r.p)} · edge ${P1(r.ev)}</span></div>`).join("")}</div>`:""}
     <div class="pa-h">The week</div><div class="pa-card">${games}</div>`; }
 function nfBoard(){ const c=NF.card; if(!c) return empty("No board yet","");
@@ -2460,6 +2479,9 @@ function nfBacktest(){ const b=NF.bt; if(!b) return empty("No backtest yet","");
     ${b.factors?`<div class="pa-h">Matchup factors</div><div class="pa-card"><div class="pa-small">Each factor tried alone on top of season stats, defense vs position and game script. Lower log loss is better (opening line alone: pass yds .6931, rec yds .6937, receptions .6811).</div>
       <table class="nf-tbl"><tr><th>Factor</th><th class="n">Pass yds</th><th class="n">Rec yds</th><th class="n">Card</th></tr>${b.factors.map(f=>`<tr><td class="${f.kept?"nf-kept":""}">${esc(f.name)}</td><td class="n">${f.passYds.toFixed(4)}</td><td class="n">${f.recYds.toFixed(4)}</td><td class="n">${f.w}-${f.l} ${U(f.staked,1)}</td></tr>`).join("")}</table>
       <div class="pa-small">No free data says which corner covers which receiver, so "primary defender" is approximated by what each defense allows to an offense's top target. It didn't help.</div></div>`:""}
+    ${b.priceBands?`<div class="pa-h">Plus money past +150 (5%+ edge, flat 1u, openers)</div><div class="pa-card"><table class="nf-tbl"><tr><th>Price</th><th class="n">2025</th><th class="n">2026</th></tr>${b.priceBands.map(x=>`<tr><td>${esc(x.band)}<br><span class="pa-small">${esc(x.note)}</span></td><td class="n">${esc(x.s25)}</td><td class="n">${esc(x.s26)}</td></tr>`).join("")}</table>
+      <div class="pa-small">Only +151 to +250 held up in both seasons, so the card goes that far and no further for now. The bar moves out when more weeks back it.</div></div>`:""}
+    ${b.parlays?`<div class="pa-h">Parlays (the week's likeliest picks, one per game, 1u)</div><div class="pa-card"><table class="nf-tbl"><tr><th>Set</th><th class="n">Legs</th><th class="n">Record</th><th class="n">Units</th></tr>${b.parlays.map(x=>`<tr><td>${esc(x.set)}</td><td class="n">${x.legs}</td><td class="n">${x.w}-${x.l}</td><td class="n ${x.u>0?"up":"dn"}">${U(x.u)}</td></tr>`).join("")}</table></div>`:""}
     ${b.buckets?`<div class="pa-h">How sure, and how often right (2026 openers, flat 1u)</div><div class="pa-card"><table class="nf-tbl"><tr><th>Win chance</th><th class="n">Record</th><th class="n">Units</th><th class="n">Return</th></tr>${b.buckets.map(x=>`<tr><td>${esc(x.band)}</td><td class="n">${x.w}-${x.l}</td><td class="n ${x.u>0?"up":"dn"}">${U(x.u)}</td><td class="n">${roi(x.roi)}</td></tr>`).join("")}</table>
       <div class="pa-small">Every prop with a 5%+ edge, bet 1u. The card starts at 60%.</div></div>`:""}
     ${b.thresholds?`<div class="pa-h">Where to set the bar</div><div class="pa-card"><table class="nf-tbl"><tr><th>Bar</th><th class="n">Record</th><th class="n">Flat 1u</th><th class="n">Tiered</th></tr>${b.thresholds.map(x=>{ const on=x.minP===.6&&x.minEv===.05; return `<tr><td class="${on?"nf-kept":""}">${Math.round(x.minP*100)}%+, ${Math.round(x.minEv*100)}%+ edge${on?" (card)":""}</td><td class="n">${x.w}-${x.l}</td><td class="n">${U(x.u)} <span class="pa-small">${roi(x.roi)}</span></td><td class="n">${U(x.tiered)} <span class="pa-small">${roi(x.tieredRoi)}</span></td></tr>`; }).join("")}</table>

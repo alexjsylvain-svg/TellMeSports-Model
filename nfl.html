@@ -190,13 +190,16 @@ function findPid(M,name,teams,s,w){
   return best;
 }
 // every Fanatics prop side of a week, priced: {game, player, pid, st, side, line, odds, pm, pS, p, ev, proj, actual?}
-function priceWeek(M,L,dist,P,{book='FAN',grade=true}={}){
+// cur (live cards only): name, teams -> today's roster entry {team, ok, role, why} from nfl.com/ESPN (scripts\nfl-rosters.ps1);
+// a player on neither team's current roster is dropped, one on IR/Out/reserve is marked out, a traded player is priced for his new team
+function priceWeek(M,L,dist,P,{book='FAN',grade=true,cur=null}={}){
   const out=[]; const s=L.season,w=L.week;
   for(const g of L.games){ const gm=M.gk[`${s}|${w}|${g.home}`];
     const tot=gm?.total, spr=gm?.spread;
     for(const q of g.props){ if(q.book!==book) continue; const pid=findPid(M,q.player,[g.away,g.home],s,w); if(!pid) continue;
       const hist=M.byP[pid]; const played=hist.find(r=>r.season===s&&r.week===w);
-      const team=played?.team ?? hist.filter(r=>r.ord<s*100+w).slice(-1)[0]?.team; if(!team) continue;
+      let team=played?.team ?? hist.filter(r=>r.ord<s*100+w).slice(-1)[0]?.team; if(!team) continue;
+      const c=cur?cur(q.player,[g.away,g.home]):null; if(cur){ if(!c||![g.away,g.home].includes(c.team)) continue; team=c.team; }
       const home=team===g.home, opp=home?g.away:g.home;
       const ctx={opp, tt:tot!=null&&spr!=null?tot/2+(home?1:-1)*spr/2:null, sp:spr!=null?(home?1:-1)*spr:0};
       const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
@@ -208,6 +211,7 @@ function priceWeek(M,L,dist,P,{book='FAN',grade=true}={}){
         const pSW=pS/Math.max(1e-9,1-d.push), wt=P.w[q.stat]??.3, p=sg((1-wt)*lg(pmS)+wt*lg(pSW))*(1-d.push), pl=Math.max(0,1-p-d.push);
         const r={s,w,game:`${g.away} @ ${g.home}`, gid:g.anId, start:g.start, player:q.player, pid, team, pos:pr.pos, st:q.stat, side, line:q.line, odds, oo:side==='Over'?q.under:q.over,
           pm:pmS, pS:pSW, p, ev:p*(dec(odds)-1)-pl, proj:pr.m, base:pr.base, n:pr.n, of:pr.of, mx:pr.mx};
+        if(c){ if(c.role) r.role=c.role; if(!c.ok){ r.out=true; r.inj=c.why; } }
         if(grade&&played){ r.actual=actual; const dd=side==='Over'?actual-q.line:q.line-actual; r.u=dd>0?dec(odds)-1:dd<0?-1:0; }
         out.push(r); } } }
   return out;
@@ -225,13 +229,20 @@ function trainRows(M,weeks,P){
   return out;
 }
 // card: per game, sides at -150..+150 with p>=minP and ev>=minEv, best chance first, two a game, one per player
-function card(rows,R={minP:.60,minEv:.05,lo:-150,hi:150,perGame:2}){
-  const by={}; for(const r of rows){ if(NOCARD.has(r.st)||r.out||r.odds<R.lo||r.odds>R.hi||r.p<R.minP||r.ev<R.minEv) continue; (by[r.s+'|'+r.w+'|'+r.game]??=[]).push(r); }
-  const out=[]; for(const k in by){ const pk=[]; for(const r of by[k].sort((a,b)=>(b.p-a.p)||(b.ev-a.ev))){ if(pk.length>=R.perGame) break; if(pk.some(x=>x.pid===r.pid)) continue; pk.push(r); } out.push(...pk); }
+// Long shots (Nov 9, the user asked to go past +150 where the data backs it): +151..+250 with a 5%+ edge, 0.5u, after the main picks,
+// up to three picks a game. At openers it added +3.0u (2025) and +9.2u (2026 held out); at Fanatics -0.4u and +1.8u. Mostly catch
+// overs on 1.5 lines for depth receivers. Past +250 it lost (2-7 at openers) and +100..+150 under 60% split by season, so neither is used.
+const LONG={lo:151,hi:250,minEv:.05,stake:.5,max:3};
+function card(rows,R={minP:.60,minEv:.05,lo:-150,hi:150,perGame:2,long:LONG}){
+  const by={}; for(const r of rows){ if(NOCARD.has(r.st)||r.out) continue;
+    const main=r.odds>=R.lo&&r.odds<=R.hi&&r.p>=R.minP&&r.ev>=R.minEv, lg=R.long&&!main&&r.odds>=R.long.lo&&r.odds<=R.long.hi&&r.ev>=R.long.minEv;
+    if(main||lg) (by[r.s+'|'+r.w+'|'+r.game]??=[]).push(main?r:{...r,tier:'long'}); }
+  const out=[]; for(const k in by){ const pk=[]; for(const r of by[k].sort((a,b)=>(!!a.tier-!!b.tier)||(b.p-a.p)||(b.ev-a.ev))){
+      if(pk.length>=(r.tier?R.long.max:R.perGame)) continue; if(pk.some(x=>x.pid===r.pid)) continue; pk.push(r); } out.push(...pk); }
   return out;
 }
 const stake=p=>p>=.66?2:p>=.64?1.5:.5;
-return {STATS,LABEL,P0,NOCARD,prep,project,makeDist,pOver,priceWeek,trainRows,card,stake,impl,dec,lg,sg,norm,findPid};
+return {STATS,LABEL,P0,NOCARD,LONG,prep,project,makeDist,pOver,priceWeek,trainRows,card,stake,impl,dec,lg,sg,norm,findPid};
 })();
 
 // ===================== game simulator: each matchup played 10,000 times, every player's line drawn from the same game =====================
@@ -303,7 +314,8 @@ function fit(M,seasons=[2025],P=S0){ const TG=teamGames(M), B={};
   return {...P, B, tdK:+(a/b).toFixed(3), sdM:+sdM.toFixed(2), sdT:+sdT.toFixed(2), rho:+rho.toFixed(3), n:tr.length}; }
 // the players who'll share a team's targets and carries: anyone in the team's last game or with a prop this week, less the
 // week's Out/Doubtful list ("name|team" set)
-function roster(M,team,s,w,P,{props=new Set(),out=new Set()}={}){ const TG=teamGames(M), games=(TG.byT[team]||[]).filter(t=>t.s*100+t.w<s*100+w&&t.s>=s-1).slice(-P.rosterG);
+function roster(M,team,s,w,P,{props=new Set(),out=new Set(),cur=null}={}){ if(cur){ const o0=out; out={has:k=>{ if(o0.has(k)) return true; const nm=k.slice(0,k.lastIndexOf('|')), c=cur(nm,[team]); return !c||c.team!==team||!c.ok; }}; }   // today's roster: gone/IR/Out count as out (their recent shares are handed on)
+  const TG=teamGames(M), games=(TG.byT[team]||[]).filter(t=>t.s*100+t.w<s*100+w&&t.s>=s-1).slice(-P.rosterG);
   if(!games.length) return null; const recent=new Set(games.slice(-P.recentG).flatMap(t=>(TG.rows[`${t.s}|${t.w}|${team}`]||[]).map(r=>r.pid)));
   const pl={}; games.forEach((t,gi)=>{ const age=games.length-1-gi, wt=Math.pow(.5,age/P.hl)*(t.s<s?P.prevW:1);
     for(const r of TG.rows[`${t.s}|${t.w}|${team}`]||[]){ if(r.snap!=null&&r.snap<P.minSnap&&!(r.att>5)) continue; const e=(pl[r.pid]??={pid:r.pid,name:r.name,pos:r.pg,w:0,ts:0,cs:0,as:0,tgt:0,rec:0,recyds:0,car:0,ryds:0,att:0,g:0});
@@ -319,7 +331,7 @@ function roster(M,team,s,w,P,{props=new Set(),out=new Set()}={}){ const TG=teamG
     for(const r of M.byP[pid]||[]){ if(r.ord>=s*100+w||r.season<s-1) continue; tc+=((r.tgt||0)+(r.car||0))*(r.season<s?P.prevW:1); }
     e.xtdPer=Math.min(.15,(xt+10*.035)/(tc+10)); res.push(e); }
   // starting QB: the passer with the biggest recent share among the active ones
-  const qbs=res.filter(e=>e.pos==='QB').sort((a,b)=>b.aShare-a.aShare); const qb=qbs[0]||null;
+  const qbs=res.filter(e=>e.pos==='QB').sort((a,b)=>b.aShare-a.aShare); const qb=(cur&&qbs.find(e=>cur(e.name,[team])?.role==='QB1'))||qbs[0]||null;   // the depth chart's starter when we have it
   for(const e of res) e.isQB=e===qb;
   // shares: players with a prop this week keep their own share from the games they played; the shares of players ruled
   // Out who played in the last 3 games are handed to them (80%); fringe players (no prop) split what's left at fringeW of their
@@ -335,9 +347,9 @@ function roster(M,team,s,w,P,{props=new Set(),out=new Set()}={}){ const TG=teamG
   const tRest=cap(res,'tShare'), cRest=cap(res,'cShare');
   return {team, players:res, qb, tRest, cRest, L}; }
 // play one matchup nS times. g: {home, away, spread (home's expected margin), total, s, w}. Returns per-player stat arrays and scores.
-function simGame(M,g,P,{props=new Set(),out=new Set(),nS=P.nSims,mxs=null,seedBase=1}={}){ seed=seedBase|0;
+function simGame(M,g,P,{props=new Set(),out=new Set(),cur=null,nS=P.nSims,mxs=null,seedBase=1}={}){ seed=seedBase|0;
   const sides=[]; for(const [team,opp,home] of [[g.home,g.away,true],[g.away,g.home,false]]){
-    const R=roster(M,team,g.s,g.w,P,{props,out}); if(!R) return null; const E=expect(M,team,opp,g.s,g.w,P), tt=g.total/2+(home?1:-1)*g.spread/2;
+    const R=roster(M,team,g.s,g.w,P,{props,out,cur}); if(!R) return null; const E=expect(M,team,opp,g.s,g.w,P), tt=g.total/2+(home?1:-1)*g.spread/2;
     const pc=R.players, n=pc.length, mxR=pc.map(e=>mxs?.[e.pid]?.REC??1), mxY=pc.map(e=>mxs?.[e.pid]?.REC_YDS??1);
     const tW=pc.map(e=>e.tShare), cW=pc.map(e=>e.cShare), crP=pc.map((e,i)=>Math.min(.95,e.cr*mxR[i])), yprP=pc.map((e,i)=>e.ypr*mxY[i]/Math.max(.5,mxR[i])), ypcP=pc.map(e=>e.ypc);
     // the team's expected rates for this game (own history + the defense's lean), and the players scaled so that together
@@ -444,10 +456,24 @@ window.NFLBT={
   // the week's Out/Doubtful players ("name|team"): the weekly reports (injW) plus this season's latest report
   outSet(s,w){ const o=new Set((this.D.injW||{})[`${s}|${w}`]||[]); for(const [k,v] of Object.entries(this.D.inj||{})) if(v[1]===w&&s===this.D.season&&/out|doubtful/i.test(v[0])) o.add(k); return o; },
   // simulate one week's games; returns {key "pid|stat|line" -> {pS,push}} per game plus each game's sim summary
-  simWeek(L,SP,{nS=SP.nSims,keepScripts=false}={}){ const M=this.M, s=L.season, w=L.week, out=this.outSet(s,w), res={}, scr=[];
+  // today's rosters (tracking\nfl\rosters.json: nfl.com status, ESPN injuries and depth charts) -> cur(name, teams)
+  curFn(RO){ if(!RO?.teams) return null; const by={}, OFF=/^(QB|RB|FB|WR|TE)$/;
+    for(const [team,T] of Object.entries(RO.teams)){ const role={};
+      for(const [slot,arr] of Object.entries(T.depth||{})) (arr||[]).forEach((a,i)=>{ const k=NFL.norm(a.name); if(role[k]) return; role[k]=slot.startsWith('wr')?(i===0?'WR'+slot.slice(2):'WR backup'):slot.toUpperCase()+(i+1); });
+      const nfl={}; for(const p of T.nfl||[]) nfl[NFL.norm(p.name)]=p;
+      const seen=new Set();
+      for(const p of [...(T.espn||[]),...(T.nfl||[])]){ const k=NFL.norm(p.name); if(seen.has(k)) continue; seen.add(k); const n=nfl[k], e=(T.espn||[]).find(x=>NFL.norm(x.name)===k);
+        if(!OFF.test(n?.pos||e?.pos||'')) continue;
+        let ok=true, why='';
+        if(n&&n.status!=='ACT'){ ok=false; why=`${n.status==='RES'?'reserve/IR':n.status} (nfl.com)`; }
+        else if(!n&&e&&!/offense|defense|specialTeam/.test(e.group)){ ok=false; why=e.group==='practiceSquad'?'practice squad':'IR/out (ESPN)'; }
+        if(ok&&e?.inj&&/out|doubtful|injured reserve/i.test(e.inj)){ ok=false; why=`${e.inj} (ESPN)`; }
+        (by[k]??=[]).push({team, ok, why, role:role[k]||null}); } }
+    return (name,teams=[])=>{ const a=by[NFL.norm(name)]; if(!a) return null; return a.find(x=>teams.includes(x.team))||a[0]; }; },
+  simWeek(L,SP,{nS=SP.nSims,keepScripts=false,cur=null}={}){ const M=this.M, s=L.season, w=L.week, out=this.outSet(s,w), res={}, scr=[];
     for(const G of L.games){ const gm=M.gk[`${s}|${w}|${G.home}`]; if(!gm||gm.spread==null||gm.total==null) continue;
       const pids={}, core=new Set(); for(const q of G.props){ const k=q.player; if(!(k in pids)) pids[k]=NFL.findPid(M,q.player,[G.away,G.home],s,w); if(q.stat!=='ATD'&&pids[k]) core.add(pids[k]); }   // core: players with a yardage/catch prop (the TD market lists nearly everyone)
-      const sim=NFLSIM.simGame(M,{home:G.home,away:G.away,spread:gm.spread,total:gm.total,s,w},SP,{props:core,out,nS,seedBase:s*1000+w*31+G.home.charCodeAt(0)});
+      const sim=NFLSIM.simGame(M,{home:G.home,away:G.away,spread:gm.spread,total:gm.total,s,w},SP,{props:core,out,cur,nS,seedBase:s*1000+w*31+G.home.charCodeAt(0)});
       if(!sim) continue; if(keepScripts) scr.push({game:`${G.away} @ ${G.home}`, start:G.start, ...NFLSIM.scripts(sim)});
       for(const q of G.props){ const pid=pids[q.player]; if(!pid) continue; const k=`${s}|${w}|${pid}|${q.stat}|${q.line}`; if(k in res) continue;
         const v=NFLSIM.values(sim,pid,q.stat); if(!v) continue; let m=0; for(const x of v) m+=x; res[k]={...NFLSIM.pLine(v,q.line), mean:m/v.length}; } }
@@ -464,20 +490,26 @@ window.NFLBT={
     const L=await fetch(`/nfl/lines-${season}-w${String(week).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.json());
     const train=this.WK.filter(x=>x.season<season||(x.season===season&&x.week<week)); const dist=NFL.makeDist(NFL.trainRows(M,train,NFL.P0));
     const inj=this.D.inj||{}, have=new Set(), rows=[];
-    for(const b of books){ const add=NFL.priceWeek(M,L,dist,NFL.P0,{book:b,grade:false}).filter(r=>!have.has(`${r.pid}|${r.st}`));
-      for(const r of add){ const ij=inj[`${r.player}|${r.team}`]; if(ij&&ij[1]===week){ r.inj=ij[0]; if(/out|doubtful/i.test(ij[0])) r.out=true; }
+    const RO=await fetch('/nfl/rosters.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null), cur=this.curFn(RO);
+    for(const b of books){ const add=NFL.priceWeek(M,L,dist,NFL.P0,{book:b,grade:false,cur}).filter(r=>!have.has(`${r.pid}|${r.st}`));
+      for(const r of add){ const ij=inj[`${r.player}|${r.team}`]; if(ij&&ij[1]===week&&!r.out){ r.inj=ij[0]; if(/out|doubtful/i.test(ij[0])) r.out=true; }
         r.book=b; rows.push(r); }
       for(const r of add) have.add(`${r.pid}|${r.st}`); }
     // every game simulated nS times: each prop's sim chance and average, the sim blended in where it backtested better
     // (P0.simW: rushing and anytime TD), and each game's script groups
-    const SP=this.SP||(this.SP=NFLSIM.fit(M,[season-1])); const {res,scr}=this.simWeek(L,SP,{nS,keepScripts:true});
+    // ESPN "Out" while DK/FD/Fanatics still price his yardage props (books pull props once a player is ruled out): his own props
+    // stay off the card, but the sims keep his share rather than handing it to teammates on news the market doesn't believe yet
+    const live=new Set(L.games.flatMap(g=>g.props.filter(q=>q.book!=='OPEN'&&q.stat!=='ATD').map(q=>NFL.norm(q.player))));
+    const curSim=cur&&((n,t)=>{ const x=cur(n,t); return x&&!x.ok&&/ESPN/.test(x.why)&&live.has(NFL.norm(n))?{...x,ok:true}:x; });
+    for(const r of rows) if(r.out&&/ESPN/.test(r.inj||'')&&live.has(NFL.norm(r.player))) r.inj+=', books still pricing him';
+    const SP=this.SP||(this.SP=NFLSIM.fit(M,[season-1])); const {res,scr}=this.simWeek(L,SP,{nS,keepScripts:true,cur:curSim});
     for(const r of rows){ const x=res[`${season}|${week}|${r.pid}|${r.st}|${r.line}`]; if(!x) continue;
       const ps=r.side==='Over'?x.pS:Math.max(0,1-x.pS-x.push); r.pSim=ps/Math.max(1e-9,1-x.push); r.simMean=x.mean;
       const W=NFL.P0.simW[r.st]; if(W){ r.pPre=r.p; r.p=NFL.sg((1-W[0]-W[1])*NFL.lg(r.pm)+W[0]*NFL.lg(r.pS)+W[1]*NFL.lg(r.pSim)); r.ev=r.p*(NFL.dec(r.odds)-1)-(1-r.p); } }
-    const picks=NFL.card(rows).map(r=>({...r, stake:NFL.stake(r.p)}));
+    const picks=NFL.card(rows).map(r=>({...r, stake:r.tier==='long'?NFL.LONG.stake:NFL.stake(r.p)}));
     const board=rows.filter(r=>!NFL.NOCARD.has(r.st)).sort((a,b)=>b.ev-a.ev).slice(0,250);
     const games=L.games.map(g=>({game:`${g.away} @ ${g.home}`, start:g.start, open:g.props.filter(q=>q.book==='OPEN').length, fan:g.props.filter(q=>q.book==='FAN').length}));
-    return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, nSims:nS, picks, board, games, sims:scr}; }
+    return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, rostersFetched:RO?.fetched||null, nSims:nS, picks, board, games, sims:scr}; }
 };
 
 // ===================== page: the frozen paper card and the backtest summary =====================
@@ -487,7 +519,7 @@ window.NFLBT={
   const [c,bt]=await Promise.all([j('card.json'),j('backtest.json')]);
   const odds=o=>o>0?'+'+o:''+o, pct=x=>(100*x).toFixed(1)+'%', when=t=>new Date(t).toLocaleString([], {weekday:'short',hour:'numeric',minute:'2-digit'});
   let h='';
-  h+=`<div class="card banner"><b>Pilot, no real stakes.</b> <span class="mut">Picks are tracked on paper until the model has earned trust over several weeks. Card rules match the NBA card: price −150 to +150, 60%+ win chance, 5%+ expected profit, two picks a game, one per player.</span></div>`;
+  h+=`<div class="card banner"><b>Pilot, no real stakes.</b> <span class="mut">Picks are tracked on paper until the model has earned trust over several weeks. Card rules match the NBA card: price −150 to +150, 60%+ win chance, 5%+ expected profit, two picks a game, one per player. Plus long shots priced +151 to +250 with a 5%+ edge, at 0.5u, up to three picks a game.</span></div>`;
   if(c){
     h+=`<div class="card"><h2>${c.season} week ${c.week} paper card</h2><div class="mut">Frozen ${new Date(c.frozenAt).toLocaleString()} · ${c.picks.length} picks${c.note?' · '+c.note:''}</div>`;
     if(c.picks.length){ h+=`<table><tr><th>Game</th><th>Pick</th><th class="n">Price</th><th class="n">Win</th><th class="n hide-s">Proj</th><th class="n">Stake</th><th class="n">Result</th></tr>`;

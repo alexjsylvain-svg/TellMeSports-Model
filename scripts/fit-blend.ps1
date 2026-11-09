@@ -40,7 +40,7 @@ function picks($w, [int]$minG){
     $c = @()
     foreach($r in $grp.Group){ if(-not $r.rule -or $r.why.mis -or $r.why.q -or $w.ContainsKey("skip:"+$r.stat) -or ($w.ContainsKey("noASTo") -and $r.stat -eq "AST" -and $r.side -eq "Over")){ continue }
       if(($r.why.prior -or $r.why.y24) -and ($minG -lt 0 -or $r.curG -lt $minG)){ continue }
-      $ww = $w[$r.stat]*$r.b; $p = (sg ((1-$ww)*$r.lm + $ww*$r.ls))*(1-$r.push); $pl=[math]::Max(0,1-$p-$r.push); $ev=$p*((dec $r.odds)-1)-$pl
+      $ww = $w[$r.stat]*$r.b; $p = (sg ((1-$ww)*$r.lm + $ww*$r.ls))*(1-$r.push); $pl=[math]::Max(0.0,1-$p-$r.push); $ev=$p*((dec $r.odds)-1)-$pl
       $c += [pscustomobject]@{ p=$p; ev=$ev; odds=$r.odds; player=$r.player; stat=$r.stat; u=$r.u; bet=$r.bet; d=$r.d; rk=($r.why.prior -or $r.why.y24) } }
     foreach($g in $gl){ $c += [pscustomobject]@{ p=$g.p; ev=$g.ev; odds=$g.odds; player=$null; stat=$g.mkt; u=$g.u; bet=$g.bet; d=$g.d; rk=$false } }
     $pk=@()
