@@ -167,12 +167,15 @@ foreach($g in $games){
 
 # ---- 7b. Fanatics player props (Action Network feed, book 2988): main over/under lines, same shape as the FanDuel props ----
 $ANPROP = [ordered]@{ "core_bet_type_27_points"="PTS"; "core_bet_type_23_rebounds"="REB"; "core_bet_type_26_assists"="AST"; "core_bet_type_21_3fgm"="3PM"; "core_bet_type_85_points_rebounds_assists"="PRA"; "core_bet_type_86_points_rebounds"="PR"; "core_bet_type_87_points_assists"="PA"; "core_bet_type_88_rebounds_assists"="RA" }
-$anp = (Fetch "an_props_$Date.json" "https://api.actionnetwork.com/web/v2/scoreboard/nba/markets?bookIds=2988&customPickTypes=$($ANPROP.Keys -join ',')&date=$Date") | ConvertFrom-Json
-$anName = @{}; foreach($p in $anp.players){ $anName[[string]$p.id] = $p.full_name }
+# one request per prop type: since Nov 10, 2026 the feed answers 400 INVALID_DATA when all eight types are asked for at once
+$anBy = @{}; $anName = @{}
+foreach($t in $ANPROP.Keys){
+  $j = (Fetch "an_props_${Date}_$t.json" "https://api.actionnetwork.com/web/v2/scoreboard/nba/markets?bookIds=2988&customPickTypes=$t&date=$Date") | ConvertFrom-Json
+  $anBy[$t] = @($j.markets.'2988'.event.$t); foreach($p in $j.players){ $anName[[string]$p.id] = $p.full_name } }
 foreach($g in $games){
   $fan = [ordered]@{}
   foreach($t in $ANPROP.Keys){
-    $os = @($anp.markets.'2988'.event.$t | ? { $_.event_id -eq $g.anId -and -not $_.is_alt_market -and $_.line_status -ne 'suspended' })
+    $os = @($anBy[$t] | ? { $_.event_id -eq $g.anId -and -not $_.is_alt_market -and $_.line_status -ne 'suspended' })
     foreach($grp in ($os | Group-Object player_id)){
       $o = $grp.Group | ? side -eq 'over' | Select-Object -First 1; $u = $grp.Group | ? side -eq 'under' | Select-Object -First 1
       $pn = $anName[[string]$grp.Name]
