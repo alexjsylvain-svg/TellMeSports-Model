@@ -408,7 +408,7 @@
    "def": "Matisse Thybulle"
   },
   {
-   "set": "alt",
+   "set": "recommended",
    "gid": "401909955",
    "game": "MEM @ TOR",
    "mkt": "Prop",
@@ -446,7 +446,9 @@
     "opp": "MEM",
     "h2h": []
    },
-   "def": "Cedric Coward"
+   "def": "Cedric Coward",
+   "placed": true,
+   "placedNote": "User played it after the lock (~6:30 PM ET); recorded at the model's listed price (FD +114, 0.5u) since Fanatics had no Shead props."
   },
   {
    "set": "alt",
@@ -1107,5 +1109,5 @@
  },
  "final": true,
  "finalAt": "2026-11-09T23:25:13.520Z",
- "finalNote": "Locked per the user at ~6:25 PM ET after a second injury pass (Underdog NBA, ESPN, RotoWire): Coulibaly and Morez Johnson Jr. out, Davis untagged, Allen starting. Jerome and Wells placed earlier by the user."
+ "finalNote": "Locked per the user at ~6:25 PM ET after a second injury pass (Underdog NBA, ESPN, RotoWire): Coulibaly and Morez Johnson Jr. out, Davis untagged, Allen starting. Jerome and Wells placed earlier by the user. Shead U8.5 AST added as placed by the user after the lock."
 }
