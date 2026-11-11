@@ -16,7 +16,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
+
 <style>
 /* Layout: slate sheet. Tonight's two picks per game first, then the game grid, then one game opened in detail. */
 :root{
@@ -165,8 +165,8 @@ body.phone .wrap{display:none}
 .pa-sport button{border:1px solid var(--rule);border-radius:9px;background:var(--sheet);padding:8px 0;font-family:var(--f-display);font-size:1.05rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
 .pa-sport button[aria-selected="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
 .pa-sport .pa-pilot{font-family:var(--f-mono);font-size:.6rem;font-weight:500;letter-spacing:.05em;border:1px solid currentColor;border-radius:999px;padding:0 6px;opacity:.8}
-.pa-tabs.nfl{grid-template-columns:repeat(5,1fr)}
-.pa-tabs.nfl button{font-size:.92rem;letter-spacing:.02em}
+.pa-tabs.nfl{grid-template-columns:repeat(6,1fr)}
+.pa-tabs.nfl button{font-size:.8rem;letter-spacing:0}
 .nf-game summary{list-style:none;cursor:pointer;display:grid;gap:6px}
 .nf-game summary::-webkit-details-marker{display:none}
 .nf-game summary .nf-more{font-family:var(--f-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mute)}
@@ -261,6 +261,9 @@ body.phone .wrap{display:none}
 .pa-bx tr.dnp td{color:var(--mute)} .pa-bx tr.dnp td:last-child{text-align:left;font-size:.72rem}
 .pa-bx .dn{color:var(--under);font-weight:600}
 .pa-stale{display:grid;gap:3px;border-left:3px solid var(--warn)} .pa-stale span{font-size:.84rem;color:var(--mute)}
+.pa-status{display:grid;gap:3px;border-left:3px solid var(--accent)} .pa-status span{font-size:.84rem;color:var(--mute)} .pa-status.ok{border-left-color:var(--over)} .pa-status.old{border-left-color:var(--warn)}
+.pa-share{background:none;border:0;color:var(--mute);font:inherit;font-size:.78rem;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+a.pa-btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .pa-track{display:grid;gap:5px}
 .pa-bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;position:relative}
 .pa-bar i{display:block;height:100%;border-radius:4px}
@@ -435,10 +438,11 @@ button.pa-hb-col{cursor:pointer}
     </nav>
     <nav class="pa-tabs nfl" id="nflTabs" role="tablist" aria-label="NFL sections" hidden>
       <button role="tab" data-nt="card" aria-selected="true">Card</button>
+      <button role="tab" data-nt="record" aria-selected="false">Record</button>
       <button role="tab" data-nt="games" aria-selected="false">Games</button>
       <button role="tab" data-nt="board" aria-selected="false">Board</button>
       <button role="tab" data-nt="trends" aria-selected="false">Trends</button>
-      <button role="tab" data-nt="backtest" aria-selected="false">Backtest</button>
+      <button role="tab" data-nt="backtest" aria-selected="false">Tests</button>
     </nav>
     <nav class="pa-tabs" id="nbaTabs" role="tablist" aria-label="Sections">
       <button role="tab" data-pt="tonight" aria-selected="true">Tonight</button>
@@ -1499,6 +1503,7 @@ async function encodeGame(gid, targetSec, onP){
 async function saveVideo(gid, targetSec, statusEl){
   const g=SLATE.games.find(x=>x.espnId===gid), name=`${g.away.abbr}-at-${g.home.abbr}-typical-sim.mp4`;
   const prog=f=>{ if(statusEl) statusEl.textContent=`Rendering ${g.away.abbr} @ ${g.home.abbr}… ${Math.round(f*100)}%`; };
+  if(window.VideoEncoder && !window.Mp4Muxer) await loadMuxer();   // loaded only when a video is saved (keeps it off the phone's first load)
   const blob = (window.VideoEncoder && window.Mp4Muxer) ? await encodeGame(gid,targetSec,prog) : await recordGame(gid,targetSec,prog);
   const r=await fetch("/upload?name="+encodeURIComponent(name),{method:"POST",body:blob});
   if(statusEl) statusEl.textContent = r.ok? `Saved ${name} (${(blob.size/1e6).toFixed(1)} MB)` : `Save failed: HTTP ${r.status}`;
@@ -1698,6 +1703,8 @@ async function freezePicks(opts={}){
   return {ok:r.ok, date:SLATE.date, recommended:recommended.length, calls:calls.length, lockedGames:locked.size, refrozen:open.map(g=>`${g.away.abbr}@${g.home.abbr}`), keptFromEarlierFreeze:kept.length+keptCalls.length};
 }
 window.freezePicks=freezePicks;
+// the MP4 writer for "Save video" (fetched on first use; recording falls back to MediaRecorder if it can't load)
+function loadMuxer(){ return new Promise(res=>{ const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"; s.onload=s.onerror=()=>res(); document.head.appendChild(s); }); }
 // Every priced prop tonight, one row per player and stat (the side the model leans), with the reason it is or isn't a pick,
 // for the phone view's Props screen. Run right after freezePicks (local preview only): saves tracking\board-<date>.json,
 // published as board.json. The reasons follow gamePicks' rules in the same order.
@@ -1738,8 +1745,11 @@ async function exportBoard(){
   for(const g of SLATE.games){ if(!PRICED[g.espnId]) continue; injuries[g.espnId]={};
     for(const T of [g.away,g.home]){ injuries[g.espnId][T.abbr]=(SLATE.teams[T.abbr]?.players||[]).map(p=>({p,s:statusOf(p)})).filter(x=>x.s.st!=="active")
       .map(x=>({name:x.p.name, st:x.s.st==="out"?"Out":`Questionable (${Math.round(100*x.s.prob)}% to play)`, min:x.p.cur?.min??null})).sort((a,b)=>(b.min||0)-(a.min||0)); } }
+  // each player's game log is the same for all his stats: kept once in logs (without the stat), each row keeps only its numbers (lv);
+  // the phone rebuilds row.log on load. Cuts board.json roughly in half.
+  const logs={}; for(const r of rows){ if(r.log?.length){ logs[r.player]??=r.log.map(({v,...e})=>e); r.lv=r.log.map(e=>e.v); } delete r.log; }
   const doc={date:SLATE.date, exportedAt:new Date().toISOString(), frozenAt:frozen?.frozenAt||null, sims:sims(),
-    rules:{minP:MIN_P, minEv:0.05, oddsLo:-150, oddsHi:150, seasonMin:G.seasonMin, seasonMinN:G.seasonMinN, stakes:STAKES}, injuries, rows};
+    rules:{minP:MIN_P, minEv:0.05, oddsLo:-150, oddsHi:150, seasonMin:G.seasonMin, seasonMinN:G.seasonMinN, stakes:STAKES}, injuries, logs, rows};
   const r=await fetch(`/upload?name=board-${SLATE.date}.json`,{method:"POST",body:JSON.stringify(doc)});
   return {ok:r.ok, rows:rows.length, picks:rows.filter(x=>x.reason==="pick").length, picksFrozen:picked.size};
 }
@@ -1810,7 +1820,7 @@ const stakeOf=p=>(STAKES.find(([q])=>p>=q)||[0,0])[1];
 // The published page shows the night's frozen picks (picks.json, made from 50,000 sims a game) rather than re-deriving them
 // from the lighter in-browser run, so what viewers see is exactly what gets graded. Locally there is no picks.json.
 let FROZEN=null;
-fetch("picks.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.bets){ FROZEN=d; if(SLATE&&Object.keys(PRICED).length){ renderBets(); renderGrid(); } } }).catch(()=>{});
+if(!PHONE) fetch("picks.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{ if(d&&d.bets){ FROZEN=d; if(SLATE&&Object.keys(PRICED).length){ renderBets(); renderGrid(); } } }).catch(()=>{});
 function bestPicks(gid){
   if(FROZEN && SLATE && FROZEN.date===SLATE.date) return FROZEN.bets.filter(b=>b.set==="recommended"&&b.gid===gid).map(b=>({...b, p:b.pBlend, stake:b.stake??stakeOf(b.pBlend)}));
   return gamePicks(gid); }
@@ -2069,17 +2079,20 @@ let NTAB="card"; const NF={card:null, bt:null, trends:null, mnf:null, loaded:fal
 // ---- tracked bets (owner-only database) ----
 const TRK={db:null, owner:false, bets:[], state:"loading", note:""};
 (async()=>{ try{
-  if(!window.claude?.use){ TRK.state="off"; render(); return; }
+  if(!window.claude?.use){ localTrk(); return; }
   const [db,user]=await Promise.all([window.claude.use("db"), window.claude.use("user")]);
-  TRK.owner=!!user?.isOwner?.(); if(!db||!TRK.owner){ TRK.state="off"; render(); return; }
+  TRK.owner=!!user?.isOwner?.(); if(!db||!TRK.owner){ localTrk(); return; }
   TRK.db=db; const t=setTimeout(()=>{ if(TRK.state==="loading"){ TRK.state="slow"; render(); } },10000);
   db.collection("placed").onSnapshot(s=>{ TRK.bets=s.docs.map(d=>({id:d.id,...d.data()})); if(!s.metadata.fromCache){ clearTimeout(t); TRK.state="ready"; } else if(TRK.state==="loading") TRK.state="ready"; render(); if(!sheet.hidden) sheetResults(); },
     e=>{ clearTimeout(t); TRK.state="error"; TRK.note=e?.code||""; render(); });
-}catch(e){ TRK.state="off"; render(); } })();
+}catch(e){ localTrk(); } })();
+// everyone but the owner on claude.ai keeps "My bets" in this browser (localStorage): private to the phone, no sign-in
+function localTrk(){ TRK.local=true; try{ TRK.bets=JSON.parse(localStorage.getItem("tellme-mybets-v1")||"[]"); if(!Array.isArray(TRK.bets)) TRK.bets=[]; }catch(e){ TRK.bets=[]; } TRK.state="ready"; render(); }
+function saveLocal(){ try{ localStorage.setItem("tellme-mybets-v1",JSON.stringify(TRK.bets)); }catch(e){ alert("This browser won't save bets (private browsing?)."); } render(); if(!sheet.hidden) sheetResults(); }
 const trackId=b=>`${b.date}-${b.gid}-${norm(b.player).replace(/ /g,"_")}-${b.stat}-${b.side}-${b.line}`.replace(/[^A-Za-z0-9_\-.~:@+]/g,"");
 const tracked=(date,player,stat,side,line)=>TRK.bets.find(t=>t.date===date&&t.player===player&&t.stat===stat&&t.side===side&&(line==null||t.line===line));
-async function saveTrack(b){ if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(trackId(b)).set(b); }catch(e){ alert(e?.code==="quota_exceeded"?"The tracker is full.":"Couldn't save that bet. Try again in a moment."); } }
-async function dropTrack(id){ if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(id).delete(); }catch(e){ alert("Couldn't remove that bet. Try again in a moment."); } }
+async function saveTrack(b){ if(TRK.local){ const id=trackId(b); TRK.bets=TRK.bets.filter(t=>t.id!==id).concat({id,...b}); return saveLocal(); } if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(trackId(b)).set(b); }catch(e){ alert(e?.code==="quota_exceeded"?"The tracker is full.":"Couldn't save that bet. Try again in a moment."); } }
+async function dropTrack(id){ if(TRK.local){ TRK.bets=TRK.bets.filter(t=>t.id!==id); return saveLocal(); } if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(id).delete(); }catch(e){ alert("Couldn't remove that bet. Try again in a moment."); } }
 
 // ---- grading and live chances ----
 // a tracked bet's box line: tonight's from live.json, earlier nights' from boxes.json
@@ -2266,7 +2279,7 @@ function pickCard(b){
       return `<div class="pa-who">${face}<div><div class="pa-player">${esc(b.player||b.bet)}${w.team?`<span class="pa-team">${esc(w.team)}</span>`:""}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div></div>`; })()}
     <div class="pa-nums"><div><b>${P1(b.pBlend)}</b><span>win chance</span></div><div><b>${oddsTxt(b.odds)}</b><span>${BOOK[b.book]||esc(b.book)}</span></div><div><b class="up">${SGN(b.ev*100)}%</b><span>exp. profit</span></div></div>
     ${spark(b)}
-    <p class="pa-note">${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u.`:""}</p>
+    <p class="pa-note"><button class="pa-share" data-act="share" data-key="${esc(b.gid+"|"+b.bet)}" style="float:right;margin-left:8px">Share</button>${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u.`:""}</p>
     ${b.player&&boardRow(b.player,b.stat)?`<div class="pa-two"><button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}">Details &amp; prices</button>
       ${mine?`<button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${mine.line}|${mine.odds}" style="color:var(--over)">Placed ${mine.stake}u at ${oddsTxt(mine.odds)} ✓</button>`
         :TRK.state!=="off"?`<button class="pa-btn primary" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}|${b.odds}">I placed this</button>`:""}</div>`:""}
@@ -2286,7 +2299,7 @@ function myTonight(){ if(TRK.state==="off") return ""; const d=tonight(), ts=TRK
   if(TRK.state==="error") return `<div class="pa-small">Your tracked bets can't be reached right now.</div>`;
   const risk=ts.reduce((a,t)=>a+(t.stake||0),0), win=ts.reduce((a,t)=>a+toWin(t.odds,t.stake||0),0);
   return `<div class="pa-h">Your bets tonight</div><div class="pa-card">${ts.length?`<div class="pa-small"><b>${ts.length}</b> placed · ${risk.toFixed(1)}u at risk · wins ${win.toFixed(2)}u${TRK.state==="slow"?" · may be out of date":""}</div>${ts.map(t=>trackRow(t,true)).join("")}`
-    :`<div class="pa-small">Nothing tracked yet. Tap "I placed this" on a pick, or open any line in Props and save the price you got.</div>`}</div>`; }
+    :`<div class="pa-small">Nothing tracked yet. Tap "I placed this" on a pick, or open any line in Props and save the price you got.</div>`}${TRK.local?`<div class="pa-small" style="margin-top:6px">Saved on this phone only. Nobody else sees your bets.</div>`:""}</div>`; }
 
 // Recommended parlays: the card's 2 and 3 likeliest main-tier picks, one leg per game (legs from different games are close to
 // independent, so the chance is the product). Shared by the NBA and NFL cards. legs: [{g, p, odds, label}]
@@ -2303,6 +2316,48 @@ function altSection(){ const as=(D.picks?.bets||[]).filter(b=>b.set==="alt").sor
   if(!as.length) return "";
   return `<div class="pa-h">Plus-money alternatives</div><div class="pa-card"><div class="pa-small">Not part of the card. Priced +100 to +150, at least a 50% chance to win and a 10%+ edge: the model's best value plays below the card's 60% bar. In testing (17 nights) they went 27-19, +6.2u at 0.5u each, but they're new, so they're tracked separately until they earn a spot on the card.</div></div>
     ${as.map(pickCard).join("")}`; }
+// ---- where the card stands: last night's, locked, or still open (with who's questionable), and the alert sign-up ----
+const etDay=()=>new Date(Date.now()-5*36e5).toLocaleDateString("en-CA",{timeZone:"America/New_York"}).replace(/-/g,"");
+function waitingOn(){ const P=D.picks, inj=D.board?.date===P?.date?D.board?.injuries:null; if(!inj) return [];
+  const gids=new Set(picks().filter(b=>!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>b.gid)), out=[];
+  for(const gid of gids) for(const [team,list] of Object.entries(inj[gid]||{})) for(const x of list) if(/^Questionable/.test(x.st)&&(x.min||0)>=15) out.push({name:x.name,team,min:x.min});
+  return out.sort((a,b)=>b.min-a.min); }
+function statusBanner(){ const P=D.picks; if(!P) return "";
+  const box=(cls,title,txt,extra="")=>`<div class="pa-card pa-status ${cls}"><b>${title}</b><span>${txt}</span>${extra}</div>`;
+  if(P.date<etDay()) return box("old",`This is ${dayTxt(P.date)}'s card`,`Today's card posts after the 11:15 AM ET run, and again around 6:15 PM.${ALERTS?.ntfy?" Turn on alerts below to hear when it's up.":""}`);
+  if(P.final) return box("ok","Locked · final for tonight",`Locked ${P.finalAt?ET(P.finalAt,{hour:"numeric",minute:"2-digit"})+" ET":""}. These picks won't change.${P.finalNote?` <i>${esc(P.finalNote)}</i>`:""}`);
+  const calls=P.calls||[], open=calls.filter(c=>new Date(c.time)>Date.now()), age=(Date.now()-new Date(P.frozenAt))/36e5, w=waitingOn();
+  if(!open.length) return box("ok","All games have tipped",`The card was last updated ${clock(P.frozenAt)} ET.`);
+  const ask=ALERTS?.requests?`<button class="pa-link" data-act="askrun" style="justify-self:start;padding:0">${REQ.sent?"Asked for a fresh run ✓":"Ask for a fresh run"}</button>`:"";
+  return box(age>6?"old":"open",age>6?"Not final · may be out of date":"Not final yet",
+    `Updated ${clock(P.frozenAt)} ET (${ago(P.frozenAt)}). Picks can still change with injury news until the card is locked before tip-off.${w.length?` Waiting on: ${w.slice(0,5).map(x=>`${esc(x.name)} (${esc(x.team)})`).join(", ")}${w.length>5?` and ${w.length-5} more`:""}, questionable.`:""}`,ask); }
+var ALERTS=null, REQ={sent:false};
+try{ const t=+localStorage.getItem("tellme-askrun")||0; REQ.sent=Date.now()-t<45*60000; }catch(e){}
+async function askRun(){ if(REQ.sent||!ALERTS?.requests) return;
+  try{ await fetch("https://ntfy.sh/"+encodeURIComponent(ALERTS.requests),{method:"POST",body:`Someone asked for a fresh NBA run. The card was frozen ${clock(D.picks.frozenAt)} ET.`,headers:{Title:"Fresh run requested",Tags:"basketball"}});
+    REQ.sent=true; try{ localStorage.setItem("tellme-askrun",String(Date.now())); }catch(e){} render(); }
+  catch(e){ alert("Couldn't send that right now. Try again in a minute."); } }
+function alertsCard(){ const t=ALERTS?.ntfy; if(!t) return "";
+  return `<div class="pa-h">Pick alerts</div><div class="pa-card"><div class="pa-small">Get a notification when the card is posted, changes or locks, and when results are in. It uses ntfy, a free app with no account.</div>
+    <div class="pa-two"><a class="pa-btn primary" href="ntfy://ntfy.sh/${esc(t)}">Subscribe in ntfy</a><a class="pa-btn" href="https://ntfy.sh/${esc(t)}" target="_blank" rel="noopener">Open on the web</a></div>
+    <div class="pa-small">No app yet? Get ntfy for <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> or <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a>, then tap Subscribe again, or add the topic <code>${esc(t)}</code> by hand.</div></div>`; }
+// ---- share a pick as a picture (the phone's share sheet, else a download) ----
+async function sharePick(b){
+  const W=1080,H=1080,c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"), cs=getComputedStyle(document.documentElement), v=n=>cs.getPropertyValue(n).trim();
+  const ink="#e8edf2", mute="#8a96a3", bg="#0e141b", acc=v("--accent")||"#22c55e", sideC=/^u/i.test(b.side)?(v("--under")||"#ef4444"):(v("--over")||"#22c55e");
+  await document.fonts?.ready; const disp=v("--f-display")||"sans-serif", mono=v("--f-mono")||"monospace", w=b.player?whoOf(b):{};
+  x.fillStyle=bg; x.fillRect(0,0,W,H); x.fillStyle=acc; x.fillRect(0,0,W,14);
+  x.fillStyle=ink; x.font=`700 54px ${disp}`; x.fillText("TellMe Sports",80,140); x.fillStyle=mute; x.font=`500 34px ${mono}`; x.fillText(`NBA · ${dayTxt(D.picks.date)} · ${b.game}${tip(b.gid)?" · "+clock(tip(b.gid)):""}`,80,200);
+  x.fillStyle=ink; x.font=`700 110px ${disp}`; const nm=b.player||b.bet; let fs=110; while(x.measureText(nm).width>920&&fs>60){ fs-=6; x.font=`700 ${fs}px ${disp}`; } x.fillText(nm,80,400);
+  if(w.team){ x.fillStyle=mute; x.font=`500 40px ${mono}`; x.fillText(w.team,80,460); }
+  if(b.player){ x.fillStyle=sideC; x.font=`700 84px ${disp}`; x.fillText(betTxt(b.side,b.line,b.stat).toUpperCase(),80,580); }
+  const cell=(i,val,lab,col)=>{ const cx=80+i*320; x.fillStyle=col||ink; x.font=`700 72px ${disp}`; x.fillText(val,cx,780); x.fillStyle=mute; x.font=`500 30px ${mono}`; x.fillText(lab,cx,830); };
+  x.fillStyle="#26313d"; x.fillRect(80,660,920,3);
+  cell(0,P1(b.pBlend),"WIN CHANCE"); cell(1,oddsTxt(b.odds),(BOOK[b.book]||b.book).toUpperCase()); cell(2,(b.stake||0)+"u","STAKE",acc);
+  x.fillStyle=mute; x.font=`500 30px ${mono}`; x.fillText("Model pick, frozen before tip. Not a guarantee.",80,980);
+  const blob=await new Promise(r=>c.toBlob(r,"image/png")), name=`tellme-${(b.player||b.bet).replace(/[^A-Za-z]+/g,"-").toLowerCase()}.png`, file=new File([blob],name,{type:"image/png"});
+  if(navigator.canShare?.({files:[file]})){ try{ await navigator.share({files:[file],title:"TellMe Sports pick"}); return; }catch(e){ if(e.name==="AbortError") return; } }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
 function rTonight(){
   const P=D.picks; if(!P) return empty("No card yet","Tonight's picks show here once the model has run.");
   const bs=picks().slice().sort((a,b)=>(new Date(tip(a.gid)||0)-new Date(tip(b.gid)||0))||(b.pBlend-a.pBlend));
@@ -2311,13 +2366,14 @@ function rTonight(){
   const games=calls.map(c=>{ const H=c.home, A=c.away, n=bs.filter(b=>b.gid===c.gid).length, fav=c.winner;
     return `<div class="pa-game"><div class="pa-row"><span class="pa-teams">${esc(A)} <span class="muted" style="font-size:.85rem">@</span> ${esc(H)}</span><span class="pa-small">${clock(c.time)}${n?` · <b>${n} pick${n>1?"s":""}</b>`:""}</span></div>
       <div class="pa-small">Model: <b>${esc(fav)} ${P1(c.winProb)}</b> · fair ${esc(H)} ${SGN(c.fairSpread)} (book ${c.spread>0?"+":""}${c.spread}) · total <b>${c.fairTotal.toFixed(1)}</b> (book ${c.total})</div></div>`; }).join("");
-  return `<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win</span></div></div>
+  return `${statusBanner()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win</span></div></div>
       <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%.</div></div>
     ${bs.length?bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
     ${parlayCard(bs.filter(b=>b.tier!=="value"&&!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>({g:b.gid, p:b.pBlend, odds:b.odds, label:`<b>${esc(b.player||b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${esc(short(b.side,b.line,b.stat))}</span>`:""}`})),
       "Built from tonight's likeliest picks, one per game, from games that haven't tipped. Backtest, 17 nights (Oct 21–Nov 8), 1u each: 2 legs 8-7, +9.6u; 3 legs 4-10, +7.1u. One missed leg loses the whole parlay, so keep it small.")}
     ${altSection()}
     ${myTonight()}
+    ${alertsCard()}
     ${calls.length?`<div class="pa-h">The slate</div><div class="pa-card">${games}</div>`:""}${foot()}`; }
 
 function track(b,lg){
@@ -2441,7 +2497,14 @@ function clvBlock(bs){ const c=bs.filter(b=>b.cLine!=null); if(!c.length) return
   const same=c.filter(b=>b.clv!=null), moved=c.filter(b=>b.clv==null), up=moved.filter(b=>b.fav>0), dn=moved.filter(b=>b.fav<0);
   const avg=(a,f)=>a.length?a.reduce((s,b)=>s+f(b),0)/a.length:0, beat=same.filter(b=>b.clv>0), lost=same.filter(b=>b.clv<0);
   const wr=a=>{ const d=decided(a); return d.length?`${d.filter(b=>b.result==="WIN").length}-${d.length-d.filter(b=>b.result==="WIN").length}`:"–"; };
-  return `<div class="pa-kpis"><div><b class="${avg(same,b=>b.clv)>=0?"up":"dn"}">${SGN(avg(same,b=>b.clv),1)}</b><span>avg CLV, pts</span></div><div><b>${same.length?Math.round(100*beat.length/same.length):0}%</b><span>beat the close</span></div><div><b class="${avg(same,b=>b.cEv)>=0?"up":"dn"}">${SGN(100*avg(same,b=>b.cEv),1)}%</b><span>profit vs close</span></div></div>
+  // each night's average CLV as a bar (up = the market moved our way by the close)
+  const byN=[...new Set(same.map(b=>b.date))].sort().map(d=>{ const a=same.filter(b=>b.date===d); return {d,v:avg(a,b=>b.clv),n:a.length}; });
+  const mx=Math.max(.5,...byN.map(r=>Math.abs(r.v))), bw=byN.length?Math.min(26,300/byN.length):0;
+  const bars=byN.length>1?`<svg viewBox="0 0 320 96" class="pa-cal" role="img" aria-label="Average CLV by night"><line x1="10" x2="310" y1="48" y2="48" stroke="var(--rule-strong)"/>
+    ${byN.map((r,i)=>{ const h=Math.abs(r.v)/mx*42, cx=10+(i+.5)*300/byN.length; return `<rect x="${(cx-bw*.35).toFixed(1)}" width="${(bw*.7).toFixed(1)}" y="${(r.v>=0?48-h:48).toFixed(1)}" height="${Math.max(1,h).toFixed(1)}" fill="${r.v>=0?"var(--over)":"var(--under)"}"><title>${md(r.d)}: ${SGN(r.v,1)} pts avg on ${r.n} picks</title></rect>`; }).join("")}
+    <text x="10" y="94" font-size="9" fill="var(--mute)" font-family="var(--f-mono)">${md(byN[0].d)}</text><text x="310" y="94" text-anchor="end" font-size="9" fill="var(--mute)" font-family="var(--f-mono)">${md(byN.at(-1).d)}</text></svg>
+    <div class="pa-small muted">Average CLV by night: green bars mean the market moved toward our picks by tip-off.</div>`:"";
+  return `<div class="pa-kpis"><div><b class="${avg(same,b=>b.clv)>=0?"up":"dn"}">${SGN(avg(same,b=>b.clv),1)}</b><span>avg CLV, pts</span></div><div><b>${same.length?Math.round(100*beat.length/same.length):0}%</b><span>beat the close</span></div><div><b class="${avg(same,b=>b.cEv)>=0?"up":"dn"}">${SGN(100*avg(same,b=>b.cEv),1)}%</b><span>profit vs close</span></div></div>${bars}
     <div class="pa-small">${c.length} of ${bs.length} picks matched to Fanatics' closing line. Same line at the close: ${same.length}; the market moved toward our side on <b>${beat.length}</b> (${wr(beat)}) and away on <b>${lost.length}</b> (${wr(lost)}). The line itself moved on ${moved.length}: <b>${up.length}</b> in our favour (${wr(up)}), ${dn.length} against (${wr(dn)}).</div>
     <div class="pa-small muted">CLV is the closing no-vig chance of our side minus the no-vig chance at the price we took. "Profit vs close" is what our price would earn if the close were exactly right, so it includes the book's cut.</div>`; }
 function rTrust(all){ const bs=tfilter(all), d=decided(bs), w=d.filter(b=>b.result==="WIN").length, ex=d.reduce((s,b)=>s+b.p,0), t=tally(bs), rows=calib(bs), wl=watchList(all);
@@ -2486,7 +2549,13 @@ function rRecord(){
 // ---- NFL (pilot): the paper card, the priced board and the backtest, from nfl/card.json and nfl/backtest.json ----
 const NFL_LABEL={PASS_YDS:"pass yds",PASS_CMP:"completions",PASS_ATT:"pass att",RUSH_YDS:"rush yds",RUSH_ATT:"rush att",REC_YDS:"rec yds",REC:"receptions",RR_YDS:"rush+rec yds",ATD:"anytime TD"};
 async function loadNFL(){ if(NF.loaded) return; NF.loaded=true; const g=n=>fetch(n,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
-  [NF.card,NF.bt,NF.trends,NF.mnf]=await Promise.all([g("nfl/card.json"),g("nfl/backtest.json"),g("nfl/trends.json"),g("nfl/mnf.json")]); render(); }
+  [NF.card,NF.bt,NF.trends,NF.mnf,NF.res]=await Promise.all([g("nfl/card.json"),g("nfl/backtest.json"),g("nfl/trends.json"),g("nfl/mnf.json"),g("nfl/results.json")]); render(); }
+// the paper picks graded so far (nfl/results.json), newest week first
+function nfRecord(){ const R=NF.res, ps=(R?.picks||[]).slice(); if(!ps.length) return empty("No graded paper picks yet","They show here after each game is final.");
+  const T=R.toDate||{}, wks=[...new Set(ps.map(p=>p.season+"|"+p.week))].sort().reverse(), chip=r=>`<span class="pa-st ${r==="WIN"?"win":r==="LOSS"?"loss":"n"}">${r==="WIN"?"W":r==="LOSS"?"L":esc(r||"–")}</span>`;
+  return `<div class="pa-card"><div class="pa-kpis"><div><b>${T.w||0}-${T.l||0}${T.p?`-${T.p}`:""}</b><span>paper record</span></div><div><b class="${(T.units||0)>=0?"up":"dn"}">${U(T.units||0)}</b><span>paper units</span></div><div><b>${(T.staked||0).toFixed(1)}u</b><span>risked</span></div></div>
+    <div class="pa-small">${esc(R.note||"")} Live paper results, not the backtest.</div></div>
+    ${wks.map(k=>{ const [s,w]=k.split("|"), wp=ps.filter(p=>p.season+"|"+p.week===k); return `<div class="pa-card"><span class="pa-h" style="margin:0">${s} week ${w}</span>${wp.map(p=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span style="min-width:0"><b>${esc(p.bet)}</b><br><span class="pa-small">${oddsTxt(p.odds)} ${nfBook(p.book)} · ${P1(p.p)} · ${p.stake}u · actual ${esc(String(p.actual??"–"))} · ${esc(p.final||p.game)}</span></span>${chip(p.result)}</div>`).join("")}</div>`; }).join("")}`; }
 const nfBet=r=>r.st==="ATD"?"Anytime TD":`${r.side} ${r.line} ${NFL_LABEL[r.st]||r.st}`;
 const nfBook=b=>b==="OPEN"?"opener":b==="FAN"?"Fanatics":b;
 const nfMx=r=>r.mx&&Math.abs(r.mx-1)>=.01?` · coverage matchup ${r.mx>1?"+":"−"}${Math.abs((r.mx-1)*100).toFixed(0)}%`:"";
@@ -2596,7 +2665,7 @@ function renderNFL(){
   for(const b of app.querySelectorAll("[data-nt]")) b.setAttribute("aria-selected",String(b.dataset.nt===NTAB));
   const c=NF.card; document.getElementById("paDate").textContent=c?`NFL week ${c.week}`:"NFL"; document.getElementById("paStamp").innerHTML=c?`${(c.picks||[]).length} paper picks<br>pilot`:"";
   if(!NF.loaded){ loadNFL(); body.innerHTML=`<div class="pa-card pa-empty"><span class="muted">Loading…</span></div>`; return; }
-  body.innerHTML=`<div class="nf-pilotbar"><b>NFL pilot · paper only</b><span>This model is new and still being tested. Its picks are tracked on paper, not recommended bets, and the record so far is a backtest, not live results.</span></div>`+({card:nfCard,games:nfGames,board:nfBoard,trends:nfTrends,backtest:nfBacktest})[NTAB]();
+  body.innerHTML=`<div class="nf-pilotbar"><b>NFL pilot · paper only</b><span>This model is new and still being tested. Its picks are tracked on paper, not recommended bets, and the record so far is a backtest, not live results.</span></div>`+({card:nfCard,record:nfRecord,games:nfGames,board:nfBoard,trends:nfTrends,backtest:nfBacktest})[NTAB]();
 }
 function render(){
   for(const b of app.querySelectorAll("[data-sport]")) b.setAttribute("aria-selected",String(b.dataset.sport===SPORT));
@@ -2623,8 +2692,10 @@ app.addEventListener("click",e=>{
   const a=e.target.closest("[data-act]"); if(!a) return;
   if(a.dataset.act==="more"){ PF.n+=60; document.getElementById("paPL").innerHTML=propsList(); }
   else if(a.dataset.act==="nights"){ REC_ALL=!REC_ALL; render(); }
+  else if(a.dataset.act==="askrun"){ askRun(); }
+  else if(a.dataset.act==="share"){ const b=(D.picks?.bets||[]).find(x=>x.gid+"|"+x.bet===a.dataset.key); if(b) sharePick(b).catch(()=>alert("Couldn't make the picture on this phone.")); }
   else if(a.dataset.act==="tfclear"){ Object.assign(TF,{stat:"",side:"",price:"",from:"",to:""}); render(); }
-  else if(a.dataset.act==="full"){ document.body.classList.remove("phone"); app.hidden=true; window.scrollTo(0,0); if(typeof runAll==="function"&&SLATE&&!Object.keys(PRICED).length) runAll(); }
+  else if(a.dataset.act==="full"){ if(D.picks) FROZEN=D.picks; document.body.classList.remove("phone"); app.hidden=true; window.scrollTo(0,0); if(typeof runAll==="function"&&SLATE&&!Object.keys(PRICED).length) runAll(); }
 });
 app.addEventListener("input",e=>{ if(e.target.id==="paQ"){ PF.q=e.target.value; PF.n=60; document.getElementById("paPL").innerHTML=propsList(); } });
 app.addEventListener("change",e=>{ const TFK={tfS:"stat",tfD:"side",tfP:"price",tfF:"from",tfT:"to"}[e.target.id]; if(TFK){ TF[TFK]=e.target.value; render(); document.getElementById(e.target.id)?.focus({preventScroll:true}); return; }
@@ -2638,7 +2709,12 @@ async function getLive(){ try{ return await espnLive(slateDay()); }catch(e){ ret
 async function refreshLive(){ const l=await getLive(); if(l) D.live=l; if(TAB==="tonight"||TAB==="live") render(); }
 let LIVE_T=0; setInterval(()=>{ const on=(D.live?.games||[]).some(g=>g.state==="in"); if(document.visibilityState==="visible"&&(on||++LIVE_T%6===0)) refreshLive(); },20000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") refreshLive(); });
-Promise.all(["picks","board","live","season","boxes"].map(get)).then(([p,b,l,s,x])=>{ Object.assign(D,{picks:p,board:b,live:l,season:s,boxes:x}); render(); refreshLive(); });
+// board.json since Nov 11 keeps each player's game log once (logs) and per-row numbers (lv); older files carry row.log as before
+const unpackBoard=b=>{ if(b?.logs) for(const r of b.rows||[]){ const L=b.logs[r.player]; if(!r.log&&L) r.log=L.map((e,i)=>({...e, v:r.lv?.[i]??null})); } return b; };
+// the card first (it's small), so Tonight shows at once; the rest follow
+const pP=get("picks"); pP.then(p=>{ if(p&&!D.picks){ D.picks=p; render(); } });
+Promise.all([pP,...["board","live","season","boxes"].map(get)]).then(([p,b,l,s,x])=>{ Object.assign(D,{picks:p,board:unpackBoard(b),live:l,season:s,boxes:x}); render(); refreshLive(); });
+fetch("alerts.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(a=>{ ALERTS=a; }).catch(()=>{});
 window.__PA={D,TRK,S,priceAt,verdict,liveChance,grade,openCalc};
 })();
 </script>

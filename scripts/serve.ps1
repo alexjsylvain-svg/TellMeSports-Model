@@ -38,11 +38,11 @@ while ($l.IsListening) {
   } elseif ($path -eq '/harness.js') {
     # backtest harness for the local preview (scripts\harness.js)
     $b = [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "harness.js")); $c.Response.ContentType = "text/javascript"
-  } elseif ($path -match '^/(slate|live|results|finals|picks|board|season|boxes)\.json$') {
+  } elseif ($path -match '^/(slate|live|results|finals|picks|board|season|boxes|alerts)\.json$') {
     # picks, board, season and boxes are the phone view's files; they're only there when the -Data folder holds them
     $f = Join-Path (Split-Path $Data) ($matches[1] + ".json")
     # the /next preview falls back to the published copy (docs\) so its NBA side shows the current card
-    if (-not (Test-Path $f) -and $c.Request.UrlReferrer -and $c.Request.UrlReferrer.AbsolutePath -eq '/next') { $f = Join-Path (Join-Path (Split-Path $PSScriptRoot) "docs") ($matches[1] + ".json") }
+    if (-not (Test-Path $f) -and (($c.Request.UrlReferrer -and $c.Request.UrlReferrer.AbsolutePath -eq '/next') -or $matches[1] -eq 'alerts')) { $f = Join-Path (Join-Path (Split-Path $PSScriptRoot) "docs") ($matches[1] + ".json") }
     if (-not (Test-Path $f)) { $c.Response.StatusCode = 404; $c.Response.Close(); continue }
     $b = [IO.File]::ReadAllBytes($f); $c.Response.ContentType = "application/json"
   } else {

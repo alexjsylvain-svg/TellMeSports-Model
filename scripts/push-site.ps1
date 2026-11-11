@@ -18,6 +18,7 @@ $map = [ordered]@{
   "season.json"  = "site/season.json"
   "boxes.json"   = "site/boxes.json"
 }
+$picksBefore = if(Test-Path (Join-Path $docs "picks.json")){ [IO.File]::ReadAllText((Join-Path $docs "picks.json")) } else { "" }   # for the phone alert
 $copied = @()
 foreach($k in $map.Keys){ $src = Join-Path $root $map[$k]; if(Test-Path $src){ Copy-Item $src (Join-Path $docs $k) -Force; $copied += $k } }
 "copied for $D : $($copied -join ', ')"
@@ -73,3 +74,5 @@ if($LASTEXITCODE -ne 0){
 $out = git push origin main 2>&1 | % { "$_" }
 if($LASTEXITCODE -ne 0){ $out; throw "git push failed (exit $LASTEXITCODE)" }
 "pushed to GitHub"
+# phone alert (scripts\notify.ps1): only when the card is new, changed or locked; never fails the publish
+if($staged -contains "docs/picks.json"){ & "$PSScriptRoot/notify.ps1" -Kind card -Before $picksBefore }
