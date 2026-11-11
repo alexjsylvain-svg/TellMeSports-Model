@@ -264,6 +264,9 @@ body.phone .wrap{display:none}
 .pa-status{display:grid;gap:3px;border-left:3px solid var(--accent)} .pa-status span{font-size:.84rem;color:var(--mute)} .pa-status.ok{border-left-color:var(--over)} .pa-status.old{border-left-color:var(--warn)}
 .pa-share{background:none;border:0;color:var(--mute);font:inherit;font-size:.78rem;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 a.pa-btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.pa-unit{display:grid;gap:6px} .pa-unit-in{display:inline-flex;align-items:center;gap:2px;font-family:var(--f-mono);font-weight:600}
+.pa-unit-in input{width:76px;font:inherit;font-size:1rem;padding:5px 8px;border:1px solid var(--rule-strong,var(--rule));border-radius:7px;background:var(--sheet);color:var(--ink);text-align:right}
+.pa-unit-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-family:var(--f-mono);font-size:.82rem} .pa-unit-row span{background:var(--rule);border-radius:6px;padding:4px 6px;text-align:center}
 .pa-steps{margin:6px 0 8px;padding-left:20px;font-size:.88rem;display:grid;gap:5px} .pa-topic{font-family:var(--f-mono);font-size:.85rem;background:var(--rule);padding:1px 5px;border-radius:4px;user-select:all;-webkit-user-select:all;word-break:break-all}
 .pa-track{display:grid;gap:5px}
 .pa-bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;position:relative}
@@ -2275,12 +2278,12 @@ function whoOf(b){ const r=(b.team&&b.pid)?{}:rosterOf(b.player); return {team:b
 function pickCard(b){
   const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side);
   return `<article class="pa-card">
-    <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.set==="alt"?` · <span class="pa-st n">alternative</span>`:b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?stake+"u":"track"}</span></div>
+    <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.set==="alt"?` · <span class="pa-st n">alternative</span>`:b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?`${stake}u · ${usd(stake)}`:"track"}</span></div>
     ${(()=>{ const w=b.player?whoOf(b):{}; const face=w.team?`<div class="pa-face">${w.pid?`<img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/${esc(w.pid)}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`:`<span class="hs"></span>`}<img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/${esc(w.team.toLowerCase())}.png" alt="${esc(w.team)}" loading="lazy" onerror="this.remove()"></div>`:"";
       return `<div class="pa-who">${face}<div><div class="pa-player">${esc(b.player||b.bet)}${w.team?`<span class="pa-team">${esc(w.team)}</span>`:""}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div></div>`; })()}
     <div class="pa-nums"><div><b>${P1(b.pBlend)}</b><span>win chance</span></div><div><b>${oddsTxt(b.odds)}</b><span>${BOOK[b.book]||esc(b.book)}</span></div><div><b class="up">${SGN(b.ev*100)}%</b><span>exp. profit</span></div></div>
     ${spark(b)}
-    <p class="pa-note"><button class="pa-share" data-act="share" data-key="${esc(b.gid+"|"+b.bet)}" style="float:right;margin-left:8px">Share</button>${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u.`:""}</p>
+    <p class="pa-note"><button class="pa-share" data-act="share" data-key="${esc(b.gid+"|"+b.bet)}" style="float:right;margin-left:8px">Share</button>${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u (${usd(+toWin(b.odds,stake).toFixed(2))}).`:""}</p>
     ${b.player&&boardRow(b.player,b.stat)?`<div class="pa-two"><button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}">Details &amp; prices</button>
       ${mine?`<button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${mine.line}|${mine.odds}" style="color:var(--over)">Placed ${mine.stake}u at ${oddsTxt(mine.odds)} ✓</button>`
         :TRK.state!=="off"?`<button class="pa-btn primary" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}|${b.odds}">I placed this</button>`:""}</div>`:""}
@@ -2308,7 +2311,7 @@ function parlayOf(list,n){ const legs=[]; for(const b of list.slice().sort((a,b)
   if(legs.length<n) return null; const d=legs.reduce((m,b)=>m*dec(b.odds),1), p=legs.reduce((m,b)=>m*b.p,1);
   return {legs, d, p, ev:p*d-1, odds:d>=2?Math.round((d-1)*100):Math.round(-100/(d-1))}; }
 function parlayCard(list,note,stake=.5){ const ps=[2,3].map(n=>parlayOf(list,n)).filter(Boolean); if(!ps.length) return "";
-  return `<div class="pa-h">Recommended parlays</div>${ps.map(x=>`<div class="pa-card"><div class="pa-row"><span class="pa-player">${x.legs.length}-leg parlay</span><span class="pa-stake">${stake}u</span></div>
+  return `<div class="pa-h">Recommended parlays</div>${ps.map(x=>`<div class="pa-card"><div class="pa-row"><span class="pa-player">${x.legs.length}-leg parlay</span><span class="pa-stake">${stake}u · ${usd(stake)}</span></div>
     ${x.legs.map(l=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span style="min-width:0">${l.label}</span><span class="pa-small">${oddsTxt(l.odds)} · ${P1(l.p)}</span></div>`).join("")}
     <div class="pa-nums"><div><b>${oddsTxt(x.odds)}</b><span>parlay price</span></div><div><b>${P1(x.p)}</b><span>model chance</span></div><div><b class="${x.ev>0?"up":"dn"}">${SGN(x.ev*100)}%</b><span>exp. profit</span></div></div>
     <p class="pa-note">Wins ${(stake*(x.d-1)).toFixed(2)}u on ${stake}u if every leg hits; a push drops that leg.</p></div>`).join("")}<div class="pa-small" style="margin:-4px 2px 12px">${note}</div>`; }
@@ -2333,6 +2336,14 @@ function statusBanner(){ const P=D.picks; if(!P) return "";
   return box(age>6?"old":"open",age>6?"Not final · may be out of date":"Not final yet",
     `Updated ${clock(P.frozenAt)} ET (${ago(P.frozenAt)}). Picks can still change with injury news until the card is locked before tip-off.${w.length?` Waiting on: ${w.slice(0,5).map(x=>`${esc(x.name)} (${esc(x.team)})`).join(", ")}${w.length>5?` and ${w.length-5} more`:""}, questionable.`:""}`,ask); }
 var ALERTS=null, REQ={sent:false};
+// dollars per unit, saved on this phone (default $50: the card's 2u = $100); [data-u] spans show a stake in dollars and update as you type
+var UNIT=(()=>{ try{ const v=+localStorage.getItem("tellme-unit"); return v>0?v:50; }catch(e){ return 50; } })();
+const usdTxt=u=>{ const d=Math.round(u*UNIT*100)/100; return "$"+(Number.isInteger(d)?d.toLocaleString("en-US"):d.toFixed(2)); };
+const usd=u=>`<span data-u="${u}">${usdTxt(u)}</span>`;
+function unitCard(){ return `<div class="pa-card pa-unit"><label class="pa-row" for="paUnit"><span><b>Your unit</b> <span class="pa-small">what 1u means to you</span></span>
+    <span class="pa-unit-in">$<input id="paUnit" type="number" inputmode="decimal" min="1" step="1" value="${UNIT}" aria-label="Dollars per unit"></span></label>
+    <div class="pa-unit-row">${[[.5,"0.5u"],[1,"1u"],[1.5,"1.5u"],[2,"2u"]].map(([u,l])=>`<span><b>${l}</b> = ${usd(u)}</span>`).join("")}</div>
+    <div class="pa-small">The card bets 0.5u at 60–64%, 1.5u at 64–66% and 2u at 66%+. Saved on this phone only.</div></div>`; }
 try{ const t=+localStorage.getItem("tellme-askrun")||0; REQ.sent=Date.now()-t<45*60000; }catch(e){}
 async function askRun(){ if(REQ.sent||!ALERTS?.requests) return;
   try{ await fetch("https://ntfy.sh/"+encodeURIComponent(ALERTS.requests),{method:"POST",body:`Someone asked for a fresh NBA run. The card was frozen ${clock(D.picks.frozenAt)} ET.`,headers:{Title:"Fresh run requested",Tags:"basketball"}});
@@ -2369,7 +2380,7 @@ function rTonight(){
   const games=calls.map(c=>{ const H=c.home, A=c.away, n=bs.filter(b=>b.gid===c.gid).length, fav=c.winner;
     return `<div class="pa-game"><div class="pa-row"><span class="pa-teams">${esc(A)} <span class="muted" style="font-size:.85rem">@</span> ${esc(H)}</span><span class="pa-small">${clock(c.time)}${n?` · <b>${n} pick${n>1?"s":""}</b>`:""}</span></div>
       <div class="pa-small">Model: <b>${esc(fav)} ${P1(c.winProb)}</b> · fair ${esc(H)} ${SGN(c.fairSpread)} (book ${c.spread>0?"+":""}${c.spread}) · total <b>${c.fairTotal.toFixed(1)}</b> (book ${c.total})</div></div>`; }).join("");
-  return `${statusBanner()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win</span></div></div>
+  return `${statusBanner()}${unitCard()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk · ${usd(risk)}</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win · ${usd(+win.toFixed(2))}</span></div></div>
       <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%.</div></div>
     ${bs.length?bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
     ${parlayCard(bs.filter(b=>b.tier!=="value"&&!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>({g:b.gid, p:b.pBlend, odds:b.odds, label:`<b>${esc(b.player||b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${esc(short(b.side,b.line,b.stat))}</span>`:""}`})),
@@ -2680,6 +2691,7 @@ function render(){
   const mine=TRK.bets.filter(t=>t.date===date).length;
   document.getElementById("paStamp").innerHTML=D.picks?`${picks().length} plays${mine?` · ${mine} placed`:""}<br>${D.picks.final?"locked":"not locked"}`:"";
   // the Props search box is never rebuilt while it has focus (that would drop the iPhone keyboard)
+  if(TAB==="tonight"&&document.activeElement?.id==="paUnit") return;   // live refreshes wait while the unit box is being typed in
   if(TAB==="props"&&document.activeElement?.id==="paQ"&&document.getElementById("paPL")){ document.getElementById("paPL").innerHTML=propsList(); return; }
   body.innerHTML=({tonight:rTonight,live:rLive,props:rProps,record:rRecord})[TAB]();
 }
@@ -2702,7 +2714,8 @@ app.addEventListener("click",e=>{
   else if(a.dataset.act==="tfclear"){ Object.assign(TF,{stat:"",side:"",price:"",from:"",to:""}); render(); }
   else if(a.dataset.act==="full"){ if(D.picks) FROZEN=D.picks; document.body.classList.remove("phone"); app.hidden=true; window.scrollTo(0,0); if(typeof runAll==="function"&&SLATE&&!Object.keys(PRICED).length) runAll(); }
 });
-app.addEventListener("input",e=>{ if(e.target.id==="paQ"){ PF.q=e.target.value; PF.n=60; document.getElementById("paPL").innerHTML=propsList(); } });
+app.addEventListener("input",e=>{ if(e.target.id==="paUnit"){ const v=+e.target.value; if(v>0){ UNIT=v; try{ localStorage.setItem("tellme-unit",String(v)); }catch(x){} app.querySelectorAll("[data-u]").forEach(s=>{ s.textContent=usdTxt(+s.dataset.u); }); } return; }
+  if(e.target.id==="paQ"){ PF.q=e.target.value; PF.n=60; document.getElementById("paPL").innerHTML=propsList(); } });
 app.addEventListener("change",e=>{ const TFK={tfS:"stat",tfD:"side",tfP:"price",tfF:"from",tfT:"to"}[e.target.id]; if(TFK){ TF[TFK]=e.target.value; render(); document.getElementById(e.target.id)?.focus({preventScroll:true}); return; }
   if(e.target.id==="paG"){ PF.game=e.target.value; PF.n=60; render(); } else if(e.target.id==="paAll"){ PF.all=e.target.value==="1"; PF.n=60; render(); } });
 // the slate night: the card's date, else today in ET (before 5 AM it is still last night's slate)
