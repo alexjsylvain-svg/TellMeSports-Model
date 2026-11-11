@@ -27,3 +27,6 @@ tracking/*.pid
 # NFL pilot: the model's data bundle (rebuilt by scripts\nfl-data.ps1)
 tracking/nfl/data.json
 tracking/nfl/plays.json
+
+# night.ps1 run status (local)
+tracking/night-status-*.json

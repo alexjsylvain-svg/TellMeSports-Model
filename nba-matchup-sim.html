@@ -564,7 +564,9 @@ const BREF_ABBR={GS:"GSW",NO:"NOP",NY:"NYK",SA:"SAS",UTAH:"UTA",WSH:"WAS",PHX:"P
 
 let SLATE=null, LG_T=null;
 const OVR=loadOvr(); // per-player overrides, keyed by team|name
-function loadOvr(){ try{ return JSON.parse(localStorage.getItem("plab-ovr-v2")||"{}"); }catch(e){ return {}; } }
+// ?ovr={"TEAM|Name":{status,prob}} (from scripts\night.ps1 -Ovr) applies to this page load only and isn't saved
+function loadOvr(){ const q=new URLSearchParams(location.search).get("ovr"); if(q){ try{ return JSON.parse(q); }catch(e){} }
+  try{ return JSON.parse(localStorage.getItem("plab-ovr-v2")||"{}"); }catch(e){ return {}; } }
 function saveOvr(){ try{ localStorage.setItem("plab-ovr-v2",JSON.stringify(OVR)); }catch(e){} }
 
 function posPrior(pos){
@@ -1641,12 +1643,14 @@ fetch("results.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{ i
 // ---------- Freezing a night's recommendations for grading (local preview only: saves tracking\picks-<date>.json) ----------
 // Refuses a slate that isn't today's (Eastern time). An existing frozen file is only replaced with {overwrite:true},
 // for re-freezing tonight's picks after late injury news, never for a past night.
+// the fields a frozen bet keeps (freezePicks and the autopilot's placed bets)
+const slimBet=(b,set)=>({set, gid:b.gid, game:b.game, mkt:b.mkt, bet:b.bet, book:b.book, odds:+b.odds, side:b.side??null, hl:b.hl??null, tl:b.tl??null,
+    player:b.player??null, stat:b.stat??null, line:b.line??null, thr:b.thr??null, pSim:b.pSim, pBlend:b.p, ev:b.ev, top:!!b.top, tier:b.tier??null, stake:b.stake??stakeOf(b.p), mean:b.mean??null, season:b.season??null, def:b.def??null});
 async function freezePicks(opts={}){
   const todayET=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"}).replace(/-/g,"");
   if(SLATE.date!==todayET) return {ok:false, error:`loaded slate is ${SLATE.date}, today is ${todayET}; nothing saved`};
   if(sims()<50000 && !opts.anySims) return {ok:false, error:`official picks use at least 50,000 sims per game; this run used ${sims().toLocaleString()} (load the page with ?sims=50000)`};
-  const slim=(b,set)=>({set, gid:b.gid, game:b.game, mkt:b.mkt, bet:b.bet, book:b.book, odds:+b.odds, side:b.side??null, hl:b.hl??null, tl:b.tl??null,
-    player:b.player??null, stat:b.stat??null, line:b.line??null, thr:b.thr??null, pSim:b.pSim, pBlend:b.p, ev:b.ev, top:!!b.top, tier:b.tier??null, stake:b.stake??stakeOf(b.p), mean:b.mean??null, season:b.season??null, def:b.def??null});
+  const slim=slimBet;
   // Games that tip within 10 minutes (or already started) are locked: a re-freeze keeps their earlier frozen picks and calls,
   // so nothing is ever recorded after tip-off. Only games still ahead get new picks.
   // {only:[gid,...]} re-freezes just those games (a starter changed) and keeps every other game's earlier picks as they were.
@@ -1929,7 +1933,46 @@ fetch("slate.json",{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP
   $("dataStamp").textContent=`Data pulled ${new Date(d.generated).toLocaleString("en-US",{timeZone:"America/New_York",dateStyle:"medium",timeStyle:"short"})} ET. Lines and injury news move. Rebuild the data close to tip-off.`;
   // ?norun=1 skips the automatic full-slate run (the pre-tip lineup check re-runs only the games whose starters changed)
   SEL=d.games[0].espnId; renderGrid(); renderBets(); renderDetail(); $("runAll").disabled=false; if(!PHONE && !new URLSearchParams(location.search).has("norun")) runAll();
+  if(new URLSearchParams(location.search).has("auto")) autopilot();
 }).catch(err=>{ $("status").textContent="Could not load slate.json: "+err.message; });
+
+// ---- Autopilot (?auto=1): scripts\night.ps1 opens the page in a hidden Edge window and the page runs the night by itself ----
+// Waits until every game is priced, then the same steps as by hand: freezePicks({overwrite}) with any ?placed= bets kept at the
+// price taken, exportBoard, and with ?lock=1 marks the night final. Writes tracking\night-status-<date>.json (ok/error and a short
+// summary) for the script to print. ?placed= is a JSON list like ["Anfernee Simons under 1.5 AST @-125 1.5u"]: the bet as the page
+// writes it, then optionally @price and a stake; a bet already frozen tonight keeps its frozen price unless @price is given.
+async function autopilot(){
+  const Q=new URLSearchParams(location.search), D=Q.get("run"), t0=Date.now(), out={date:D, startedAt:new Date().toISOString()};
+  const save=o=>fetch(`/upload?name=night-status-${D}.json&overwrite=1`,{method:"POST",body:JSON.stringify({...out,...o,finishedAt:new Date().toISOString()},null,1)});
+  try{
+    for(;;){ if(SLATE&&SLATE.date!==D) return save({ok:false, error:`the server has the ${SLATE.date} slate, not ${D}`});
+      if(SLATE&&Object.keys(PRICED).length===SLATE.games.length&&!$("runAll").disabled) break;
+      if(Date.now()-t0>40*60000) return save({ok:false, error:`sims didn't finish in 40 minutes (${$("status").textContent})`});
+      await new Promise(r=>setTimeout(r,3000)); }
+    out.simSeconds=Math.round((Date.now()-t0)/1000);
+    const prev=await fetch(`/tracking/picks-${D}.json`,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
+    if(prev?.final) return save({ok:false, error:`tonight's card is locked (final ${prev.finalAt||""}); nothing changed`});
+    const placed=[], missing=[];
+    for(const w of JSON.parse(Q.get("placed")||"[]")){
+      const m=String(w).trim().match(/^(.+?)(?:\s*@\s*([+-]?\d+))?(?:\s+([\d.]+)u)?$/i); if(!m){ missing.push(w); continue; }
+      const text=m[1].toLowerCase(), same=b=>String(b.bet).toLowerCase()===text;
+      let b=(prev?.bets||[]).find(same);
+      if(!b){ const rows=SLATE.games.flatMap(g=>(PRICED[g.espnId]?.props||[]).map(r=>ownBlend(r))).filter(same);
+        const r=rows.find(r=>r.book==="FAN")||rows[0]; b=r?slimBet(r,"recommended"):null; }
+      if(!b){ missing.push(w); continue; }
+      placed.push({...b, ...(m[2]?{odds:+m[2]}:{}), ...(m[3]?{stake:+m[3]}:{}), placedAt:b.placedAt||new Date().toISOString()}); }
+    const fr=await freezePicks({overwrite:true, placed}); if(!fr.ok) return save({ok:false, error:"freezePicks: "+fr.error, missing});
+    const bd=await exportBoard();
+    let doc=await fetch(`/tracking/picks-${D}.json`,{cache:"no-store"}).then(r=>r.json());
+    if(Q.has("lock")){ doc={...doc, final:true, finalAt:new Date().toISOString(), finalNote:Q.get("note")||"Locked by night.ps1 -Lock (the user's say-so)."};
+      await fetch(`/upload?name=picks-${D}.json&overwrite=1`,{method:"POST",body:JSON.stringify(doc,null,1)}); }
+    const row=b=>({set:b.set, game:b.game, bet:b.bet, odds:b.odds, book:b.book, p:+(+b.pBlend).toFixed(3), stake:b.stake, placed:!!b.placed, tier:b.tier||null});
+    const key=b=>b.gid+"|"+b.bet, was=new Set((prev?.bets||[]).filter(b=>b.set==="recommended").map(key)), now=doc.bets.filter(b=>b.set==="recommended");
+    return save({ok:true, freeze:fr, board:{rows:bd.rows, picks:bd.picks}, locked:!!doc.final, missing,
+      card:now.map(row), alts:doc.bets.filter(b=>b.set==="alt").map(row),
+      added:prev?now.filter(b=>!was.has(key(b))).map(b=>b.bet):null, dropped:prev?(prev.bets||[]).filter(b=>b.set==="recommended"&&!now.some(x=>key(x)===key(b))).map(b=>b.bet):null});
+  }catch(e){ return save({ok:false, error:String(e&&e.stack||e)}); }
+}
 </script>
 
 <script>
