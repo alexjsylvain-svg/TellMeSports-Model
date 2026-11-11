@@ -235,6 +235,14 @@ body.phone .wrap{display:none}
 .pa-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;border-top:1px solid var(--rule);padding-top:10px}
 .pa-nums div{display:grid;gap:1px}
 .pa-note{font-size:.84rem;color:var(--mute);max-width:none}
+.pa-thesis{font-size:.9rem;line-height:1.45;color:var(--ink);max-width:none;margin:0}
+.pa-more{display:none;gap:10px} .pa-card.open .pa-more{display:grid}
+.pa-pkx{justify-self:start;background:none;border:0;padding:0;font-family:var(--f-mono);font-size:.76rem;font-weight:500;color:var(--accent);cursor:pointer}
+.pa-pkx::after{content:" ▾"} .pa-card.open .pa-pkx::after{content:" ▴"}
+.pa-pkx .c,.pa-card.open .pa-pkx .o{display:none} .pa-card.open .pa-pkx .c{display:inline}
+.pa-rec{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:10px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.pa-rec b{font-family:var(--f-display);font-size:1.15rem}
+.pa-rec .up{color:var(--over)} .pa-rec .dn{color:var(--under)}
 .pa-spark svg{display:block;width:100%;height:46px}
 .pa-game{display:grid;gap:3px;padding:10px 0;border-bottom:1px solid var(--rule)}
 .pa-game:last-child{border-bottom:0;padding-bottom:0}
@@ -2275,15 +2283,72 @@ function spark(b){ const row=b.player&&boardRow(b.player,b.stat);
     <div class="pa-small" style="margin-top:4px">${b.side} in <b>${s.hit} of ${s.n}</b> games this season${s.h2h?.length?` · vs ${esc(s.opp)}: ${s.h2h.join(", ")}`:""}</div></div>`; }
 // the player's team and ESPN id for the card: from the pick itself (newer picks files), else the board row, else the slate roster
 function whoOf(b){ const r=(b.team&&b.pid)?{}:rosterOf(b.player); return {team:b.team||boardRow(b.player,b.stat)?.team||r.team||null, pid:b.pid||r.pid||null}; }
+// ---- the case for a pick, in a few plain sentences, built from what the model saw (projection, recent games, minutes,
+// injuries, the market's price) plus the bet type's record so far and the main thing that could beat it ----
+const STATW={PTS:"points",REB:"rebounds",AST:"assists","3PM":"threes",PRA:"points, rebounds and assists",PR:"points and rebounds",PA:"points and assists",RA:"rebounds and assists"};
+const TYPEW={PTS:"Points",REB:"Rebound",AST:"Assist","3PM":"Three",PRA:"PRA",PR:"Points-and-rebounds",PA:"Points-and-assists",RA:"Rebounds-and-assists"};
+const lastName=n=>{ const t=String(n||"").split(" ").filter(x=>!/^(jr\.?|sr\.?|ii|iii|iv)$/i.test(x)); return t.at(-1)||n; };
+const num1=x=>{ const s=(Math.round(x*2)/2).toFixed(1); return s.endsWith(".0")?s.slice(0,-2):s; };
+function thesis(b){
+  if(!b.player||b.stat==="DD") return "";
+  const row=boardRow(b.player,b.stat)||{}, ln=lastName(b.player), under=b.side==="Under", line=b.line, sw=STATW[b.stat]||STAT[b.stat];
+  const h=[...String(b.player)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7), pick=a=>a[h%a.length];
+  const mean=b.mean??row.mean, vals=(row.log?.map(g=>g.v))||b.season?.vals||[], won=v=>under?v<line:v>line;
+  const out=[];
+  // how sure: where it sits on tonight's card
+  const card=picks().filter(x=>x.player), top=b.set!=="alt"&&card.length&&card.every(x=>x===b||x.pBlend<=b.pBlend);
+  const lead=b.set==="alt"?pick(["Not on the card, but the price is worth a look.","A plus-money side the model likes, kept off the card for now."])
+    :top?pick(["The best play on the card tonight.","Top of the card tonight.","The model's favorite play tonight."])
+    :b.stake>=2?pick(["One of the stronger plays tonight.","A full-size play."])
+    :b.stake>=1.5?pick(["A solid play, sized in the middle.","Good, not quite top-tier.","A confident play, one notch below the top.","Strong enough for a mid-size stake."])
+    :pick(["A smaller play: the edge is real but thinner.","Sized small. There's an edge, just not a big one."]);
+  // the projection against the line
+  let proj="";
+  if(mean!=null){ const gap=Math.abs(mean-line), room=gap>=line*.25||gap>=2?"a lot of room":gap>=line*.12||gap>=1?"some room":"a little room";
+    proj=gap<.4||(under?mean>=line:mean<=line)?pick([`The model has ${ln} right around ${line} ${sw}, so most of the value is in the price.`,`${ln} projects close to the ${line} line; the case here is the price more than the projection.`])
+    :pick([`The model has ${ln} for about ${num1(mean)} ${sw}, so ${line} looks ${under?"high":"low"}.`,
+      `${ln} projects for roughly ${num1(mean)} ${sw} tonight, which leaves ${room} ${under?"under":"over"} ${line}.`,
+      `The model has ${ln} around ${num1(mean)} ${sw} against a ${line} line.`]); }
+  out.push(lead+" "+proj);
+  // what backs it up: recent games, season average, minutes, teammates out
+  const why=[];
+  const l10=vals.slice(-10), hit=l10.filter(won).length;
+  if(l10.length>=5&&hit/l10.length>=.6) why.push({s:hit/l10.length, t:pick([`${under?"Under":"Over"} ${line} in ${hit} of ${ln}${/s$/i.test(ln)?"'":"'s"} last ${l10.length}.`,`${ln} has gone ${under?"under":"over"} this number in ${hit} of the last ${l10.length} games.`])});
+  if(vals.length>=4){ const avg=vals.reduce((a,v)=>a+v,0)/vals.length; if(under?avg<=line-.5:avg>=line+.5) why.push({s:.55+Math.min(.2,Math.abs(avg-line)/Math.max(line,1)), t:`Season average: ${avg.toFixed(1)}.`}); }
+  if(row.min!=null&&row.seasonMin!=null){ const dm=row.min-row.seasonMin;
+    if(under&&dm<=-2) why.push({s:.7, t:`Fewer minutes expected too: about ${Math.round(row.min)} tonight against ${Math.round(row.seasonMin)} a game.`});
+    if(!under&&dm>=2) why.push({s:.7, t:`More minutes than usual should help: about ${Math.round(row.min)} tonight against ${Math.round(row.seasonMin)} a game.`}); }
+  const inj=D.board?.injuries?.[b.gid]?.[row.team||b.team]||[], gone=inj.filter(x=>x.st==="Out"&&(x.min||0)>=20).map(x=>lastName(x.name));
+  if(!under&&gone.length) why.push({s:.65, t:`With ${gone.slice(0,2).join(" and ")} out, there's more of the ball to go around.`});
+  // the main risk (worked out here so a pick with one gets a single supporting fact and stays short)
+  const l5=vals.slice(-5), l5h=l5.filter(won).length, ques=inj.filter(x=>/^Questionable/.test(x.st)&&(x.min||0)>=20);
+  let risk="";
+  if(l5.length>=4&&l5h/l5.length<.5) risk=pick([`The worry: only ${l5h} of the last ${l5.length} went ${under?"under":"over"}.`,`Recent form is the knock: ${l5h} of the last ${l5.length} went ${under?"under":"over"}.`]);
+  else if(under&&row.min!=null&&row.seasonMin!=null&&row.min-row.seasonMin>=3) risk=`The risk is minutes: ${ln} is projected for more than usual.`;
+  else if(under&&ques.length) risk=`Watch ${lastName(ques[0].name)} (questionable): if ${ques.length>1?"teammates sit":"that teammate sits"}, ${ln} could see more of the ball.`;
+  why.sort((a,c)=>c.s-a.s).slice(0,risk?1:2).forEach(x=>out.push(x.t));
+  // the gap with the market
+  const pm=row.oo!=null?impl(row.odds)/(impl(row.odds)+impl(row.oo)):null, bk=BOOK[b.book]||b.book;
+  if(pm!=null) out.push(pick([`${bk} prices it like a ${Math.round(pm*100)}% shot; the model says ${Math.round(b.pBlend*100)}%.`,
+    `That's the edge: the market has this near ${Math.round(pm*100)}%, the model ${Math.round(b.pBlend*100)}%.`,
+    `The book is at about ${Math.round(pm*100)}% here and the model at ${Math.round(b.pBlend*100)}%.`]));
+  // the risk if there is one, else how this bet type has done
+  const tp=(D.season?.bets||[]).filter(x=>x.stat===b.stat&&String(x.side).toLowerCase()===b.side.toLowerCase()), T=tally(tp);
+  const rec=T.w+T.l>=12?(T.w/(T.w+T.l)>=.55?`${TYPEW[b.stat]||STAT[b.stat]} ${under?"unders":"overs"} are ${T.w}-${T.l} on the card this season.`:`Fair warning: ${(TYPEW[b.stat]||STAT[b.stat]).toLowerCase()} ${under?"unders":"overs"} are only ${T.w}-${T.l} so far.`):"";
+  out.push(risk||rec);
+  return out.filter(Boolean).join(" "); }
+var PKX=new Set();   // pick cards opened to show the chart and details
 function pickCard(b){
-  const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side);
-  return `<article class="pa-card">
+  const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side), key=b.gid+"|"+b.bet, why=thesis(b);
+  return `<article class="pa-card${PKX.has(key)?" open":""}" data-pk="${esc(key)}">
     <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.set==="alt"?` · <span class="pa-st n">alternative</span>`:b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?`${stake}u · ${usd(stake)}`:"track"}</span></div>
     ${(()=>{ const w=b.player?whoOf(b):{}; const face=w.team?`<div class="pa-face">${w.pid?`<img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/${esc(w.pid)}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`:`<span class="hs"></span>`}<img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/${esc(w.team.toLowerCase())}.png" alt="${esc(w.team)}" loading="lazy" onerror="this.remove()"></div>`:"";
       return `<div class="pa-who">${face}<div><div class="pa-player">${esc(b.player||b.bet)}${w.team?`<span class="pa-team">${esc(w.team)}</span>`:""}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div></div>`; })()}
     <div class="pa-nums"><div><b>${P1(b.pBlend)}</b><span>win chance</span></div><div><b>${oddsTxt(b.odds)}</b><span>${BOOK[b.book]||esc(b.book)}</span></div><div><b class="up">${SGN(b.ev*100)}%</b><span>exp. profit</span></div></div>
-    ${spark(b)}
-    <p class="pa-note"><button class="pa-share" data-act="share" data-key="${esc(b.gid+"|"+b.bet)}" style="float:right;margin-left:8px">Share</button>${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u (${usd(+toWin(b.odds,stake).toFixed(2))}).`:""}</p>
+    ${why?`<p class="pa-thesis">${esc(why)}</p>`:""}
+    <div class="pa-more">${spark(b)}
+    <p class="pa-note"><button class="pa-share" data-act="share" data-key="${esc(b.gid+"|"+b.bet)}" style="float:right;margin-left:8px">Share</button>${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u (${usd(+toWin(b.odds,stake).toFixed(2))}).`:""}</p></div>
+    <button class="pa-pkx" data-act="pkx" aria-expanded="${PKX.has(key)}"><span class="o">Recent games &amp; matchup</span><span class="c">Hide recent games</span></button>
     ${b.player&&boardRow(b.player,b.stat)?`<div class="pa-two"><button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}">Details &amp; prices</button>
       ${mine?`<button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${mine.line}|${mine.odds}" style="color:var(--over)">Placed ${mine.stake}u at ${oddsTxt(mine.odds)} ✓</button>`
         :TRK.state!=="off"?`<button class="pa-btn primary" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}|${b.odds}">I placed this</button>`:""}</div>`:""}
@@ -2372,6 +2437,11 @@ async function sharePick(b){
   const blob=await new Promise(r=>c.toBlob(r,"image/png")), name=`tellme-${(b.player||b.bet).replace(/[^A-Za-z]+/g,"-").toLowerCase()}.png`, file=new File([blob],name,{type:"image/png"});
   if(navigator.canShare?.({files:[file]})){ try{ await navigator.share({files:[file],title:"TellMe Sports pick"}); return; }catch(e){ if(e.name==="AbortError") return; } }
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+// one-line track record on Tonight; tapping it opens Record
+function recStrip(){ const bs=D.season?.bets; if(!bs?.length) return ""; const T=tally(bs), last=[...new Set(bs.map(b=>b.date))].sort().at(-1), L=tally(bs.filter(b=>b.date===last));
+  const u=T.risked?T.staked:T.units;
+  return `<button class="pa-rec" data-pt="record" aria-label="Open the full record"><span><span class="pa-small">Card record</span><br><b>${T.w}-${T.l}</b> <span class="pa-small">${Math.round(100*T.w/Math.max(1,T.w+T.l))}%</span> · <b class="${u>=0?"up":"dn"}">${U(u,1)}</b></span>
+    <span class="pa-small" style="text-align:right">${dayTxt(last)}<br><b>${L.w}-${L.l}</b> ›</span></button>`; }
 function rTonight(){
   const P=D.picks; if(!P) return empty("No card yet","Tonight's picks show here once the model has run.");
   const bs=picks().slice().sort((a,b)=>(new Date(tip(a.gid)||0)-new Date(tip(b.gid)||0))||(b.pBlend-a.pBlend));
@@ -2380,7 +2450,7 @@ function rTonight(){
   const games=calls.map(c=>{ const H=c.home, A=c.away, n=bs.filter(b=>b.gid===c.gid).length, fav=c.winner;
     return `<div class="pa-game"><div class="pa-row"><span class="pa-teams">${esc(A)} <span class="muted" style="font-size:.85rem">@</span> ${esc(H)}</span><span class="pa-small">${clock(c.time)}${n?` · <b>${n} pick${n>1?"s":""}</b>`:""}</span></div>
       <div class="pa-small">Model: <b>${esc(fav)} ${P1(c.winProb)}</b> · fair ${esc(H)} ${SGN(c.fairSpread)} (book ${c.spread>0?"+":""}${c.spread}) · total <b>${c.fairTotal.toFixed(1)}</b> (book ${c.total})</div></div>`; }).join("");
-  return `${statusBanner()}${unitCard()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk · ${usd(risk)}</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win · ${usd(+win.toFixed(2))}</span></div></div>
+  return `${statusBanner()}${recStrip()}${unitCard()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk · ${usd(risk)}</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win · ${usd(+win.toFixed(2))}</span></div></div>
       <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%.</div></div>
     ${bs.length?bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
     ${parlayCard(bs.filter(b=>b.tier!=="value"&&!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>({g:b.gid, p:b.pBlend, odds:b.odds, label:`<b>${esc(b.player||b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${esc(short(b.side,b.line,b.stat))}</span>`:""}`})),
@@ -2710,6 +2780,7 @@ app.addEventListener("click",e=>{
   else if(a.dataset.act==="askrun"){ askRun(); }
   else if(a.dataset.act==="copytopic"){ const tp=a.dataset.topic, done=()=>{ a.textContent="Copied ✓"; setTimeout(()=>{ a.textContent="Copy topic"; },2500); };
     (navigator.clipboard?.writeText(tp)||Promise.reject()).then(done).catch(()=>{ const r=document.createRange(), el=app.querySelector(".pa-topic"); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); try{ document.execCommand("copy"); done(); }catch(e){ a.textContent="Press and hold the topic to copy"; } }); }
+  else if(a.dataset.act==="pkx"){ const c=a.closest("[data-pk]"), k=c.dataset.pk, on=!PKX.has(k); on?PKX.add(k):PKX.delete(k); c.classList.toggle("open",on); a.setAttribute("aria-expanded",on); }
   else if(a.dataset.act==="share"){ const b=(D.picks?.bets||[]).find(x=>x.gid+"|"+x.bet===a.dataset.key); if(b) sharePick(b).catch(()=>alert("Couldn't make the picture on this phone.")); }
   else if(a.dataset.act==="tfclear"){ Object.assign(TF,{stat:"",side:"",price:"",from:"",to:""}); render(); }
   else if(a.dataset.act==="full"){ if(D.picks) FROZEN=D.picks; document.body.classList.remove("phone"); app.hidden=true; window.scrollTo(0,0); if(typeof runAll==="function"&&SLATE&&!Object.keys(PRICED).length) runAll(); }
