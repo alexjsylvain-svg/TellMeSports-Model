@@ -24,15 +24,19 @@ $out = [ordered]@{}; if(Test-Path $cf){ $old = [IO.File]::ReadAllText($cf) | Con
 foreach($d in $Dates){
   if($d -ge $today){ Write-Warning "$d : not over yet, no closing lines"; continue }
   $rf = Join-Path $trk "results-$d.json"; if(-not (Test-Path $rf)){ continue }
-  $anf = Join-Path $raw "an_close_$d.json"
-  if($Refetch -or -not (Test-Path $anf)){
-    $rq = Invoke-WebRequest -UseBasicParsing "https://api.actionnetwork.com/web/v2/scoreboard/nba/markets?bookIds=2988&customPickTypes=$($TYPES.Keys -join ',')&date=$d" -Headers $UA -TimeoutSec 60
-    [IO.File]::WriteAllText($anf, [Text.Encoding]::UTF8.GetString($rq.RawContentStream.ToArray())); Start-Sleep -Milliseconds 600 }
-  $an = [IO.File]::ReadAllText($anf) | ConvertFrom-Json
-  $nm = @{}; foreach($p in $an.players){ $nm[[string]$p.id] = Norm $p.full_name }
+  # one request per prop type: since Nov 10, 2026 the feed answers 400 INVALID_DATA when all types are asked for at once.
+  # an_close_<d>.json (older nights) still holds every type in one file and is read when present.
+  $anf = Join-Path $raw "an_close_$d.json"; $anBy = @{}; $nm = @{}
+  foreach($t in $TYPES.Keys){
+    $tf = if((Test-Path $anf) -and -not $Refetch){ $anf } else { Join-Path $raw "an_close_${d}_$t.json" }
+    if($tf -ne $anf -and ($Refetch -or -not (Test-Path $tf))){
+      $rq = Invoke-WebRequest -UseBasicParsing "https://api.actionnetwork.com/web/v2/scoreboard/nba/markets?bookIds=2988&customPickTypes=$t&date=$d" -Headers $UA -TimeoutSec 60
+      [IO.File]::WriteAllText($tf, [Text.Encoding]::UTF8.GetString($rq.RawContentStream.ToArray())); Start-Sleep -Milliseconds 300 }
+    $an = [IO.File]::ReadAllText($tf) | ConvertFrom-Json
+    foreach($p in $an.players){ $nm[[string]$p.id] = Norm $p.full_name }; $anBy[$t] = @($an.markets.'2988'.event.$t) }
   $close = @{}
   foreach($t in $TYPES.Keys){
-    $os = @($an.markets.'2988'.event.$t | ? { $_ -and -not $_.is_alt_market })
+    $os = @($anBy[$t] | ? { $_ -and -not $_.is_alt_market })
     foreach($grp in ($os | Group-Object player_id)){
       $o = $grp.Group | ? side -eq 'over' | Select-Object -First 1; $u = $grp.Group | ? side -eq 'under' | Select-Object -First 1; $pn = $nm[[string]$grp.Name]
       if($pn -and $o -and $u -and $o.value -eq $u.value){ $close["$pn|$($TYPES[$t])"] = @{ line=[double]$o.value; over=[double]$o.odds; under=[double]$u.odds } } } }
