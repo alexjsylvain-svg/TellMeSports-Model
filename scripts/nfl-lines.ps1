@@ -15,20 +15,26 @@ $BOOKS = [ordered]@{ "2988"="FAN"; "68"="DK"; "69"="FD"; "30"="OPEN" }
 $TEAM = @{ "LAR"="LA"; "JAC"="JAX"; "WSH"="WAS"; "LVR"="LV" }
 $WK = if($Weeks){ @($Weeks -split "[, ]+" | ? { $_ } | % { if($_ -match "^(\d+)-(\d+)$"){ [int]$matches[1]..[int]$matches[2] } else { [int]$_ } }) } else { 1..18 }
 foreach($w in $WK){
+  # Since Nov 10, 2026 the feed answers 400 INVALID_DATA to several customPickTypes at once, so each prop type is its own request
+  # (raw\nfl\an_<season>_w<NN>_<type>.json). An older combined file (an_<season>_w<NN>.json) is still read when there's no refetch.
   $rf = Join-Path $raw ("an_{0}_w{1:D2}.json" -f $Season,$w)
-  if($Refetch -or -not (Test-Path $rf)){
-    $u = "https://api.actionnetwork.com/web/v2/scoreboard/nfl/markets?bookIds=$($BOOKS.Keys -join ',')&customPickTypes=$($TYPES.Keys -join ',')&week=$w&season=$Season&seasonType=reg"
-    $rq = Invoke-WebRequest -UseBasicParsing $u -Headers $UA -TimeoutSec 90
-    [IO.File]::WriteAllText($rf, [Text.Encoding]::UTF8.GetString($rq.RawContentStream.ToArray())); Start-Sleep -Milliseconds 800 }
-  $j = [IO.File]::ReadAllText($rf) | ConvertFrom-Json
-  $nm = @{}; foreach($p in $j.players){ $nm[[string]$p.id] = $p.full_name }
+  $J = @{}   # type -> parsed response
+  if(-not $Refetch -and (Test-Path $rf)){ $one = [IO.File]::ReadAllText($rf) | ConvertFrom-Json; foreach($tp in $TYPES.Keys){ $J[$tp] = $one } }
+  else { foreach($tp in $TYPES.Keys){ $rt = Join-Path $raw ("an_{0}_w{1:D2}_{2}.json" -f $Season,$w,$TYPES[$tp])
+      if($Refetch -or -not (Test-Path $rt)){
+        $u = "https://api.actionnetwork.com/web/v2/scoreboard/nfl/markets?bookIds=$($BOOKS.Keys -join ',')&customPickTypes=$tp&week=$w&season=$Season&seasonType=reg"
+        $rq = Invoke-WebRequest -UseBasicParsing $u -Headers $UA -TimeoutSec 90
+        [IO.File]::WriteAllText($rt, [Text.Encoding]::UTF8.GetString($rq.RawContentStream.ToArray())); Start-Sleep -Milliseconds 800 }
+      $J[$tp] = [IO.File]::ReadAllText($rt) | ConvertFrom-Json } }
+  $nm = @{}; $gm = [ordered]@{}
+  foreach($r in $J.Values){ foreach($p in $r.players){ $nm[[string]$p.id] = $p.full_name }; foreach($g in $r.games){ if(-not $gm.Contains([string]$g.id)){ $gm[[string]$g.id] = $g } } }
   $games = @()
-  foreach($g in $j.games){
+  foreach($g in $gm.Values){
     $ht = $g.home_team; $at = $g.away_team
     $h = if($TEAM[$ht.abbr]){ $TEAM[$ht.abbr] } else { $ht.abbr }; $a = if($TEAM[$at.abbr]){ $TEAM[$at.abbr] } else { $at.abbr }
     $props = @()
-    foreach($bk in $BOOKS.Keys){ $ev = $j.markets.$bk.event; if(-not $ev){ continue }
-      foreach($t in $TYPES.Keys){
+    foreach($bk in $BOOKS.Keys){
+      foreach($t in $TYPES.Keys){ $ev = $J[$t].markets.$bk.event; if(-not $ev){ continue }
         $os = @($ev.$t | ? { $_ -and $_.event_id -eq $g.id -and -not $_.is_alt_market })
         foreach($grp in ($os | Group-Object player_id)){
           $o = $grp.Group | ? side -eq 'over' | Select-Object -First 1; $un = $grp.Group | ? side -eq 'under' | Select-Object -First 1; $pn = $nm[[string]$grp.Name]
