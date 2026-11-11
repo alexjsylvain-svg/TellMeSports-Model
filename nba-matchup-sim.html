@@ -224,6 +224,11 @@ body.phone .wrap{display:none}
 .pa-kpis span,.pa-nums span{font-family:var(--f-mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
 .pa-h{font-family:var(--f-display);font-size:1.15rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:6px 0 -4px}
 .pa-player{font-family:var(--f-display);font-size:1.6rem;font-weight:700;line-height:1.05}
+.pa-who{display:flex;align-items:center;gap:12px}
+.pa-face{position:relative;flex:none;width:52px;height:52px}
+.pa-face .hs{width:52px;height:52px;border-radius:50%;object-fit:cover;object-position:top;background:var(--rule);display:block}
+.pa-face .lg{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;background:var(--sheet);padding:2px;box-shadow:0 0 0 1px var(--rule)}
+.pa-team{font-family:var(--f-mono);font-size:.72rem;font-weight:500;color:var(--muted);letter-spacing:.06em;margin-left:6px;vertical-align:middle}
 .pa-bet{font-family:var(--f-display);font-size:1.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .pa-bet.u,.pa-pb.u{color:var(--under)} .pa-bet.o,.pa-pb.o{color:var(--over)}
 .pa-stake{font-family:var(--f-mono);font-size:.8rem;font-weight:500;background:var(--ink);color:var(--sheet);border-radius:999px;padding:2px 9px;white-space:nowrap}
@@ -1645,7 +1650,9 @@ fetch("results.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(d=>{ i
 // for re-freezing tonight's picks after late injury news, never for a past night.
 // the fields a frozen bet keeps (freezePicks and the autopilot's placed bets)
 const slimBet=(b,set)=>({set, gid:b.gid, game:b.game, mkt:b.mkt, bet:b.bet, book:b.book, odds:+b.odds, side:b.side??null, hl:b.hl??null, tl:b.tl??null,
-    player:b.player??null, stat:b.stat??null, line:b.line??null, thr:b.thr??null, pSim:b.pSim, pBlend:b.p, ev:b.ev, top:!!b.top, tier:b.tier??null, stake:b.stake??stakeOf(b.p), mean:b.mean??null, season:b.season??null, def:b.def??null});
+    player:b.player??null, stat:b.stat??null, line:b.line??null, thr:b.thr??null, pSim:b.pSim, pBlend:b.p, ev:b.ev, top:!!b.top, tier:b.tier??null, stake:b.stake??stakeOf(b.p), mean:b.mean??null, season:b.season??null, def:b.def??null, ...(b.player?rosterOf(b.player):{})});
+// a player's team and ESPN id from tonight's slate roster (saved on frozen picks so the phone cards can show them)
+function rosterOf(name){ for(const [team,T] of Object.entries(SLATE?.teams||{})){ const p=(T.players||[]).find(x=>x.name===name); if(p) return {team, pid:p.espnId||null}; } return {}; }
 async function freezePicks(opts={}){
   const todayET=new Date().toLocaleDateString("en-CA",{timeZone:"America/New_York"}).replace(/-/g,"");
   if(SLATE.date!==todayET) return {ok:false, error:`loaded slate is ${SLATE.date}, today is ${todayET}; nothing saved`};
@@ -1934,6 +1941,7 @@ fetch("slate.json",{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP
   // ?norun=1 skips the automatic full-slate run (the pre-tip lineup check re-runs only the games whose starters changed)
   SEL=d.games[0].espnId; renderGrid(); renderBets(); renderDetail(); $("runAll").disabled=false; if(!PHONE && !new URLSearchParams(location.search).has("norun")) runAll();
   if(new URLSearchParams(location.search).has("auto")) autopilot();
+  if(PHONE&&D.picks) render();   // the phone cards can now add player photos from the roster
 }).catch(err=>{ $("status").textContent="Could not load slate.json: "+err.message; });
 
 // ---- Autopilot (?auto=1): scripts\night.ps1 opens the page in a hidden Edge window and the page runs the night by itself ----
@@ -2248,11 +2256,14 @@ function spark(b){ const row=b.player&&boardRow(b.player,b.stat);
   const bars=v.map((x,i)=>{ const win=under? x<b.line : x>b.line; return `<rect x="${i*16+2}" y="${y(x)}" width="12" height="${44-y(x)}" rx="2" fill="var(--${win?"over":"under"})" opacity=".85"><title>${x}</title></rect>`; }).join("");
   return `<div class="pa-spark"><svg viewBox="0 0 ${w} 46" preserveAspectRatio="none" role="img" aria-label="${s.hit} of ${s.n} games this season would have won">${bars}<line x1="0" x2="${w}" y1="${y(b.line)}" y2="${y(b.line)}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/></svg>
     <div class="pa-small" style="margin-top:4px">${b.side} in <b>${s.hit} of ${s.n}</b> games this season${s.h2h?.length?` · vs ${esc(s.opp)}: ${s.h2h.join(", ")}`:""}</div></div>`; }
+// the player's team and ESPN id for the card: from the pick itself (newer picks files), else the board row, else the slate roster
+function whoOf(b){ const r=(b.team&&b.pid)?{}:rosterOf(b.player); return {team:b.team||boardRow(b.player,b.stat)?.team||r.team||null, pid:b.pid||r.pid||null}; }
 function pickCard(b){
   const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side);
   return `<article class="pa-card">
     <div class="pa-row"><span class="eyebrow">${esc(b.game)}${t?` · ${clock(t)}`:""}${b.set==="alt"?` · <span class="pa-st n">alternative</span>`:b.tier==="value"?` · <span class="pa-st n">plus-money value</span>`:""}</span><span class="pa-stake">${stake?stake+"u":"track"}</span></div>
-    <div><div class="pa-player">${esc(b.player||b.bet)}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div>
+    ${(()=>{ const w=b.player?whoOf(b):{}; const face=w.team?`<div class="pa-face">${w.pid?`<img class="hs" src="https://a.espncdn.com/i/headshots/nba/players/full/${esc(w.pid)}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`:`<span class="hs"></span>`}<img class="lg" src="https://a.espncdn.com/i/teamlogos/nba/500/${esc(w.team.toLowerCase())}.png" alt="${esc(w.team)}" loading="lazy" onerror="this.remove()"></div>`:"";
+      return `<div class="pa-who">${face}<div><div class="pa-player">${esc(b.player||b.bet)}${w.team?`<span class="pa-team">${esc(w.team)}</span>`:""}</div>${b.player?`<div class="pa-bet ${sideCls(b.side)}">${esc(betTxt(b.side,b.line,b.stat))}</div>`:""}</div></div>`; })()}
     <div class="pa-nums"><div><b>${P1(b.pBlend)}</b><span>win chance</span></div><div><b>${oddsTxt(b.odds)}</b><span>${BOOK[b.book]||esc(b.book)}</span></div><div><b class="up">${SGN(b.ev*100)}%</b><span>exp. profit</span></div></div>
     ${spark(b)}
     <p class="pa-note">${b.mean!=null?`Model projects <b style="color:var(--ink)">${b.mean.toFixed(1)}</b>. `:""}Sim alone ${P1(b.pSim)}.${b.def?` Guarded mostly by ${esc(b.def)}.`:""}${stake?` Wins ${toWin(b.odds,stake).toFixed(2)}u.`:""}</p>
