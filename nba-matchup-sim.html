@@ -264,6 +264,7 @@ body.phone .wrap{display:none}
 .pa-status{display:grid;gap:3px;border-left:3px solid var(--accent)} .pa-status span{font-size:.84rem;color:var(--mute)} .pa-status.ok{border-left-color:var(--over)} .pa-status.old{border-left-color:var(--warn)}
 .pa-share{background:none;border:0;color:var(--mute);font:inherit;font-size:.78rem;padding:2px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 a.pa-btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.pa-steps{margin:6px 0 8px;padding-left:20px;font-size:.88rem;display:grid;gap:5px} .pa-topic{font-family:var(--f-mono);font-size:.85rem;background:var(--rule);padding:1px 5px;border-radius:4px;user-select:all;-webkit-user-select:all;word-break:break-all}
 .pa-track{display:grid;gap:5px}
 .pa-bar{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;position:relative}
 .pa-bar i{display:block;height:100%;border-radius:4px}
@@ -2339,8 +2340,10 @@ async function askRun(){ if(REQ.sent||!ALERTS?.requests) return;
   catch(e){ alert("Couldn't send that right now. Try again in a minute."); } }
 function alertsCard(){ const t=ALERTS?.ntfy; if(!t) return "";
   return `<div class="pa-h">Pick alerts</div><div class="pa-card"><div class="pa-small">Get a notification when the card is posted, changes or locks, and when results are in. It uses ntfy, a free app with no account.</div>
-    <div class="pa-two"><a class="pa-btn primary" href="ntfy://ntfy.sh/${esc(t)}">Subscribe in ntfy</a><a class="pa-btn" href="https://ntfy.sh/${esc(t)}" target="_blank" rel="noopener">Open on the web</a></div>
-    <div class="pa-small">No app yet? Get ntfy for <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> or <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a>, then tap Subscribe again, or add the topic <code>${esc(t)}</code> by hand.</div></div>`; }
+    <ol class="pa-steps"><li>Install <b>ntfy</b>, the green app by Philipp Heckel: <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a></li>
+      <li>Copy the topic: <code class="pa-topic">${esc(t)}</code></li>
+      <li>In ntfy tap <b>+</b>, paste the topic, leave the server as ntfy.sh, tap <b>Subscribe</b> and allow notifications.</li></ol>
+    <div class="pa-two"><button class="pa-btn primary" data-act="copytopic" data-topic="${esc(t)}">Copy topic</button><a class="pa-btn" href="https://ntfy.sh/${esc(t)}" target="_blank" rel="noopener">Recent alerts</a></div></div>`; }
 // ---- share a pick as a picture (the phone's share sheet, else a download) ----
 async function sharePick(b){
   const W=1080,H=1080,c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"), cs=getComputedStyle(document.documentElement), v=n=>cs.getPropertyValue(n).trim();
@@ -2693,6 +2696,8 @@ app.addEventListener("click",e=>{
   if(a.dataset.act==="more"){ PF.n+=60; document.getElementById("paPL").innerHTML=propsList(); }
   else if(a.dataset.act==="nights"){ REC_ALL=!REC_ALL; render(); }
   else if(a.dataset.act==="askrun"){ askRun(); }
+  else if(a.dataset.act==="copytopic"){ const tp=a.dataset.topic, done=()=>{ a.textContent="Copied ✓"; setTimeout(()=>{ a.textContent="Copy topic"; },2500); };
+    (navigator.clipboard?.writeText(tp)||Promise.reject()).then(done).catch(()=>{ const r=document.createRange(), el=app.querySelector(".pa-topic"); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); try{ document.execCommand("copy"); done(); }catch(e){ a.textContent="Press and hold the topic to copy"; } }); }
   else if(a.dataset.act==="share"){ const b=(D.picks?.bets||[]).find(x=>x.gid+"|"+x.bet===a.dataset.key); if(b) sharePick(b).catch(()=>alert("Couldn't make the picture on this phone.")); }
   else if(a.dataset.act==="tfclear"){ Object.assign(TF,{stat:"",side:"",price:"",from:"",to:""}); render(); }
   else if(a.dataset.act==="full"){ if(D.picks) FROZEN=D.picks; document.body.classList.remove("phone"); app.hidden=true; window.scrollTo(0,0); if(typeof runAll==="function"&&SLATE&&!Object.keys(PRICED).length) runAll(); }
