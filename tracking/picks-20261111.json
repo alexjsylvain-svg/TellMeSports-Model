@@ -1,6 +1,6 @@
 {
  "date": "20261111",
- "frozenAt": "2026-11-11T23:40:21.596Z",
+ "frozenAt": "2026-11-11T23:46:10.862Z",
  "dataGenerated": "2026-11-11T23:36:02.9201565Z",
  "sims": 50000,
  "modelWeight": 0.4,
@@ -68,18 +68,18 @@
   "401909974",
   "401909975"
  ],
- "previousFreeze": "2026-11-11T23:29:44.176Z",
+ "previousFreeze": "2026-11-11T23:40:21.596Z",
  "gameFrozenAt": {
-  "401909966": "2026-11-11T23:40:21.596Z",
-  "401909967": "2026-11-11T23:40:21.596Z",
-  "401909968": "2026-11-11T23:40:21.596Z",
-  "401909969": "2026-11-11T23:40:21.596Z",
-  "401909970": "2026-11-11T23:40:21.596Z",
-  "401909971": "2026-11-11T23:40:21.596Z",
-  "401909972": "2026-11-11T23:40:21.596Z",
-  "401909973": "2026-11-11T23:40:21.596Z",
-  "401909974": "2026-11-11T23:40:21.596Z",
-  "401909975": "2026-11-11T23:40:21.596Z"
+  "401909966": "2026-11-11T23:46:10.862Z",
+  "401909967": "2026-11-11T23:46:10.862Z",
+  "401909968": "2026-11-11T23:46:10.862Z",
+  "401909969": "2026-11-11T23:46:10.862Z",
+  "401909970": "2026-11-11T23:46:10.862Z",
+  "401909971": "2026-11-11T23:46:10.862Z",
+  "401909972": "2026-11-11T23:46:10.862Z",
+  "401909973": "2026-11-11T23:46:10.862Z",
+  "401909974": "2026-11-11T23:46:10.862Z",
+  "401909975": "2026-11-11T23:46:10.862Z"
  },
  "notes": "recommended = the page's two picks per game (props only, ranked by win probability); alt = plus-money alternatives (+100..+150, 50%+, 10%+ edge, 0.5u), listed under the card and graded on their own, not part of the card; calls = game-level projections; starters = the projected starters each game's picks used; lockedGames kept their earlier frozen picks because they had already tipped, and games outside refrozenGames kept theirs because only lineup-changed games were re-frozen",
  "bets": [
@@ -1231,5 +1231,8 @@
     }
    ]
   }
- }
+ },
+ "final": true,
+ "finalAt": "2026-11-11T23:46:11.872Z",
+ "finalNote": "Locked by night.ps1 -Lock (the user's say-so)."
 }
