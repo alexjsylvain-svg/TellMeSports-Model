@@ -3,6 +3,21 @@
 // Each variant re-runs the slate with those model settings and scores props (Brier) and several pick rules against the finals.
 window.__G0 = window.__G0 || {...G};
 window.__sleep = ms => new Promise(r=>setTimeout(r,ms));
+// Nov 12 test, harness only (the page is unchanged): G.mktMin = w blends each player's projected minutes with the minutes his
+// market line implies (Fanatics PRA line, else FanDuel PRA, else a PTS line, divided by his per-minute rate from out.target).
+// Applied to the pre-injury-bump minutes (baseMin), then the page's injury multiplier is re-applied. Off when G.mktMin is 0.
+window.__mktLineOf = name=>{ const k=norm(name); let pts=null;
+  for(const g of SLATE.games){ for(const src of [g.fanProps||[], g.props||[]]){ for(const b of src){ if(norm(b.player)!==k) continue;
+    if(b.stat==="PRA") return {stat:"PRA", line:+b.line}; if(b.stat==="PTS"&&!pts) pts={stat:"PTS", line:+b.line}; } } }
+  return pts; };
+if(!window.__bp0){ window.__bp0 = buildPlayer;
+  buildPlayer = function(p0, teamAbbr){ const out=window.__bp0(p0, teamAbbr);
+    if(!(G.mktMin>0) || (OVR[teamAbbr+"|"+p0.name]||{}).min!=null || !out.target) return out;
+    const ml=__mktLineOf(p0.name); if(!ml) return out;
+    const t=out.target, r = ml.stat==="PRA" ? t.ppm+t.rpm+t.apm : t.ppm; if(!(r>0)) return out;
+    const im=clamp(ml.line/r, 4, 42), ratio=out.baseMin>0 ? out.min/out.baseMin : 1;
+    const nb=clamp((1-G.mktMin)*out.baseMin + G.mktMin*im, out.start?20:0, out.start?38:32);
+    out.mktMinImplied=im; out.baseMin=nb; out.min=Math.min(40, nb*ratio); return out; }; }
 window.__pickAll = (o={})=>{
   const games=[...SLATE.games].sort((a,b)=>new Date(a.time)-new Date(b.time)||a.espnId.localeCompare(b.espnId));
   const maxU = o.bal ? Math.ceil(o.bal*2*games.length) : 1e9; let nU=0, n3=0; const all=[];

@@ -1,4 +1,4 @@
-param([string]$Tag = "nov9", [string]$Trk = "tracking")
+param([string]$Tag = "nov9", [string]$Trk = "tracking", [string]$DumpCard = "")
 # Nov 11 card-level backtest of two fixes proposed after Zubac U25.5 PRA lost (projected 23 min, played 31):
 #   A. injury-return flag: the player sat out a run of his team's games recently and has played only a few since, so his
 #      this-season minutes include the injury exit / minutes-limit games. Variants: keep his unders off the card.
@@ -59,6 +59,7 @@ $known = @($c | ? { $_.run -ne $null }).Count
 
 price $SW0
 $base = card $any
+if($DumpCard){ @($base | % { [pscustomobject]@{ d=$_.r.d; half=$_.r.half; player=$_.r.player; stat=$_.r.stat; side=$_.r.side; line=$_.r.line; odds=$_.r.odds; p=$_.r.p; s=$_.s; u=$_.r.u } }) | ConvertTo-Json | Set-Content $DumpCard; "card written to $DumpCard"; exit }
 "== A. Injury-return flag (unders only kept off the card) =="
 line "current card" $base
 $f2 = { param($r) -not ($r.side -eq "Under" -and $r.run -ge 2 -and $r.since -le 3) }
