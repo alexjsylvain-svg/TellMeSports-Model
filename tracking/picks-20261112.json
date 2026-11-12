@@ -1,7 +1,7 @@
 {
  "date": "20261112",
- "frozenAt": "2026-11-12T23:19:06.516Z",
- "dataGenerated": "2026-11-12T23:17:21.1466460Z",
+ "frozenAt": "2026-11-12T23:35:54.912Z",
+ "dataGenerated": "2026-11-12T23:33:42.1864428Z",
  "sims": 50000,
  "modelWeight": 0.4,
  "model": {
@@ -57,14 +57,11 @@
  "stake": "each bet's stake field: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%, 0.5u on plus-money value picks (tier \"value\": +100..+150, 50%+, 10%+ edge) (the flat 1-unit record is graded too)",
  "lockedGames": [],
  "refrozenGames": [
-  "401909976",
-  "401909977",
-  "401909978",
-  "401909979"
+  "401909976"
  ],
- "previousFreeze": "2026-11-12T22:16:14.321Z",
+ "previousFreeze": "2026-11-12T23:19:06.516Z",
  "gameFrozenAt": {
-  "401909976": "2026-11-12T23:19:06.516Z",
+  "401909976": "2026-11-12T23:35:54.912Z",
   "401909977": "2026-11-12T23:19:06.516Z",
   "401909978": "2026-11-12T23:19:06.516Z",
   "401909979": "2026-11-12T23:19:06.516Z"
@@ -257,7 +254,7 @@
    "mkt": "Prop",
    "bet": "Tyrese Maxey under 5.5 AST",
    "book": "FAN",
-   "odds": 110,
+   "odds": 115,
    "side": "Under",
    "hl": null,
    "tl": null,
@@ -265,13 +262,13 @@
    "stat": "AST",
    "line": 5.5,
    "thr": null,
-   "pSim": 0.63672,
-   "pBlend": 0.571667304176437,
-   "ev": 0.20050133877051773,
+   "pSim": 0.60936,
+   "pBlend": 0.5498043069457892,
+   "ev": 0.18207925993344676,
    "top": false,
    "tier": "value",
    "stake": 0.5,
-   "mean": 4.86928,
+   "mean": 5.04088,
    "season": {
     "hit": 8,
     "n": 12,
@@ -295,29 +292,52 @@
    "def": "Immanuel Quickley",
    "team": "PHI",
    "pid": "4431678"
+  },
+  {
+   "set": "alt",
+   "gid": "401909976",
+   "game": "TOR @ PHI",
+   "mkt": "Prop",
+   "bet": "Jakob Poeltl under 1.5 AST",
+   "book": "FAN",
+   "odds": 120,
+   "side": "Under",
+   "hl": null,
+   "tl": null,
+   "player": "Jakob Poeltl",
+   "stat": "AST",
+   "line": 1.5,
+   "thr": null,
+   "pSim": 0.56798,
+   "pBlend": 0.5169219739965845,
+   "ev": 0.13722834279248586,
+   "top": false,
+   "tier": "value",
+   "stake": 0.5,
+   "mean": 1.50838,
+   "season": {
+    "hit": 6,
+    "n": 9,
+    "vals": [
+     0,
+     2,
+     0,
+     0,
+     3,
+     1,
+     1,
+     2,
+     1
+    ],
+    "opp": "PHI",
+    "h2h": []
+   },
+   "def": "Joel Embiid",
+   "team": "TOR",
+   "pid": "3134908"
   }
  ],
  "calls": [
-  {
-   "gid": "401909976",
-   "away": "TOR",
-   "home": "PHI",
-   "time": "2026-11-13T00:00Z",
-   "lineBook": "DK",
-   "winner": "PHI",
-   "winProb": 0.65552,
-   "homeWinProb": 0.65552,
-   "mlHome": -270,
-   "mlAway": 221,
-   "spread": -7.5,
-   "atsPick": "H",
-   "atsProb": 0.51362,
-   "fairSpread": -7.99618,
-   "total": 223.5,
-   "totalPick": "O",
-   "totalProb": 0.50486,
-   "fairTotal": 223.99342
-  },
   {
    "gid": "401909977",
    "away": "DET",
@@ -377,6 +397,26 @@
    "totalPick": "U",
    "totalProb": 0.51358,
    "fairTotal": 214.20612
+  },
+  {
+   "gid": "401909976",
+   "away": "TOR",
+   "home": "PHI",
+   "time": "2026-11-13T00:00Z",
+   "lineBook": "DK",
+   "winner": "PHI",
+   "winProb": 0.6511,
+   "homeWinProb": 0.6511,
+   "mlHome": -298,
+   "mlAway": 242,
+   "spread": -8.5,
+   "atsPick": "A",
+   "atsProb": 0.51578,
+   "fairSpread": -7.56466,
+   "total": 223.5,
+   "totalPick": "U",
+   "totalProb": 0.52688,
+   "fairTotal": 222.61298
   }
  ],
  "starters": {
@@ -414,7 +454,7 @@
     },
     {
      "name": "Joel Embiid",
-     "inj": "Ques"
+     "inj": null
     },
     {
      "name": "Tyrese Maxey",
