@@ -76,6 +76,9 @@ jobs:
       - name: Publish
         if: env.SKIP != '1' && (github.event_name == 'schedule' || inputs.publish)
         shell: pwsh
+        env:
+          DISCORD_WEBHOOK_PAID: ${{ secrets.DISCORD_WEBHOOK_PAID }}
+          DISCORD_WEBHOOK_FREE: ${{ secrets.DISCORD_WEBHOOK_FREE }}
         run: |
           if(Test-Path picks-skip.txt){ "Tonight's card was locked while the sims ran: nothing to publish."; exit 0 }
           git config user.name "github-actions[bot]"

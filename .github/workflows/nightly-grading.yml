@@ -72,7 +72,10 @@ jobs:
           done
           echo "Push failed after 3 tries"; exit 1
 
-      - name: Phone alert
+      - name: Phone and Discord alerts
         if: env.SKIP != '1'
         shell: pwsh
+        env:
+          DISCORD_WEBHOOK_PAID: ${{ secrets.DISCORD_WEBHOOK_PAID }}
+          DISCORD_WEBHOOK_FREE: ${{ secrets.DISCORD_WEBHOOK_FREE }}
         run: ./scripts/notify.ps1 -Kind results -Date $env:D

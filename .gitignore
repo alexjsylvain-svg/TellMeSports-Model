@@ -31,6 +31,9 @@ tracking/nfl/plays.json
 # night.ps1 run status (local)
 tracking/night-status-*.json
 
+# secrets on this PC (Discord webhook URLs for scripts\notify.ps1) and the business notes: never commit
+private/
+
 # archived copies (the old claude.ai artifact holds the full model): never publish
 archive/
 
