@@ -30,3 +30,6 @@ tracking/nfl/plays.json
 
 # night.ps1 run status (local)
 tracking/night-status-*.json
+
+# archived copies (the old claude.ai artifact holds the full model): never publish
+archive/
