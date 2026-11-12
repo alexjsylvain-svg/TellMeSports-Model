@@ -205,6 +205,7 @@ body.phone .wrap{display:none}
 .nf-pilotbar b{font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}
 .nf-pilotbar span{color:var(--ink)}
 .nf-chips{display:flex;flex-wrap:wrap;gap:6px}
+.nf-gsel{margin:0 0 10px}
 .nf-chips button{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:4px 10px;font-size:.8rem;color:var(--mute);cursor:pointer}
 .nf-chips button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
 .nf-tbl{width:100%;border-collapse:collapse;font-size:.84rem}
@@ -2086,7 +2087,7 @@ let TAB="tonight"; try{ const t=localStorage.getItem("pa-tab"); if(["tonight","l
 const PF={game:"all", stat:"all", q:"", all:false, n:60};
 let REC_ALL=false;
 let SPORT=(()=>{ const q=new URLSearchParams(location.search).get("sport"); if(q==="nfl"||q==="nba") return q; try{ return localStorage.getItem("pa-sport")==="nfl"?"nfl":"nba"; }catch(e){ return "nba"; } })();
-let NTAB="card"; const NF={card:null, bt:null, trends:null, mnf:null, loaded:false, mkt:"all"};
+let NTAB="card"; const NF={card:null, bt:null, trends:null, mnf:null, loaded:false, mkt:"all", game:""};
 
 // ---- tracked bets (owner-only database) ----
 const TRK={db:null, owner:false, bets:[], state:"loading", note:""};
@@ -2631,7 +2632,7 @@ function rRecord(){
     ${nights.length>3?`<button class="pa-btn" data-act="nights">${REC_ALL?"Show fewer nights":`Show all ${nights.length} nights`}</button>`:""}${foot()}`; }
 
 // ---- NFL (pilot): the paper card, the priced board and the backtest, from nfl/card.json and nfl/backtest.json ----
-const NFL_LABEL={PASS_YDS:"pass yds",PASS_CMP:"completions",PASS_ATT:"pass att",RUSH_YDS:"rush yds",RUSH_ATT:"rush att",REC_YDS:"rec yds",REC:"receptions",RR_YDS:"rush+rec yds",ATD:"anytime TD"};
+const NFL_LABEL={PASS_YDS:"pass yds",PASS_CMP:"completions",PASS_ATT:"pass att",PASS_TD:"pass TDs",RUSH_YDS:"rush yds",RUSH_ATT:"rush att",REC_YDS:"rec yds",REC:"receptions",RR_YDS:"rush+rec yds",ATD:"anytime TD"};
 async function loadNFL(){ if(NF.loaded) return; NF.loaded=true; const g=n=>fetch(n,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
   [NF.card,NF.bt,NF.trends,NF.mnf,NF.res]=await Promise.all([g("nfl/card.json"),g("nfl/backtest.json"),g("nfl/trends.json"),g("nfl/mnf.json"),g("nfl/results.json")]); render(); }
 // the paper picks graded so far (nfl/results.json), newest week first
@@ -2642,6 +2643,10 @@ function nfRecord(){ const R=NF.res, ps=(R?.picks||[]).slice(); if(!ps.length) r
     ${wks.map(k=>{ const [s,w]=k.split("|"), wp=ps.filter(p=>p.season+"|"+p.week===k); return `<div class="pa-card"><span class="pa-h" style="margin:0">${s} week ${w}</span>${wp.map(p=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span style="min-width:0"><b>${esc(p.bet)}</b><br><span class="pa-small">${oddsTxt(p.odds)} ${nfBook(p.book)} · ${P1(p.p)} · ${p.stake}u · actual ${esc(String(p.actual??"–"))} · ${esc(p.final||p.game)}</span></span>${chip(p.result)}</div>`).join("")}</div>`; }).join("")}`; }
 const nfBet=r=>r.st==="ATD"?"Anytime TD":`${r.side} ${r.line} ${NFL_LABEL[r.st]||r.st}`;
 const nfBook=b=>b==="OPEN"?"opener":b==="FAN"?"Fanatics":b;
+// one game at a time on the Card, Board and Games tabs ("" = all); r.game is "AWAY @ HOME"
+const nfIn=r=>!NF.game||r.game===NF.game;
+function nfGameSel(c){ const gs=(c?.games||[]).slice().sort((a,b)=>new Date(a.start)-new Date(b.start)); if(gs.length<2) return "";
+  return `<div class="pa-filters nf-gsel"><select id="nfG" aria-label="Game"><option value="">All games</option>${gs.map(g=>`<option value="${esc(g.game)}"${NF.game===g.game?" selected":""}>${esc(g.game)} · ${ET(g.start,{weekday:"short",hour:"numeric",minute:"2-digit"})}</option>`).join("")}</select></div>`; }
 const nfMx=r=>r.mx&&Math.abs(r.mx-1)>=.01?` · coverage matchup ${r.mx>1?"+":"−"}${Math.abs((r.mx-1)*100).toFixed(0)}%`:"";
 function nfPick(r){ return `<div class="pa-card"><div class="pa-row"><span class="pa-player">${esc(r.player)}${r.tier==="long"?` <span class="pa-st n">long shot</span>`:""}${r.role?` <span class="pa-small">${esc(r.role)}</span>`:""}</span><span class="pa-stake">${r.stake}u</span></div>
   <div class="pa-row"><span class="pa-bet ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span><span class="pa-small">${esc(r.game)} · ${clock(r.start)}</span></div>
@@ -2650,27 +2655,28 @@ function nfPick(r){ return `<div class="pa-card"><div class="pa-row"><span class
 // a separate Monday-night card (nfl/mnf.json) shows until that game kicks off
 const nfMnf=()=>{ const m=NF.mnf; return m&&(m.sims||[]).some(g=>new Date(g.start)>Date.now())?m:null; };
 function nfCard(){ const c=NF.card; if(!c) return empty("No NFL card yet","The paper card shows here once the week's lines are priced.");
-  const m=nfMnf(), mp=m?.picks||[], mNear=m?(m.board||[]).filter(r=>!mp.some(p=>p.pid===r.pid&&p.st===r.st)&&r.st!=="ATD").slice(0,4):[];
-  const pk=c.picks||[], risk=pk.reduce((a,r)=>a+r.stake,0), near=(c.board||[]).filter(r=>!pk.some(p=>p.pid===r.pid&&p.st===r.st)&&r.st!=="ATD").slice(0,6);
+  const m0=nfMnf(), m=m0&&(!NF.game||(m0.sims||[]).some(g=>`${g.away} @ ${g.home}`===NF.game))?m0:null, mp=m?.picks||[], mNear=m?(m.board||[]).filter(r=>!mp.some(p=>p.pid===r.pid&&p.st===r.st)&&r.st!=="ATD").slice(0,4):[];
+  const all=c.picks||[], pk=all.filter(nfIn), risk=pk.reduce((a,r)=>a+r.stake,0), gm=NF.game?(c.games||[]).find(g=>g.game===NF.game):null;
+  const near=(c.board||[]).filter(r=>nfIn(r)&&!all.some(p=>p.pid===r.pid&&p.st===r.st)&&r.st!=="ATD").slice(0,gm?8:6);
   const mon=m?`<div class="pa-h">Tonight · ${esc((m.sims[0]||{}).game||"Monday night")} (week ${m.week})</div>
     <div class="pa-card"><div class="pa-small">${esc(m.note||"")}</div></div>
     ${mp.length?mp.map(nfPick).join(""):empty("No paper pick tonight","")}
     ${mNear.length?`<div class="pa-card">${mNear.map(r=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span><b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span></span><span class="pa-small">${oddsTxt(r.odds)} · ${P1(r.p)}${r.pSim!=null?` (sims ${P1(r.pSim)})`:""}</span></div>`).join("")}<div class="pa-small" style="margin-top:6px">Closest to the bar tonight; none clear 60%.</div></div>`:""}
     <div class="pa-h">Week ${c.week}</div>`:"";
   const games=(c.games||[]).slice().sort((a,b)=>new Date(a.start)-new Date(b.start)).map(g=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span>${esc(g.game)}</span><span class="pa-small">${ET(g.start,{weekday:"short",hour:"numeric",minute:"2-digit"})} · ${g.fan?`${g.fan} Fanatics`:"no Fanatics yet"}${g.open?` · ${g.open} openers`:""}</span></div>`).join("");
-  return `${mon}<div class="pa-card"><div class="pa-kpis"><div><b>${pk.length}</b><span>paper picks</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk (paper)</span></div><div><b>${(c.games||[]).filter(g=>g.fan||g.open).length}/${(c.games||[]).length}</b><span>games priced</span></div></div>
+  return `${nfGameSel(c)}${mon}<div class="pa-card"><div class="pa-kpis"><div><b>${pk.length}</b><span>paper picks</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk (paper)</span></div>${gm?`<div><b>${gm.fan||0}</b><span>Fanatics props</span></div>`:`<div><b>${(c.games||[]).filter(g=>g.fan||g.open).length}/${(c.games||[]).length}</b><span>games priced</span></div>`}</div>
     <div class="pa-small"><span class="pa-st n">pilot · no real stakes</span> Frozen ${ET(c.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET. Same bar as the NBA card: 60%+ to win, 5%+ edge, −150 to +150, two a game. Plus long shots (+151 to +250, 5%+ edge, 0.5u), up to three picks a game. Priced at the opening line where there is one: the backtest only found an edge early in the week. Players are checked against today's NFL.com and ESPN rosters, injuries and depth charts${c.rostersFetched?` (fetched ${ET(c.rostersFetched,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET)`:""}.</div></div>
-    ${pk.length?pk.map(nfPick).join(""):empty("No paper picks yet","Nothing has cleared the bar. Most of the week's props open Tuesday–Wednesday.")}
-    ${parlayCard(pk.filter(r=>r.tier!=="long"&&new Date(r.start)>Date.now()).map(r=>({g:r.game, p:r.p, odds:r.odds, label:`<b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span>`})),
+    ${pk.length?pk.map(nfPick).join(""):gm?empty("No paper picks in this game","Nothing here cleared the bar. The closest props are below."):empty("No paper picks yet","Nothing has cleared the bar. Most of the week's props open Tuesday–Wednesday.")}
+    ${gm?"":parlayCard(pk.filter(r=>r.tier!=="long"&&new Date(r.start)>Date.now()).map(r=>({g:r.game, p:r.p, odds:r.odds, label:`<b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span>`})),
       "Paper only. The week's likeliest picks, one per game. Backtest at openers, 1u each: 2 legs went 1-6 (−3.8u) in 2025 and 3-6 (+1.1u) in 2026 weeks 1–9, so there's no proven edge in NFL parlays yet.")}
     ${near.length?`<div class="pa-h">Closest to the bar</div><div class="pa-card">${near.map(r=>`<div class="pa-row" style="border-top:1px solid var(--rule);padding-top:6px"><span><b>${esc(r.player)}</b> <span class="pa-pb ${r.side==="Under"?"u":"o"}">${esc(nfBet(r))}</span></span><span class="pa-small">${oddsTxt(r.odds)} ${nfBook(r.book)} · ${P1(r.p)} · edge ${P1(r.ev)}</span></div>`).join("")}</div>`:""}
-    <div class="pa-h">The week</div><div class="pa-card">${games}</div>`; }
+    ${gm?"":`<div class="pa-h">The week</div><div class="pa-card">${games}</div>`}`; }
 function nfBoard(){ const c=NF.card; if(!c) return empty("No board yet","");
-  const mk=[...new Set((c.board||[]).map(r=>r.st))]; const rows=(c.board||[]).filter(r=>NF.mkt==="all"||r.st===NF.mkt);
-  return `<div class="pa-card"><div class="pa-small">Every priced prop for the week, best edge first. Win chance blends the model with the opening line (Fanatics where no opener is posted). "Sims" is the share of 10,000 simulated games where the prop hit; it is blended in only for rush and touchdown props, where it tested better.</div>
+  const mk=[...new Set((c.board||[]).map(r=>r.st))]; const rows=(c.board||[]).filter(r=>(NF.mkt==="all"||r.st===NF.mkt)&&nfIn(r));
+  return `${nfGameSel(c)}<div class="pa-card"><div class="pa-small">Every priced prop for the week, best edge first. Win chance blends the model with the opening line (Fanatics where no opener is posted). "Sims" is the share of 10,000 simulated games where the prop hit; it is blended in only for rush and touchdown props, where it tested better.</div>
     <div class="nf-chips">${["all",...mk].map(m=>`<button data-nm="${m}" aria-pressed="${NF.mkt===m}">${m==="all"?"All":esc(NFL_LABEL[m]||m)}</button>`).join("")}</div></div>
     <div class="pa-card" style="padding:8px 10px"><table class="nf-tbl"><tr><th>Prop</th><th class="n">Price</th><th class="n">Win</th><th class="n">Edge</th></tr>
-    ${rows.slice(0,80).map(r=>`<tr><td><b>${esc(r.player)}</b><br><span class="pa-small">${esc(nfBet(r))} · ${esc(r.game)}${nfMx(r)}</span></td><td class="n">${oddsTxt(r.odds)}<br><span class="pa-small">${nfBook(r.book)}</span></td><td class="n">${P1(r.p)}${r.pSim!=null?`<br><span class="pa-small">sims ${P1(r.pSim)}</span>`:""}</td><td class="n ${r.ev>0?"up":"dn"}">${P1(r.ev)}</td></tr>`).join("")}</table></div>`; }
+    ${rows.length?"":`<tr><td colspan="4" class="pa-small">No priced props match.</td></tr>`}${rows.slice(0,80).map(r=>`<tr><td><b>${esc(r.player)}</b><br><span class="pa-small">${esc(nfBet(r))} · ${esc(r.game)}${nfMx(r)}</span></td><td class="n">${oddsTxt(r.odds)}<br><span class="pa-small">${nfBook(r.book)}</span></td><td class="n">${P1(r.p)}${r.pSim!=null?`<br><span class="pa-small">sims ${P1(r.pSim)}</span>`:""}</td><td class="n ${r.ev>0?"up":"dn"}">${P1(r.ev)}</td></tr>`).join("")}</table></div>`; }
 // ---- Games: each game simulated 10,000 times around the market spread and total, grouped into scripts ----
 const nfLast=n=>{ const p=String(n).split(" "); return p.length>1?p.slice(1).join(" "):n; };
 const nfSpread=g=>g.spread>0?`${g.home} −${g.spread}`:g.spread<0?`${g.away} −${-g.spread}`:"pick'em";
@@ -2693,8 +2699,8 @@ function nfGame(g,nS){ const aw=1-g.homeWin, top=g.groups||[], sc=g.medScore||{}
       ${(g.all.players||[]).map(p=>`<tr><td>${esc(p.player)} <span class="pa-small">${esc(p.pos)}</span></td><td class="n">${p.rec||p.recyds?`${p.rec}–${p.recyds}`:""}</td><td class="n">${p.car?`${p.car}–${p.ryds}`:""}</td><td class="n">${p.td.toFixed(2)}</td></tr>`).join("")}</table></div>`:""}
   </details>`; }
 function nfGames(){ const c=NF.card, m=nfMnf(); if(!c?.sims?.length&&!m) return empty("No game sims yet","They're built with the week's card.");
-  const gs=[...(m?.sims||[]).map(g=>({g,n:m.nSims||10000})),...(c?.sims||[]).map(g=>({g,n:c.nSims||10000}))].sort((a,b)=>new Date(a.g.start)-new Date(b.g.start));
-  return `<div class="pa-card"><div class="pa-small">Each game is played out ${(c?.nSims||10000).toLocaleString()} times. The final margin and total are drawn around the market's spread and total (their real misses run about ±12.4 and ±12.9 points), then each team's plays, pass/run split and efficiency follow the game script, and the volume is split among the players by their recent shares, with injured players' shares handed to the rest. The scripts group the sims by winner, one score (1–8) or two (9+), and over or under the total. Tap a game for its top three scripts.</div></div>
+  const gs=[...(m?.sims||[]).map(g=>({g,n:m.nSims||10000})),...(c?.sims||[]).map(g=>({g,n:c.nSims||10000}))].filter(x=>nfIn({game:`${x.g.away} @ ${x.g.home}`})).sort((a,b)=>new Date(a.g.start)-new Date(b.g.start));
+  return `${nfGameSel(c)}<div class="pa-card"><div class="pa-small">Each game is played out ${(c?.nSims||10000).toLocaleString()} times. The final margin and total are drawn around the market's spread and total (their real misses run about ±12.4 and ±12.9 points), then each team's plays, pass/run split and efficiency follow the game script, and the volume is split among the players by their recent shares, with injured players' shares handed to the rest. The scripts group the sims by winner, one score (1–8) or two (9+), and over or under the total. Tap a game for its top three scripts.</div></div>
     ${gs.map(x=>nfGame(x.g,x.n)).join("")}`; }
 // ---- Trends: how spreads and totals have played out (nfl/trends.json) ----
 const nfRec=r=>r?`${r.w}-${r.l}${r.p?`-${r.p}`:""}`:"";
@@ -2788,6 +2794,7 @@ app.addEventListener("click",e=>{
 app.addEventListener("input",e=>{ if(e.target.id==="paUnit"){ const v=+e.target.value; if(v>0){ UNIT=v; try{ localStorage.setItem("tellme-unit",String(v)); }catch(x){} app.querySelectorAll("[data-u]").forEach(s=>{ s.textContent=usdTxt(+s.dataset.u); }); } return; }
   if(e.target.id==="paQ"){ PF.q=e.target.value; PF.n=60; document.getElementById("paPL").innerHTML=propsList(); } });
 app.addEventListener("change",e=>{ const TFK={tfS:"stat",tfD:"side",tfP:"price",tfF:"from",tfT:"to"}[e.target.id]; if(TFK){ TF[TFK]=e.target.value; render(); document.getElementById(e.target.id)?.focus({preventScroll:true}); return; }
+  if(e.target.id==="nfG"){ NF.game=e.target.value; render(); document.getElementById("nfG")?.focus({preventScroll:true}); return; }
   if(e.target.id==="paG"){ PF.game=e.target.value; PF.n=60; render(); } else if(e.target.id==="paAll"){ PF.all=e.target.value==="1"; PF.n=60; render(); } });
 // the slate night: the card's date, else today in ET (before 5 AM it is still last night's slate)
 const slateDay=()=>tonight()||new Date(Date.now()-5*36e5).toLocaleDateString("en-CA",{timeZone:"America/New_York"}).replace(/-/g,"");
