@@ -22,9 +22,12 @@ $picksBefore = if(Test-Path (Join-Path $docs "picks.json")){ [IO.File]::ReadAllT
 $copied = @()
 foreach($k in $map.Keys){ $src = Join-Path $root $map[$k]; if(Test-Path $src){ Copy-Item $src (Join-Path $docs $k) -Force; $copied += $k } }
 "copied for $D : $($copied -join ', ')"
+# the invite-only viewer (viewer\, served by Cloudflare Pages behind Access): the phone app and the data, no model.
+# A failed build leaves the last good viewer in place and never blocks the publish.
+try { & "$PSScriptRoot/build-viewer.ps1" } catch { Write-Warning "viewer build failed, viewer\ not updated: $_" }
 # git writes progress and line-ending notes to stderr; in Windows PowerShell that must not count as a failure
 $ErrorActionPreference = "Continue"
-git -c core.autocrlf=false -c core.safecrlf=false add -A docs scripts tracking site brand nba-matchup-sim.html .gitignore 2>$null
+git -c core.autocrlf=false -c core.safecrlf=false add -A docs viewer scripts tracking site brand nba-matchup-sim.html .gitignore 2>$null
 if($LASTEXITCODE -ne 0){ throw "git add failed (exit $LASTEXITCODE)" }
 $staged = @(git diff --cached --name-only)
 if(-not $staged.Count){ "nothing changed; no commit"; exit 0 }
@@ -54,7 +57,7 @@ if($LASTEXITCODE -ne 0){
   $conf = @(git diff --name-only --diff-filter=U)
   # not a content clash (network, sign-in): keep our commit here for the next try, as before
   if(-not $conf.Count){ git rebase --abort 2>$null; throw "git pull --rebase failed; local commit kept, not pushed" }
-  $gen = '^(docs/[^/]+\.json|site/(slate|live)\.json|tracking/(board|picks)-\d{8}\.json|tracking/live-state-\d{8}\.json)$'
+  $gen = '^(docs/[^/]+\.json|viewer/([^/]+|nfl/[^/]+)\.json|site/(slate|live)\.json|tracking/(board|picks)-\d{8}\.json|tracking/live-state-\d{8}\.json)$'
   $other = @($conf | ? { $_ -notmatch $gen })
   if($other.Count){ Set-Aside "git pull --rebase clashed in $($other -join ', '), which isn't generated data" -Fail }
   $gh = Get-Card "HEAD"; $mine = Get-Card "REBASE_HEAD"   # mid-rebase, HEAD is GitHub's tip and REBASE_HEAD is our commit

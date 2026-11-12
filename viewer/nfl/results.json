@@ -1,0 +1,26 @@
+﻿{
+    "note":  "NFL pilot paper picks, graded after the games (paper only, not bets).",
+    "picks":  [
+                  {
+                      "season":  2026,
+                      "week":  9,
+                      "game":  "BUF @ MIN",
+                      "final":  "BUF 23, MIN 6",
+                      "bet":  "Justin Jefferson Under 6.5 receptions",
+                      "book":  "FAN",
+                      "odds":  -125,
+                      "stake":  0.5,
+                      "p":  0.639,
+                      "actual":  3,
+                      "result":  "WIN",
+                      "units":  0.4
+                  }
+              ],
+    "toDate":  {
+                   "w":  1,
+                   "l":  0,
+                   "p":  0,
+                   "staked":  0.5,
+                   "units":  0.4
+               }
+}

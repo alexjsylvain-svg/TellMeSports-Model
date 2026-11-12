@@ -60,9 +60,10 @@ jobs:
         if: env.SKIP != '1'
         run: |
           cp site/results.json site/season.json site/boxes.json docs/
+          pwsh -NoProfile -File scripts/build-viewer.ps1 || echo "::warning::viewer build failed; viewer/ not updated"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tracking site/results.json site/season.json site/boxes.json docs/results.json docs/season.json docs/boxes.json
+          git add tracking site/results.json site/season.json site/boxes.json docs/results.json docs/season.json docs/boxes.json viewer
           if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
           git commit -q -m "Results $D (graded on GitHub)"
           for i in 1 2 3; do
