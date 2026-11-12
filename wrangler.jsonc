@@ -1,0 +1,11 @@
+// Cloudflare Worker "tellmesports-model" (Workers Builds runs `npx wrangler deploy` on every push to main).
+// It serves ONLY viewer/ (the invite-only phone app and published data, built by scripts/build-viewer.ps1),
+// never docs/ (which holds the full model page and slate.json). Access (email sign-in) guards the workers.dev address.
+{
+  "name": "tellmesports-model",
+  "compatibility_date": "2026-11-10",
+  "assets": {
+    "directory": "./viewer",
+    "not_found_handling": "none"
+  }
+}
