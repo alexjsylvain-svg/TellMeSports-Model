@@ -29,9 +29,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 const NFL = (()=>{
 const STATS={PASS_YDS:'pyds',PASS_CMP:'cmp',PASS_ATT:'att',RUSH_YDS:'ryds',RUSH_ATT:'car',REC_YDS:'recyds',REC:'rec'};
 const COUNT={PASS_CMP:1,PASS_ATT:1,RUSH_ATT:1,REC:1};
-STATS.RR_YDS='rr'; STATS.ATD='td';
-const GROUP={PASS_YDS:'pass',PASS_CMP:'pass',PASS_ATT:'pass',RUSH_YDS:'rush',RUSH_ATT:'rush',REC_YDS:'rec',REC:'rec',RR_YDS:'rec',ATD:'td'};
-const LABEL={PASS_YDS:'pass yds',PASS_CMP:'completions',PASS_ATT:'pass att',RUSH_YDS:'rush yds',RUSH_ATT:'rush att',REC_YDS:'rec yds',REC:'receptions',RR_YDS:'rush+rec yds',ATD:'anytime TD'};
+STATS.RR_YDS='rr'; STATS.ATD='td'; STATS.PASS_TD='ptd'; COUNT.PASS_TD=1;   // passing TDs: Nov 12, 2026
+const GROUP={PASS_YDS:'pass',PASS_CMP:'pass',PASS_ATT:'pass',PASS_TD:'pass',RUSH_YDS:'rush',RUSH_ATT:'rush',REC_YDS:'rec',REC:'rec',RR_YDS:'rec',ATD:'td'};
+const LABEL={PASS_YDS:'pass yds',PASS_CMP:'completions',PASS_ATT:'pass att',PASS_TD:'pass TDs',RUSH_YDS:'rush yds',RUSH_ATT:'rush att',REC_YDS:'rec yds',REC:'receptions',RR_YDS:'rush+rec yds',ATD:'anytime TD'};
 const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[.']/g,'').replace(/[\-,]/g,' ').replace(/\b(jr|sr|ii|iii|iv|v)\b/g,'').replace(/\s+/g,' ').trim();
 const impl=o=>o>0?100/(o+100):-o/(-o+100), dec=o=>o>0?1+o/100:1+100/-o;
 const lg=x=>{x=Math.min(.99,Math.max(.01,x));return Math.log(x/(1-x));}, sg=x=>1/(1+Math.exp(-x));
@@ -49,13 +49,22 @@ const lg=x=>{x=Math.min(.99,Math.max(.01,x));return Math.log(x/(1-x));}, sg=x=>1
 // actual TD rate was worse). Margin on Yes-only TD prices 19.6% (2025 openers). No TD price cleared 5% edge in either season.
 // Rush+rec yards: blend worse than the opener out of sample (.6931 -> .7036), so priced but never carded.
 const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8,td:1}, beta:.02, gamma:.5, k:4, K:400,
-  w:{PASS_YDS:.3,PASS_CMP:.3,PASS_ATT:.35,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.25,REC:.3,RR_YDS:.35,ATD:.15},
-  fx:{blitz:false,mz:true,cov:true,box:false,top:false}, kP:30, kD:50, tdMix:1, atdHold:.196,
+  w:{PASS_YDS:.3,PASS_CMP:.3,PASS_ATT:.35,PASS_TD:.3,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.25,REC:.3,RR_YDS:.35,ATD:.15},
+  fx:{blitz:false,mz:true,cov:true,box:false,top:false,press:false}, kP:30, kD:50, tdMix:1, atdHold:.196,
   // game-sim blend (Nov 9, fit on 2025 openers, held out 2026 wk 1-9): win chance = market, box-score model and 10,000-game sim
   // mixed in log-odds at [model, sim] weights. Rushing and anytime TD only: the sim beat the model there (rush att .6750 -> .6730,
   // rush yds .6694 -> .6684, TD .4937 -> .4932; card at openers 59-36 +9.6u -> 87-55 +18.3u staked); receiving and passing didn't.
   simW:{RUSH_ATT:[0,.25], RUSH_YDS:[0,.15], ATD:[.05,.10]}};
-const NOCARD=new Set(['PASS_ATT','PASS_CMP','RR_YDS']);
+// Nov 12 tests (fit 2025, held out 2026 wk 1-9; paper pilot):
+//   pressure (dropbacks with a sack, hit or scramble as a matchup look, fx.press): dropped. Pass yds .6879 -> .6892, receptions
+//   .6792 -> .6798, card +16.69u -> +11.26u.
+//   Passing TDs (Action Network passing_tds): blend .6858 vs the opener's .6787, card 1-4 -2.3u, so priced but never carded.
+//   Sim: QB goal-line TD factor (S0.qbTd) 1.6 fixes QB anytime-TD calibration (sim 11% vs 15% actual -> 15%; QB log loss .455 ->
+//   .447 and .408 -> .401) but takes those TDs from RBs/WRs/TEs, so all-TD log loss is flat (.4750 -> .4751, .4746 -> .4743):
+//   left at 1. Role-spike shrink (S0.k0, target/carry shares pulled toward 3%) .3 -> 1.5: worse on every stat, left at .3.
+//   The official injury report beats a stale ESPN tag for this week's card (curFn: Out/Doubtful there drops a player, a player
+//   on the report without either is kept even if ESPN still says Out).
+const NOCARD=new Set(['PASS_ATT','PASS_CMP','RR_YDS','PASS_TD']);
 // ---- matchup engine (play-by-play): per player-game production split by the defense's look, per defense-game the looks it
 // showed. Splits: blitz (FTN: 1+ blitzers) on dropbacks; man vs zone and coverage shell (pbp participation, 2025 only:
 // 2026 games use each defense's 2025 tendencies and each player's 2025 splits); box count on runs (FTN). Plus expected TDs
@@ -72,7 +81,8 @@ function buildMX(PL){
   const rateR=tdr.r.map((x,i)=>x/Math.max(1,tdr.rn[i])), rateT=tdr.t.map((x,i)=>x/Math.max(1,tdr.tn[i]));
   const team={}, player={}, def={};
   const cats=p=>({blitz:p[I.kind]===1&&p[I.blitz]>=0?(p[I.blitz]>0?'y':'n'):null, mz:p[I.kind]===1&&p[I.mz]?(p[I.mz]===1?'man':'zone'):null,
-    cov:p[I.kind]===1?COVF(p[I.cov]):null, box:p[I.kind]===2?BOXB(p[I.box]):null});
+    cov:p[I.kind]===1?COVF(p[I.cov]):null, box:p[I.kind]===2?BOXB(p[I.box]):null,
+    press:p[I.kind]===1&&I.press!=null?(p[I.press]?'y':'n'):null});   // pressure: sack, QB hit or scramble (Nov 12)
   const bump=(o,k,v)=>{ o[k]=(o[k]||0)+v; };
   for(const p of PL.plays){ const s=p[I.season], w=p[I.week], tk=`${s}|${w}|${p[I.off]}`, c=cats(p);
     const T=(team[tk]??={db:0,runs:0,def:p[I.def]}); const D=((def[`${p[I.def]}|${s}`]??={})[w]??={db:0,runs:0});
@@ -80,9 +90,9 @@ function buildMX(PL){
     for(const t in c){ if(c[t]){ bump(T,t+':'+c[t],1); bump(D,t+':'+c[t],1); } }
     const touch=(pid,role)=>{ const g=((player[id(pid)]??={})[`${s}|${w}`]??={s,w,team:p[I.off],xtd:0}); return g; };
     if(p[I.kind]===1&&p[I.target]>=0){ const g=touch(p[I.target]); const y=p[I.cmp]?p[I.yds]:0;
-      g.xtd+=rateT[YLB(p[I.yl])]; bump(g,'tgt',1); bump(g,'yds',y); for(const t of ['blitz','mz','cov']) if(c[t]){ bump(g,`${t}:${c[t]}:tgt`,1); bump(g,`${t}:${c[t]}:rec`,p[I.cmp]); bump(g,`${t}:${c[t]}:yds`,y); } }
+      g.xtd+=rateT[YLB(p[I.yl])]; bump(g,'tgt',1); bump(g,'yds',y); for(const t of ['blitz','mz','cov','press']) if(c[t]){ bump(g,`${t}:${c[t]}:tgt`,1); bump(g,`${t}:${c[t]}:rec`,p[I.cmp]); bump(g,`${t}:${c[t]}:yds`,y); } }
     if(p[I.kind]===1&&p[I.passer]>=0){ const g=touch(p[I.passer]); const y=p[I.cmp]?p[I.yds]:0;
-      for(const t of ['blitz','mz','cov']) if(c[t]){ bump(g,`${t}:${c[t]}:pyds`,y); bump(g,`${t}:${c[t]}:pcmp`,p[I.cmp]); } }
+      for(const t of ['blitz','mz','cov','press']) if(c[t]){ bump(g,`${t}:${c[t]}:pyds`,y); bump(g,`${t}:${c[t]}:pcmp`,p[I.cmp]); } }
     if(p[I.kind]===2&&p[I.rusher]>=0){ const g=touch(p[I.rusher]); g.xtd+=rateR[YLB(p[I.yl])]; if(c.box){ bump(g,`box:${c.box}:car`,1); bump(g,`box:${c.box}:ryds`,p[I.yds]); } } }
   // "primary defender" proxy (no free coverage-assignment data): what each defense allowed to the offense's most-targeted
   // player in each game, in yards per target-leader game
@@ -123,6 +133,7 @@ function splitMult(MX,pid,s,w,opp,T,cats,num,den,P,{prevOnly=false}={}){
 function matchup(MX,pid,st,s,w,opp,P,recShare){
   if(!MX) return 1; let m=1; const fx=P.fx;
   const recv=(num)=>{ let x=1; if(fx.blitz) x*=splitMult(MX,pid,s,w,opp,'blitz',['y','n'],num,'team',P);
+    if(fx.press) x*=splitMult(MX,pid,s,w,opp,'press',['y','n'],num,'team',P);
     if(fx.mz) x*=splitMult(MX,pid,s,w,opp,'mz',['man','zone'],num,'team',P); if(fx.cov) x*=splitMult(MX,pid,s,w,opp,'cov',['c01','c2','c3','c46'],num,'team',P); return x; };
   if(st==='REC') m=recv('rec'); else if(st==='REC_YDS') m=recv('yds'); else if(st==='PASS_YDS') m=recv('pyds'); else if(st==='PASS_CMP') m=recv('pcmp');
   else if(st==='RUSH_YDS'&&fx.box) m=splitMult(MX,pid,s,w,opp,'box',['lt7','b7','ge8'],'ryds','car',P);
@@ -333,6 +344,8 @@ function roster(M,team,s,w,P,{props=new Set(),out=new Set(),cur=null}={}){ if(cu
   // starting QB: the passer with the biggest recent share among the active ones
   const qbs=res.filter(e=>e.pos==='QB').sort((a,b)=>b.aShare-a.aShare); const qb=(cur&&qbs.find(e=>cur(e.name,[team])?.role==='QB1'))||qbs[0]||null;   // the depth chart's starter when we have it
   for(const e of res) e.isQB=e===qb;
+  // QB goal-line runs (P.qbTd, Nov 12 test): his expected TDs per carry scaled; 1 = off
+  if(qb&&P.qbTd&&P.qbTd!==1) qb.xtdPer=Math.min(.3,qb.xtdPer*P.qbTd);
   // shares: players with a prop this week keep their own share from the games they played; the shares of players ruled
   // Out who played in the last 3 games are handed to them (80%); fringe players (no prop) split what's left at fringeW of their
   // past share (often earned filling in); the rest goes to nobody in particular. Without a prop list everyone is scaled to 1-rest.
@@ -372,7 +385,7 @@ function simGame(M,g,P,{props=new Set(),out=new Set(),cur=null,nS=P.nSims,mxs=nu
       R.tRest=fit1(tW); R.cRest=fit1(cW); }
     // team's expected catch rate and yards per catch from its players (so team factors scale the players, not replace them)
     const st={team,home,tt,E,R,n,tW,cW,crP,yprP,ypcP,
-      out:{rec:pc.map(()=>new Int16Array(nS)),recyds:pc.map(()=>new Float32Array(nS)),car:pc.map(()=>new Int16Array(nS)),ryds:pc.map(()=>new Float32Array(nS)),td:pc.map(()=>new Int8Array(nS)),att:new Int16Array(nS),cmp:new Int16Array(nS),pyds:new Float32Array(nS),pts:new Float32Array(nS)}};
+      out:{rec:pc.map(()=>new Int16Array(nS)),recyds:pc.map(()=>new Float32Array(nS)),car:pc.map(()=>new Int16Array(nS)),ryds:pc.map(()=>new Float32Array(nS)),td:pc.map(()=>new Int8Array(nS)),att:new Int16Array(nS),cmp:new Int16Array(nS),pyds:new Float32Array(nS),pts:new Float32Array(nS),ntd:new Int8Array(nS)}};
     sides.push(st); }
   const B=P.B, lin=(k,E,dP,mg)=>{ const c=B[k].c; return E[k]+c[0]+c[1]*E[k+'_d']+c[2]*dP+c[3]*mg+B[k].sd*nrm(); };
   const tw=new Float64Array(64), cw=new Float64Array(64), tg=new Int32Array(64), cg=new Int32Array(64);
@@ -393,7 +406,7 @@ function simGame(M,g,P,{props=new Set(),out=new Set(),cur=null,nS=P.nSims,mxs=nu
       touchW+=(tg[S.n]+cg[S.n])*.03;
       o.cmp[i]=cmp; o.pyds[i]=py;
       // touchdowns: the team's count from its points, each one to a player by touches x red-zone expected TDs per touch
-      const nTD=pois(p*(E.TDP||.105)*(P.tdK||1)); for(let k=0;k<nTD;k++){ let u=rnd()*touchW; for(let j=0;j<S.n;j++){ u-=(tg[j]+cg[j])*S.R.players[j].xtdPer; if(u<=0){ o.td[j][i]++; break; } } }
+      const nTD=pois(p*(E.TDP||.105)*(P.tdK||1)); o.ntd[i]=nTD; for(let k=0;k<nTD;k++){ let u=rnd()*touchW; for(let j=0;j<S.n;j++){ u-=(tg[j]+cg[j])*S.R.players[j].xtdPer; if(u<=0){ o.td[j][i]++; break; } } }
     } }
   return {g,sides,nS};
 }
@@ -421,8 +434,17 @@ function scripts(sim,{top=3,keyN=3}={}){ const [H,A]=sim.sides, n=sim.nS, band=m
       qb:[qbl(H,idx),qbl(A,idx)].filter(Boolean), players:[...kH.map(x=>line(H,x.j,idx)),...kA.map(x=>line(A,x.j,idx))]}; });
   const hw=all.filter(i=>H.out.pts[i]>A.out.pts[i]).length/n;
   return {home:H.team, away:A.team, spread:sim.g.spread, total:sim.g.total, homeWin:+hw.toFixed(3), medScore:{[H.team]:Math.round(med(H.out.pts)),[A.team]:Math.round(med(A.out.pts))},
-    groups, all:{qb:[qbl(H,all),qbl(A,all)].filter(Boolean), players:[...kH.map(x=>line(H,x.j,all)),...kA.map(x=>line(A,x.j,all))]}}; }
-return {S0,fit,simGame,values,pLine,scripts,roster,expect,teamGames,ew,FEAT};
+    groups, tds:tdTable(sim), all:{qb:[qbl(H,all),qbl(A,all)].filter(Boolean), players:[...kH.map(x=>line(H,x.j,all)),...kA.map(x=>line(A,x.j,all))]}}; }
+// touchdown scorers (Nov 12): each player's anytime-TD chance and first-TD chance. A sim's TDs come in random order, so the
+// first one is player j's with chance td_j / (both teams' TDs); the teams' counts include TDs by players outside the list.
+// Defensive and special-teams TDs aren't simulated. firstTeam: the team that scores the first offensive TD; noTD: no TD at all.
+function tdTable(sim,{top=14}={}){ const n=sim.nS, [H,A]=sim.sides, tot=new Float64Array(n); for(let i=0;i<n;i++) tot[i]=H.out.ntd[i]+A.out.ntd[i];
+  const firstTeam={}; let none=0; for(let i=0;i<n;i++) if(!tot[i]) none++;
+  for(const S of sim.sides){ let a=0; for(let i=0;i<n;i++) if(tot[i]) a+=S.out.ntd[i]/tot[i]; firstTeam[S.team]=+(a/n).toFixed(3); }
+  const rows=[]; for(const S of sim.sides) S.R.players.forEach((e,j)=>{ const t=S.out.td[j]; let any=0,first=0,two=0; for(let i=0;i<n;i++){ if(t[i]>0) any++; if(t[i]>1) two++; if(tot[i]) first+=t[i]/tot[i]; }
+    rows.push({player:e.name, team:S.team, pos:e.pos, any:+(any/n).toFixed(3), first:+(first/n).toFixed(3), two:+(two/n).toFixed(3)}); });
+  return {firstTeam, noTD:+(none/n).toFixed(3), players:rows.sort((a,b)=>b.any-a.any).slice(0,top)}; }
+return {S0,fit,simGame,values,pLine,scripts,roster,expect,teamGames,ew,FEAT,tdTable};
 })();
 
 // ===================== backtest harness (local only: needs the server's /nfl/data.json and lines files) =====================
@@ -457,7 +479,11 @@ window.NFLBT={
   outSet(s,w){ const o=new Set((this.D.injW||{})[`${s}|${w}`]||[]); for(const [k,v] of Object.entries(this.D.inj||{})) if(v[1]===w&&s===this.D.season&&/out|doubtful/i.test(v[0])) o.add(k); return o; },
   // simulate one week's games; returns {key "pid|stat|line" -> {pS,push}} per game plus each game's sim summary
   // today's rosters (tracking\nfl\rosters.json: nfl.com status, ESPN injuries and depth charts) -> cur(name, teams)
-  curFn(RO){ if(!RO?.teams) return null; const by={}, OFF=/^(QB|RB|FB|WR|TE)$/;
+  // inj/week: the official NFL injury report (nflverse, data.json inj: "name|team" -> [game status, week]). When a player is on
+  // this week's report, it beats ESPN's roster tag: Out/Doubtful = out, Questionable or no designation = active. ESPN's "Out"
+  // can lag a week (Skattebo and Burks, Nov 12: ESPN Out, official report no designation, both played).
+  curFn(RO,{inj=null,week=null}={}){ if(!RO?.teams) return null; const by={}, OFF=/^(QB|RB|FB|WR|TE)$/;
+    const off={}; if(inj&&week) for(const [k,v] of Object.entries(inj)){ if(v[1]!==week) continue; const i=k.lastIndexOf('|'); off[NFL.norm(k.slice(0,i))+'|'+k.slice(i+1)]=v[0]||''; }
     for(const [team,T] of Object.entries(RO.teams)){ const role={};
       for(const [slot,arr] of Object.entries(T.depth||{})) (arr||[]).forEach((a,i)=>{ const k=NFL.norm(a.name); if(role[k]) return; role[k]=slot.startsWith('wr')?(i===0?'WR'+slot.slice(2):'WR backup'):slot.toUpperCase()+(i+1); });
       const nfl={}; for(const p of T.nfl||[]) nfl[NFL.norm(p.name)]=p;
@@ -468,7 +494,9 @@ window.NFLBT={
         if(n&&n.status!=='ACT'){ ok=false; why=`${n.status==='RES'?'reserve/IR':n.status} (nfl.com)`; }
         else if(!n&&e&&!/offense|defense|specialTeam/.test(e.group)){ ok=false; why=e.group==='practiceSquad'?'practice squad':'IR/out (ESPN)'; }
         if(ok&&e?.inj&&/out|doubtful|injured reserve/i.test(e.inj)){ ok=false; why=`${e.inj} (ESPN)`; }
-        (by[k]??=[]).push({team, ok, why, role:role[k]||null}); } }
+        const rep=off[k+'|'+team]; let report=null;
+        if(rep!=null&&!(n&&n.status!=='ACT')){ report=rep||'no designation'; if(/out|doubtful/i.test(rep)){ ok=false; why=`${rep} (injury report)`; } else if(!ok&&/ESPN/.test(why)){ ok=true; why=''; } }
+        (by[k]??=[]).push({team, ok, why, role:role[k]||null, report}); } }
     return (name,teams=[])=>{ const a=by[NFL.norm(name)]; if(!a) return null; return a.find(x=>teams.includes(x.team))||a[0]; }; },
   simWeek(L,SP,{nS=SP.nSims,keepScripts=false,cur=null}={}){ const M=this.M, s=L.season, w=L.week, out=this.outSet(s,w), res={}, scr=[];
     for(const G of L.games){ const gm=M.gk[`${s}|${w}|${G.home}`]; if(!gm||gm.spread==null||gm.total==null) continue;
@@ -490,7 +518,7 @@ window.NFLBT={
     const L=await fetch(`/nfl/lines-${season}-w${String(week).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.json());
     const train=this.WK.filter(x=>x.season<season||(x.season===season&&x.week<week)); const dist=NFL.makeDist(NFL.trainRows(M,train,NFL.P0));
     const inj=this.D.inj||{}, have=new Set(), rows=[];
-    const RO=await fetch('/nfl/rosters.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null), cur=this.curFn(RO);
+    const RO=await fetch('/nfl/rosters.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null), cur=this.curFn(RO,season===this.D.season?{inj:this.D.inj,week}:{});
     for(const b of books){ const add=NFL.priceWeek(M,L,dist,NFL.P0,{book:b,grade:false,cur}).filter(r=>!have.has(`${r.pid}|${r.st}`));
       for(const r of add){ const ij=inj[`${r.player}|${r.team}`]; if(ij&&ij[1]===week&&!r.out){ r.inj=ij[0]; if(/out|doubtful/i.test(ij[0])) r.out=true; }
         r.book=b; rows.push(r); }

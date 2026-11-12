@@ -33,7 +33,7 @@ foreach($s in 2025..$Season){
   $par = @{}; $pf = Join-Path $raw "pbp_participation_$s.csv"
   if($s -eq 2025){ $pf = Get-File "pbp_participation/pbp_participation_$s.csv" $false }
   if(Test-Path $pf){ foreach($r in [CsvPick]::Read($pf, @("nflverse_game_id","play_id","defense_man_zone_type","defense_coverage_type"))){ $par["$($r[0])|$($r[1])"] = $r } }
-  $cols = @("game_id","play_id","season","week","season_type","posteam","defteam","play_type","qb_dropback","rush_attempt","two_point_attempt","passer_player_id","receiver_player_id","rusher_player_id","yards_gained","complete_pass","td_player_id","yardline_100","air_yards","qb_scramble")
+  $cols = @("game_id","play_id","season","week","season_type","posteam","defteam","play_type","qb_dropback","rush_attempt","two_point_attempt","passer_player_id","receiver_player_id","rusher_player_id","yards_gained","complete_pass","td_player_id","yardline_100","air_yards","qb_scramble","qb_hit","sack")
   $n0 = $rows.Count; $nb = 0; $nc = 0
   foreach($r in [CsvPick]::Read((Get-File "pbp/play_by_play_$s.csv.gz" $cur), $cols)){
     if($r[4] -ne 'REG' -or $r[10] -eq '1' -or -not $r[5]){ continue }
@@ -45,9 +45,11 @@ foreach($s in 2025..$Season){
     $cv = if($p -and $p[3] -and $p[3] -ne 'NA'){ $p[3] } else { "" }
     if($bl -ge 0){ $nb++ }; if($mz){ $nc++ }
     $yd = N $r[14]; $ay = N $r[18]
-    [void]$rows.Add(@([int]$r[2], [int]$r[3], $r[5], $r[6], $(if($drop){1}else{2}), (Id $r[11]), (Id $r[12]), (Id $r[13]), $(if($yd -ne $null){[int]$yd}else{0}), [int]($r[15] -eq '1'), (Id $r[16]), [int](N $r[17]), $(if($ay -ne $null){[int]$ay}else{$null}), $bl, $bx, $mz, $cv)) }
+    [void]$rows.Add(@([int]$r[2], [int]$r[3], $r[5], $r[6], $(if($drop){1}else{2}), (Id $r[11]), (Id $r[12]), (Id $r[13]), $(if($yd -ne $null){[int]$yd}else{0}), [int]($r[15] -eq '1'), (Id $r[16]), [int](N $r[17]), $(if($ay -ne $null){[int]$ay}else{$null}), $bl, $bx, $mz, $cv,
+      # pressure (Nov 12): a dropback that ended in a sack, a QB hit or a scramble
+      [int]($drop -and ($r[19] -eq '1' -or $r[20] -eq '1' -or $r[21] -eq '1')))) }
   "$s : $($rows.Count - $n0) plays, $nb with FTN blitz/box, $nc with man/zone coverage"
 }
-$obj = [ordered]@{ built=(Get-Date).ToUniversalTime().ToString("o"); cols=@("season","week","off","def","kind","passer","target","rusher","yds","cmp","td","yl","air","blitz","box","mz","cov"); ids=$ids; plays=$rows }
+$obj = [ordered]@{ built=(Get-Date).ToUniversalTime().ToString("o"); cols=@("season","week","off","def","kind","passer","target","rusher","yds","cmp","td","yl","air","blitz","box","mz","cov","press"); ids=$ids; plays=$rows }
 $of = Join-Path $out "plays.json"; [IO.File]::WriteAllText($of, ($obj | ConvertTo-Json -Depth 4 -Compress))
 "wrote $of $((Get-Item $of).Length) bytes"

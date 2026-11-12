@@ -10,6 +10,9 @@ $UA = @{"User-Agent"="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.
 $TYPES = [ordered]@{ "core_bet_type_9_passing_yards"="PASS_YDS"; "core_bet_type_10_pass_completions"="PASS_CMP"; "core_bet_type_30_passing_attempts"="PASS_ATT";
   "core_bet_type_12_rushing_yards"="RUSH_YDS"; "core_bet_type_18_rushing_attempts"="RUSH_ATT"; "core_bet_type_16_receiving_yards"="REC_YDS"; "core_bet_type_15_receptions"="REC";
   "core_bet_type_66_rushing_receiving_yards"="RR_YDS"; "core_bet_type_62_anytime_touchdown_scorer"="ATD" }
+# types the old combined files (an_<season>_w<NN>.json) hold; anything added later is fetched on its own
+$OLD = @($TYPES.Keys)
+$TYPES["core_bet_type_11_passing_tds"] = "PASS_TD"   # Nov 12, 2026
 $BOOKS = [ordered]@{ "2988"="FAN"; "68"="DK"; "69"="FD"; "30"="OPEN" }
 # Action Network team abbreviations that differ from nflverse's
 $TEAM = @{ "LAR"="LA"; "JAC"="JAX"; "WSH"="WAS"; "LVR"="LV" }
@@ -19,8 +22,10 @@ foreach($w in $WK){
   # (raw\nfl\an_<season>_w<NN>_<type>.json). An older combined file (an_<season>_w<NN>.json) is still read when there's no refetch.
   $rf = Join-Path $raw ("an_{0}_w{1:D2}.json" -f $Season,$w)
   $J = @{}   # type -> parsed response
-  if(-not $Refetch -and (Test-Path $rf)){ $one = [IO.File]::ReadAllText($rf) | ConvertFrom-Json; foreach($tp in $TYPES.Keys){ $J[$tp] = $one } }
-  else { foreach($tp in $TYPES.Keys){ $rt = Join-Path $raw ("an_{0}_w{1:D2}_{2}.json" -f $Season,$w,$TYPES[$tp])
+  $one = if(-not $Refetch -and (Test-Path $rf)){ [IO.File]::ReadAllText($rf) | ConvertFrom-Json } else { $null }
+  # a per-type file (newer) beats the old combined one; the combined one only fills old types that have no file of their own
+  & { foreach($tp in $TYPES.Keys){ $rt = Join-Path $raw ("an_{0}_w{1:D2}_{2}.json" -f $Season,$w,$TYPES[$tp])
+      if($one -and $OLD -contains $tp -and -not (Test-Path $rt)){ $J[$tp] = $one; continue }
       if($Refetch -or -not (Test-Path $rt)){
         $u = "https://api.actionnetwork.com/web/v2/scoreboard/nfl/markets?bookIds=$($BOOKS.Keys -join ',')&customPickTypes=$tp&week=$w&season=$Season&seasonType=reg"
         $rq = Invoke-WebRequest -UseBasicParsing $u -Headers $UA -TimeoutSec 90
