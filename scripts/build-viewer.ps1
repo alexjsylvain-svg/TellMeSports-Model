@@ -64,6 +64,24 @@ foreach($f in $files){ $p = Join-Path $docs $f; if(Test-Path $p){ Copy-Item $p (
 if(Test-Path (Join-Path $docs "icons")){ Copy-Item (Join-Path $docs "icons") $out -Recurse -Force }
 $nflOut = Join-Path $out "nfl"; New-Item -ItemType Directory -Force $nflOut | Out-Null
 Get-ChildItem (Join-Path $docs "nfl") -Filter *.json -ErrorAction SilentlyContinue | ForEach-Object { Copy-Item $_.FullName (Join-Path $nflOut $_.Name) -Force }
+# the model's settings never go to viewers. The phone app doesn't read them (checked Nov 12, 2026):
+#   picks.json      model (the ~50 sim settings) and modelWeight (the sim/market blend weight)
+#   nfl/backtest    sim (the NFL game-sim fit: sdM, sdT, tdK, slopes), simW, atdHold; its "Game sim settings" card just hides
+# The per-prop sim results in board.json (cnt, lo, w, pSim) stay: the bet calculator and the charts are built from them.
+function Strip([string]$path, [string[]]$keys){
+  if(-not (Test-Path $path)){ return }
+  $j = [IO.File]::ReadAllText($path) | ConvertFrom-Json
+  $hit = @($keys | Where-Object { $j.PSObject.Properties.Name -contains $_ })
+  if(-not $hit.Count){ return }
+  foreach($k in $hit){ $j.PSObject.Properties.Remove($k) }
+  [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $j -Depth 50 -Compress), (New-Object Text.UTF8Encoding($false)))
+}
+Strip (Join-Path $out "picks.json") 'model','modelWeight'
+Strip (Join-Path $nflOut "backtest.json") 'sim','simW','atdHold'
+# guard: no model settings in the published data either
+Get-ChildItem $out -Recurse -Filter *.json | ForEach-Object {
+  $t = [IO.File]::ReadAllText($_.FullName)
+  foreach($m in '"modelWeight"','"model":{','"model": {','"slopes"','"simW"'){ if($t.Contains($m)){ throw "build-viewer: model settings $m would be published in viewer\$($_.Name)" } } }
 # nothing else may sit in viewer\ (an old copy of a model page, slate.json, ...)
 $allowed = @($files + 'index.html','icons','nfl','_headers')
 Get-ChildItem $out | Where-Object { $allowed -notcontains $_.Name } | ForEach-Object { Remove-Item $_.FullName -Recurse -Force; "build-viewer: removed $($_.Name)" }

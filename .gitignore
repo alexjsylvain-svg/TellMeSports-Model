@@ -33,3 +33,6 @@ tracking/night-status-*.json
 
 # archived copies (the old claude.ai artifact holds the full model): never publish
 archive/
+
+# local preview copy of the full model page (served by serve.ps1 at /next): never publish
+dashboard-next.html

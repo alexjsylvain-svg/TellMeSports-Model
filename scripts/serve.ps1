@@ -7,6 +7,17 @@ $l.Start()
 while ($l.IsListening) {
   $c = $l.GetContext()
   $path = $c.Request.Url.AbsolutePath
+  # Other websites must not drive this server (Nov 12, 2026 security review). Browsers label every request with where it
+  # came from: a write must come from this page itself, and the autopilot (?auto, ?lock, ?placed, ?ovr, ?run) only starts
+  # from a typed or scripted address (night.ps1, the preview pane), never from a link or form on another site.
+  # Local scripts (Invoke-WebRequest) send neither header and are allowed.
+  $site = $c.Request.Headers["Sec-Fetch-Site"]; $origin = $c.Request.Headers["Origin"]
+  $foreign = ($site -and $site -ne "same-origin" -and $site -ne "none") -or ($origin -and $origin -ne "http://localhost:$Port")
+  $pilot = [Uri]::UnescapeDataString($c.Request.Url.Query) -match '[?&](auto|lock|placed|ovr|run)(=|&|$)'
+  if ($foreign -and ($c.Request.HttpMethod -ne "GET" -or $pilot)) {
+    $c.Response.StatusCode = 403; $b = [Text.Encoding]::UTF8.GetBytes("blocked: request from another site")
+    $c.Response.OutputStream.Write($b, 0, $b.Length); $c.Response.Close(); continue
+  }
   if ($c.Request.HttpMethod -eq "POST" -and $path -eq "/upload") {
     $name = [IO.Path]::GetFileName($c.Request.QueryString["name"])
     if ($name -notmatch '^[\w\-.]+\.(mp4|webm|json)$') { $c.Response.StatusCode = 400; $c.Response.Close(); continue }
