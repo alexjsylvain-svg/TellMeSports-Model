@@ -244,16 +244,26 @@ function trainRows(M,weeks,P){
 // up to three picks a game. At openers it added +3.0u (2025) and +9.2u (2026 held out); at Fanatics -0.4u and +1.8u. Mostly catch
 // overs on 1.5 lines for depth receivers. Past +250 it lost (2-7 at openers) and +100..+150 under 60% split by season, so neither is used.
 const LONG={lo:151,hi:250,minEv:.05,stake:.5,max:3};
-function card(rows,R={minP:.60,minEv:.05,lo:-150,hi:150,perGame:2,long:LONG}){
+// Game-day long shots (Fanatics prices) need a 40%+ average snap share over the player's last 3 games this season (Nov 13, the
+// user OK'd it after Johnson and Jefferson, both ~35%, lost and voided on Nov 12). Backtest, fit 2025, 2026 wk 1-9 held out,
+// long shots at Fanatics: 2025 8-17 -0.35u -> 7-10 +2.08u, 2026 8-12 +1.82u -> 7-7 +3.50u; the ones it drops went 2-12 -4.10u.
+// Not used at openers: there the same low-snap long shots went 15-18 +4.28u (openers are soft on depth players). A snap bar on
+// main picks cost units (2026 openers +20.77u -> +4.98u), and so did discounting a player's games for a former team.
+const GAMEDAY_SNAP=.4;
+// average snap share over his last 3 games this season (the last 3 overall before he has one), before week w
+function snap3(M,pid,s,w){ const h=(M.byP[pid]||[]).filter(r=>r.ord<s*100+w), cur=h.filter(r=>r.season===s);
+  const use=(cur.length?cur:h).slice(-3).filter(r=>r.snap!=null); return use.length?use.reduce((a,r)=>a+r.snap,0)/use.length:null; }
+function card(rows,R={}){ R={minP:.60,minEv:.05,lo:-150,hi:150,perGame:2,long:LONG,...R};
   const by={}; for(const r of rows){ if(NOCARD.has(r.st)||r.out) continue;
-    const main=r.odds>=R.lo&&r.odds<=R.hi&&r.p>=R.minP&&r.ev>=R.minEv, lg=R.long&&!main&&r.odds>=R.long.lo&&r.odds<=R.long.hi&&r.ev>=R.long.minEv;
+    const main=r.odds>=R.lo&&r.odds<=R.hi&&r.p>=R.minP&&r.ev>=R.minEv, lg=R.long&&!main&&r.odds>=R.long.lo&&r.odds<=R.long.hi&&r.ev>=R.long.minEv
+      &&!(R.long.minSnap!=null&&r.snap3!=null&&r.snap3<R.long.minSnap);
     if(main||lg) (by[r.s+'|'+r.w+'|'+r.game]??=[]).push(main?r:{...r,tier:'long'}); }
   const out=[]; for(const k in by){ const pk=[]; for(const r of by[k].sort((a,b)=>(!!a.tier-!!b.tier)||(b.p-a.p)||(b.ev-a.ev))){
       if(pk.length>=(r.tier?R.long.max:R.perGame)) continue; if(pk.some(x=>x.pid===r.pid)) continue; pk.push(r); } out.push(...pk); }
   return out;
 }
 const stake=p=>p>=.66?2:p>=.64?1.5:.5;
-return {STATS,LABEL,P0,NOCARD,LONG,prep,project,makeDist,pOver,priceWeek,trainRows,card,stake,impl,dec,lg,sg,norm,findPid};
+return {STATS,LABEL,P0,NOCARD,LONG,GAMEDAY_SNAP,snap3,prep,project,makeDist,pOver,priceWeek,trainRows,card,stake,impl,dec,lg,sg,norm,findPid};
 })();
 
 // ===================== game simulator: each matchup played 10,000 times, every player's line drawn from the same game =====================
@@ -534,7 +544,12 @@ window.NFLBT={
     for(const r of rows){ const x=res[`${season}|${week}|${r.pid}|${r.st}|${r.line}`]; if(!x) continue;
       const ps=r.side==='Over'?x.pS:Math.max(0,1-x.pS-x.push); r.pSim=ps/Math.max(1e-9,1-x.push); r.simMean=x.mean;
       const W=NFL.P0.simW[r.st]; if(W){ r.pPre=r.p; r.p=NFL.sg((1-W[0]-W[1])*NFL.lg(r.pm)+W[0]*NFL.lg(r.pS)+W[1]*NFL.lg(r.pSim)); r.ev=r.p*(NFL.dec(r.odds)-1)-(1-r.p); } }
-    const picks=NFL.card(rows).map(r=>({...r, stake:r.tier==='long'?NFL.LONG.stake:NFL.stake(r.p)}));
+    // snap share on every row; a Fanatics-only freeze is a game-day card, where long shots need GAMEDAY_SNAP.
+    // Before locking a game-day card, check the official inactives (out about 90 minutes before kickoff) and re-freeze if a
+    // carded player is inactive: a healthy scratch still shows as active on the nfl.com/ESPN rosters (Van Jefferson, Nov 12).
+    for(const r of rows) r.snap3=NFL.snap3(M,r.pid,season,week);
+    const gameday=books.length===1&&books[0]==='FAN';
+    const picks=NFL.card(rows,gameday?{long:{...NFL.LONG,minSnap:NFL.GAMEDAY_SNAP}}:{}).map(r=>({...r, stake:r.tier==='long'?NFL.LONG.stake:NFL.stake(r.p)}));
     const board=rows.filter(r=>!NFL.NOCARD.has(r.st)).sort((a,b)=>b.ev-a.ev).slice(0,250);
     const games=L.games.map(g=>({game:`${g.away} @ ${g.home}`, start:g.start, open:g.props.filter(q=>q.book==='OPEN').length, fan:g.props.filter(q=>q.book==='FAN').length}));
     return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, rostersFetched:RO?.fetched||null, nSims:nS, picks, board, games, sims:scr}; }
