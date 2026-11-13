@@ -1,4 +1,4 @@
-param([int]$Season = 2026, [int]$Week, [switch]$Refetch, [switch]$DryRun)
+param([int]$Season = 2026, [int]$Week, [switch]$Refetch, [switch]$DryRun, [switch]$VoidDNP)
 # NFL pilot: grade a week's paper card(s) from nflverse box scores (tracking\nfl\data.json) into tracking\nfl\results.json.
 #   card-<S>-w<NN>.json          the card frozen before the games ("card")
 #   card-<S>-w<NN>-shadow.json   the same week priced by a candidate model, if there is one ("shadow"): graded and kept
@@ -6,7 +6,9 @@ param([int]$Season = 2026, [int]$Week, [switch]$Refetch, [switch]$DryRun)
 #   gameday-<S>-w<NN>-<date>.json  a locked game-day card at Fanatics prices (archived nfl/tonight.json): picks, plus-money
 #                                alternatives and the parlay ("gameday"), kept out of the card's record and totalled on its own
 # -DryRun prints the rows and totals without writing results.json.
-# Paper only: nothing here is a bet. A player with no box score that week (inactive) is VOID (0u), as the books do.
+# Paper only: nothing here is a bet. A player with no box score that week (didn't play) is graded a LOSS (actual 0):
+# the model chose someone who never took the field, and the record should show it. A book would have refunded it, so the row
+# carries a note saying so. -VoidDNP grades those as VOID (0u) instead, the way the books do.
 # Stakes in units; a win pays stake x (decimal odds - 1). Re-running replaces that week's rows.
 #   ./scripts/nfl-grade.ps1 -Week 10 [-Refetch]   (-Refetch first refreshes data.json from nflverse)
 $ErrorActionPreference = "Stop"
@@ -32,10 +34,10 @@ $R = if(Test-Path $rf){ [IO.File]::ReadAllText($rf) | ConvertFrom-Json } else { 
 # older hand-graded rows have no "set": they count as the card's and are replaced too
 $keep = @($R.picks | Where-Object { -not ($_.season -eq $Season -and $_.week -eq $Week -and (-not $_.set -or $_.set -in @('card','shadow','gameday'))) })
 $new = @(); $sum = [ordered]@{}
-# one prop against the box score: result, actual, units (no final yet = OPEN; no box score = VOID, as the books do)
+# one prop against the box score: result, actual, units (no final yet = OPEN; no box score = didn't play: LOSS, or VOID with -VoidDNP)
 function Grade($b){ $line = [double]$b.line; $r = $box[[string]$b.pid]; $fin = $finals[[string]$b.game]
   if(-not $fin){ return @('OPEN', $null, 0.0) }
-  if(-not $r){ return @('VOID', $null, 0.0) }
+  if(-not $r){ if($VoidDNP){ return @('VOID', $null, 0.0) }; return @('LOSS', 0, -[double]$b.stake, 'dnp') }
   $act = Val $r $b.st; $d = if($b.side -eq 'Over'){ $act - $line } else { $line - $act }
   if($d -gt 0){ return @('WIN', $act, [math]::Round($b.stake * ((Dec $b.odds) - 1), 2)) }
   if($d -lt 0){ return @('LOSS', $act, -[double]$b.stake) }
@@ -51,16 +53,17 @@ foreach($gf in @(Get-ChildItem $nfl -Filter ("gameday-{0}-w{1:D2}-*.json" -f $Se
 foreach($src in $srcs){ $set = $src[0]; $C = $src[1]
   $bets = @(@($C.picks) + $(if($set -eq 'gameday'){ @($C.alts) } else { @() }) | Where-Object { $_ })
   foreach($b in $bets){
-    $g = Grade $b; $res = $g[0]; $act = $g[1]; $u = $g[2]; Tally $set $res ([double]$b.stake) $u
+    $g = Grade $b; $res = $g[0]; $act = $g[1]; $u = $g[2]; Tally $set $res ([double]$b.stake) $u; $dnp = $g.Count -gt 3
     $bet = if($b.st -eq 'ATD'){ "$($b.player) anytime TD" } else { "$($b.player) $($b.side) $($b.line) $($LBL[$b.st])" }
-    $new += [pscustomobject][ordered]@{ season=$Season; week=$Week; set=$set; game=$b.game; final=$finals[[string]$b.game]; bet=$bet; tier=$b.tier; book=$b.book; odds=[int]$b.odds; stake=[double]$b.stake; p=[math]::Round([double]$b.p,3); actual=$act; result=$res; units=$u } }
+    $new += [pscustomobject][ordered]@{ season=$Season; week=$Week; set=$set; game=$b.game; final=$finals[[string]$b.game]; bet=$bet; tier=$b.tier; book=$b.book; odds=[int]$b.odds; stake=[double]$b.stake; p=[math]::Round([double]$b.p,3); actual=$act; result=$res; units=$u }
+    if($dnp){ $new[-1] | Add-Member note "Didn't play (no box score). Counted as a loss; a sportsbook would have refunded it." } }
   # a game-day parlay: every leg must win; a pushed or void leg drops out (its price with it); graded at the legs multiplied,
   # which is longer than the same-game price Fanatics would actually offer
   if($set -eq 'gameday' -and $C.parlay -and @($C.parlay.legs).Count){
     $rows = @(@($C.board) + @($C.picks) + @($C.alts) | Where-Object { $_ })
     $legs = @(foreach($l in $C.parlay.legs){ $m = $rows | Where-Object { $_.player -eq $l.player -and $_.st -eq $l.st -and $_.side -eq $l.side -and [double]$_.line -eq [double]$l.line } | Select-Object -First 1
       $g = Grade ([pscustomobject]@{ pid=$m.pid; game=$m.game; st=$l.st; side=$l.side; line=$l.line; stake=1; odds=$l.odds })
-      [pscustomobject]@{ l=$l; game=$m.game; res=$g[0]; act=$g[1] } })
+      [pscustomobject]@{ l=$l; game=$m.game; res=$g[0]; act=$(if($g.Count -gt 3){ 'DNP' } else { $g[1] }) } })
     $rs = @($legs | ForEach-Object { $_.res }); $won = @($legs | Where-Object { $_.res -eq 'WIN' })
     $res = if($rs -contains 'OPEN'){ 'OPEN' } elseif($rs -contains 'LOSS'){ 'LOSS' } elseif(-not $won.Count){ 'PUSH' } else { 'WIN' }
     $dec = 1.0; foreach($x in $won){ $dec *= (Dec $x.l.odds) }; $stk = [double]$(if($C.parlay.stake){ $C.parlay.stake } else { 0.25 })

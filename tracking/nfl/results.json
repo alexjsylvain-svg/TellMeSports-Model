@@ -1,6 +1,6 @@
 {
     "note":  "NFL pilot paper picks, graded after the games (paper only, not bets).",
-    "graded":  "2026-11-13T12:42:33.2645774Z",
+    "graded":  "2026-11-13T13:58:54.4702859Z",
     "picks":  [
                   {
                       "season":  2026,
@@ -476,9 +476,10 @@
                       "odds":  170,
                       "stake":  0.5,
                       "p":  0.461,
-                      "actual":  null,
-                      "result":  "VOID",
-                      "units":  0
+                      "actual":  0,
+                      "result":  "LOSS",
+                      "units":  -0.5,
+                      "note":  "Didn\u0027t play (no box score). Counted as a loss; a sportsbook would have refunded it."
                   },
                   {
                       "season":  2026,
@@ -508,9 +509,10 @@
                       "odds":  120,
                       "stake":  0.5,
                       "p":  0.515,
-                      "actual":  null,
-                      "result":  "VOID",
-                      "units":  0
+                      "actual":  0,
+                      "result":  "LOSS",
+                      "units":  -0.5,
+                      "note":  "Didn\u0027t play (no box score). Counted as a loss; a sportsbook would have refunded it."
                   },
                   {
                       "season":  2026,
@@ -524,7 +526,7 @@
                       "odds":  483,
                       "stake":  0.25,
                       "p":  0.23,
-                      "actual":  "VOID / 8",
+                      "actual":  "DNP / 8",
                       "result":  "LOSS",
                       "units":  -0.25,
                       "note":  "Graded at the legs multiplied; Fanatics\u0027 same-game price is usually shorter."
@@ -546,9 +548,9 @@
                      },
     "gamedayToDate":  {
                           "w":  0,
-                          "l":  2,
+                          "l":  4,
                           "p":  0,
-                          "staked":  0.75,
-                          "units":  -0.75
+                          "staked":  1.75,
+                          "units":  -1.75
                       }
 }
