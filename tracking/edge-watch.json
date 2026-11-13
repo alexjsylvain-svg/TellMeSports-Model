@@ -1,0 +1,15 @@
+[
+    {
+        "run":  "2026-11-13T17:23:25.6026544Z",
+        "through":  "20261112",
+        "seasonW":  66,
+        "seasonL":  18,
+        "lastN":  30,
+        "lastW":  24,
+        "lastRate":  0.8,
+        "state":  "OK",
+        "slate":  "20261113",
+        "pairs":  57,
+        "gapPts":  0.43
+    }
+]

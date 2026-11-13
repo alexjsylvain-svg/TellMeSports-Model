@@ -1,7 +1,0 @@
-﻿CHA: Coby White=P
-CHI: Nic Claxton=Q
-IND: Obi Toppin=Q; Ivica Zubac=Q
-NO: Jordan Poole=P
-DEN: Alpha Diallo=P; Cameron Johnson=P
-DAL: Santi Aldama=Q
-MIA: Giannis Antetokounmpo=P; Myron Gardner=Q

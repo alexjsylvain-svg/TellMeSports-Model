@@ -1,0 +1,35 @@
+name: Model check
+
+# Re-simulates four archived NBA nights with the page as pushed and compares the cards with scripts/check-baseline.json.
+# It fails when the model's output moved, so an accidental model change can't ride along with a page edit.
+# After an approved model change, re-baseline on the PC (scripts/check.ps1 -Update) and push the new baseline with it.
+# NBA only: the NFL half needs tracking/nfl/data.json and plays.json, which are too large for git.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "nba-matchup-sim.html"
+      - "scripts/harness.js"
+      - "scripts/check.ps1"
+      - "scripts/check-baseline.json"
+      - "scripts/serve.ps1"
+      - "scripts/bt-feed.ps1"
+      - ".github/workflows/model-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-check
+  cancel-in-progress: true
+
+jobs:
+  nba:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Re-simulate archived nights and compare with the baseline
+        shell: powershell
+        run: ./scripts/check.ps1 -Only nba

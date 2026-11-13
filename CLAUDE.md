@@ -5,8 +5,8 @@ PowerShell 5.1 and a local server; the model itself runs in the browser.
 
 ## Where things are
 - `nba-matchup-sim.html`: the NBA model and the dashboard in one file (~330 KB; grep it, never read it whole).
-  Published as `docs/index.html` (GitHub Pages) and `viewer/` (the invite-only Cloudflare site, built by `scripts/build-viewer.ps1`).
-- `nfl.html`: the NFL model, game sims, backtest harness (`NFLBT`) and card freeze. Local only. `docs/nfl/index.html` is an older copy; leave it.
+  It opens on the card view at every width; the simulator is `?view=full` (every automated run asks for it). and `viewer/` (the invite-only Cloudflare site, built by `scripts/build-viewer.ps1`).
+- `nfl.html`: the NFL model, game sims, backtest harness (`NFLBT`) and card freeze. Local only. `docs/nfl/index.html` just redirects to the main page's NFL tab.
 - `scripts/harness.js`: NBA backtest harness (`__H`, `__PKS`, `__BT`, `__PX`), loaded into the page on the local server.
 - `tracking/`: nightly records: `picks-<date>.json` (frozen cards), `results-*.json`, `slate-*.json`/`finals-*.json` (archived nights).
   `tracking/nfl/`: `data.json` (nflverse, large: query it, don't read it), `lines-*`, `card-<S>-w<NN>.json`, `weather-*`, `results.json`.
@@ -32,7 +32,8 @@ PowerShell 5.1 and a local server; the model itself runs in the browser.
 |---|---|
 | Tonight's NBA card (fetch, 50k sims, freeze, publish; ~6 min, run in background) | `scripts/night.ps1` (`-Placed`, `-Ovr`, `-Lock` only on the user's say-so) |
 | Grade last night's NBA card | `scripts/grade.ps1`, then `scripts/notify.ps1 -Kind results` |
-| Model regression check | `scripts/check.ps1` (`-Only nba` / `-Only nfl`; `-Update` re-baselines after an approved model change) |
+| Model regression check | `scripts/check.ps1` (`-Only nba` / `-Only nfl`; `-Update` re-baselines after an approved model change). GitHub runs the NBA half on every push that touches the model (`model-check.yml`); the NFL half needs local data. |
+| Is the assist-under edge still there? | `scripts/edge-watch.ps1` (last 30 assist unders vs the season, Fanatics vs FanDuel prices; exits 2 on WATCH or ALARM) |
 | NFL week data | `nfl-data.ps1 -Refetch`, `nfl-lines.ps1`, `nfl-rosters.ps1`, `nfl-weather.ps1 -Week N` (again on game day) |
 | NFL card | freeze in the browser at `http://localhost:8765/nfl/?norun=1`: `await NFLBT.load(); await NFLBT.freeze(S,W)` |
 | Grade an NFL week (when asked) | `scripts/nfl-grade.ps1 -Week N`; a player who didn't play grades as a loss |
@@ -55,3 +56,9 @@ PowerShell 5.1 and a local server; the model itself runs in the browser.
 - Grep the two big HTML files and query JSON with PowerShell instead of reading them.
 - The model's own comments record every past test (search `Nov 9`, `Nov 12`, `Nov 13` in `nfl.html`, and the Nov notes in the NBA page).
   Check them before re-testing an idea.
+
+## One-off analysis scripts
+These answered a single question once and are part of no routine. Skip them unless the task is about that topic:
+`analyze-blowouts`, `analyze-gamelines`, `analyze-teamast`, `apply-injuries`, `card-check`, `combo-slates`, `fan-check`, `fix-eval`, `gap-summary`, `loss-review`, `minutes-audit`, `minutes-test`, `press`, `restore-picks`, `sim-summary`, `starter-screen`.
+Helpers that are in use but called by hand: `keep-awake`, `live-alerts`, `nfl-pbp`, `serve-static`, `stop-serve`.
+Old backups of picks and of the model live in `archive/` (git-ignored), not in `tracking/`.

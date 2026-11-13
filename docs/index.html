@@ -324,6 +324,10 @@ a.pa-btn{text-decoration:none;display:inline-flex;align-items:center;justify-con
 /* Nov 13: tap targets at least 44px tall (WCAG 2.2 asks for 24; 44 is the comfortable size on a phone) */
 .pa-link,.pa-pkx{min-height:44px;display:inline-flex;align-items:center}
 .pa-two .pa-btn{min-height:44px} .pa-chips button{min-height:36px} #paBody a:not(.pa-btn){display:inline-block;padding:13px 6px;margin:-13px -2px}
+.pa-sliprow{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;min-height:44px;padding:4px 0;border:0;border-bottom:1px solid var(--rule);border-radius:0;background:none;color:var(--ink);font:inherit;font-weight:400;text-align:left;cursor:pointer} .pa-sliprow .n{min-width:0} .pa-sliprow .r{white-space:nowrap;font-family:var(--f-mono);font-size:.8rem} .pa-slip{gap:0}
+.pa-helpc{margin-top:6px} .pa-tf #tfR{grid-column:1/-1}
+.tm-toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);max-width:min(92vw,480px);background:var(--ink);color:var(--sheet);padding:12px 16px;border-radius:10px;font-size:.9rem;z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 .pa-ask{display:grid;gap:4px;justify-items:start} .pa-btn2{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--ink);background:var(--ink);color:var(--sheet);font-weight:600;font-size:.85rem;cursor:pointer}
 .pa-whybox{display:grid;gap:5px;background:var(--paper);border-radius:10px;padding:10px 12px}
 .pa-hit{display:grid;gap:10px;background:var(--paper);border-radius:12px;padding:12px}
@@ -385,7 +389,7 @@ button.pa-hb-col{cursor:pointer}
     <svg class="tm-banner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" role="img" aria-label="TellMe Sports: every prop, simulated possession by possession"> <defs> <linearGradient id="tmb-bg" x1="0" y1="0" x2="1" y2="1"> <stop offset="0" stop-color="#12233b"/><stop offset="1" stop-color="#070f1a"/> </linearGradient> <radialGradient id="tmb-glow" cx=".82" cy=".35" r=".55"> <stop offset="0" stop-color="#1fae6f" stop-opacity=".28"/><stop offset="1" stop-color="#1fae6f" stop-opacity="0"/> </radialGradient> <linearGradient id="tmb-bar" x1="0" y1="1" x2="0" y2="0"> <stop offset="0" stop-color="#1fae6f"/><stop offset="1" stop-color="#5ee6a6"/> </linearGradient> </defs> <rect width="1500" height="500" fill="url(#tmb-bg)"/> <rect width="1500" height="500" fill="url(#tmb-glow)"/> <path d="M1500 40a420 420 0 0 0 0 420" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/> <circle cx="1500" cy="250" r="120" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="3"/> <g transform="translate(110 110) scale(.546875)"> <path d="M136 112h240a56 56 0 0 1 56 56v148a56 56 0 0 1-56 56H236l-72 58v-58h-28a56 56 0 0 1-56-56V168a56 56 0 0 1 56-56z" fill="#f4f7fb"/> <rect x="140" y="256" width="60" height="78" rx="12" fill="#c9d3df"/> <rect x="226" y="200" width="60" height="134" rx="12" fill="#c9d3df"/> <rect x="312" y="146" width="60" height="188" rx="12" fill="url(#tmb-bar)"/> <line x1="124" y1="222" x2="388" y2="222" stroke="#12233b" stroke-width="7" stroke-dasharray="16 12" stroke-linecap="round"/> <circle cx="342" cy="112" r="26" fill="#ff7a45"/> <path d="M316 112h52M342 86v52M323 93c12 9 12 29 0 38M361 93c-12 9-12 29 0 38" stroke="#12233b" stroke-width="4" fill="none" stroke-linecap="round"/> </g> <text x="420" y="262" font-family="'Archivo Black','Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="132" letter-spacing="-3" fill="#f4f7fb">Tell<tspan fill="#5ee6a6">Me</tspan></text> <text x="426" y="322" font-family="'IBM Plex Mono','SFMono-Regular',Consolas,monospace" font-size="34" letter-spacing="14" fill="#9fb0c4">SPORTS DASHBOARD</text> <text x="426" y="388" font-family="'Helvetica Neue',Arial,sans-serif" font-size="30" fill="#c9d3df">Every prop, simulated possession by possession.</text> <g transform="translate(1110 150)"> <line x1="-10" y1="118" x2="310" y2="118" stroke="#f4f7fb" stroke-opacity=".55" stroke-width="3" stroke-dasharray="10 8"/> <rect x="0" y="70" width="34" height="130" rx="6" fill="url(#tmb-bar)"/> <rect x="46" y="170" width="34" height="30" rx="6" fill="#ff6b6b"/> <rect x="92" y="90" width="34" height="110" rx="6" fill="url(#tmb-bar)"/> <rect x="138" y="140" width="34" height="60" rx="6" fill="#ff6b6b"/> <rect x="184" y="100" width="34" height="100" rx="6" fill="url(#tmb-bar)"/> <rect x="230" y="50" width="34" height="150" rx="6" fill="url(#tmb-bar)"/> <rect x="276" y="80" width="34" height="120" rx="6" fill="url(#tmb-bar)"/> <text x="310" y="236" text-anchor="end" font-family="'IBM Plex Mono',Consolas,monospace" font-size="22" fill="#9fb0c4">5 of 7 over the line</text> </g></svg>
     <div class="eyebrow" id="slateMeta">TellMe Sports · loading slate…</div>
     <h1>Tonight's NBA slate, simulated possession by possession</h1>
-    <p style="margin:0"><a href="?view=phone&amp;sport=nfl" style="font-weight:600">NFL pilot: this week's paper card and backtest →</a></p>
+    <p style="margin:0"><a href="?view=phone" style="font-weight:600">← Tonight's card (simple view)</a> · <a href="?view=phone&amp;sport=nfl" style="font-weight:600">NFL pilot: this week's paper card and backtest →</a></p>
     <p class="muted">Every game runs thousands of times from last season's shot locations, make rates, assist habits, rebounding and defense, with tonight's rosters, injuries and expected starters. Results are priced against DraftKings, FanDuel, Fanatics and Caesars lines.</p>
     <div class="controls">
       <div class="field"><label for="nSims">Sims per game</label><select id="nSims"><option value="5000">5,000</option><option value="10000" selected>10,000</option><option value="25000">25,000</option><option value="50000">50,000</option><option value="100000">100,000</option></select></div>
@@ -478,7 +482,9 @@ button.pa-hb-col{cursor:pointer}
 const $=id=>document.getElementById(id);
 // Phone view: ?view=phone, or any screen under 720px wide unless ?view=full. It reads the published picks and results and
 // never runs the sims (the full page below is hidden and doesn't auto-run).
-const PHONE=(()=>{ const v=new URLSearchParams(location.search).get("view"); return v==="phone" || (v!=="full" && matchMedia("(max-width:720px)").matches); })();
+const PHONE=new URLSearchParams(location.search).get("view")!=="full";   // Nov 13: the card view at every width; the simulator is ?view=full ("Open the full model")
+// a short message at the bottom of the screen in place of a browser alert box
+function toast(msg){ let t=document.getElementById("tmToast"); if(!t){ t=document.createElement("div"); t.id="tmToast"; t.className="tm-toast"; t.setAttribute("role","alert"); document.body.appendChild(t); } t.textContent=msg; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>{ t.hidden=true; },6000); }
 if(PHONE) document.body.classList.add("phone");
 const clamp=(x,a,b)=>x<a?a:x>b?b:x;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -2106,11 +2112,11 @@ const TRK={db:null, owner:false, bets:[], state:"loading", note:""};
 }catch(e){ localTrk(); } })();
 // everyone but the owner on claude.ai keeps "My bets" in this browser (localStorage): private to the phone, no sign-in
 function localTrk(){ TRK.local=true; try{ TRK.bets=JSON.parse(localStorage.getItem("tellme-mybets-v1")||"[]"); if(!Array.isArray(TRK.bets)) TRK.bets=[]; }catch(e){ TRK.bets=[]; } TRK.state="ready"; render(); }
-function saveLocal(){ try{ localStorage.setItem("tellme-mybets-v1",JSON.stringify(TRK.bets)); }catch(e){ alert("This browser won't save bets (private browsing?)."); } render(); if(!sheet.hidden) sheetResults(); }
+function saveLocal(){ try{ localStorage.setItem("tellme-mybets-v1",JSON.stringify(TRK.bets)); }catch(e){ toast("This browser won't save bets (private browsing?)."); } render(); if(!sheet.hidden) sheetResults(); }
 const trackId=b=>`${b.date}-${b.gid}-${norm(b.player).replace(/ /g,"_")}-${b.stat}-${b.side}-${b.line}`.replace(/[^A-Za-z0-9_\-.~:@+]/g,"");
 const tracked=(date,player,stat,side,line)=>TRK.bets.find(t=>t.date===date&&t.player===player&&t.stat===stat&&t.side===side&&(line==null||t.line===line));
-async function saveTrack(b){ if(TRK.local){ const id=trackId(b); TRK.bets=TRK.bets.filter(t=>t.id!==id).concat({id,...b}); return saveLocal(); } if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(trackId(b)).set(b); }catch(e){ alert(e?.code==="quota_exceeded"?"The tracker is full.":"Couldn't save that bet. Try again in a moment."); } }
-async function dropTrack(id){ if(TRK.local){ TRK.bets=TRK.bets.filter(t=>t.id!==id); return saveLocal(); } if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(id).delete(); }catch(e){ alert("Couldn't remove that bet. Try again in a moment."); } }
+async function saveTrack(b){ if(TRK.local){ const id=trackId(b); TRK.bets=TRK.bets.filter(t=>t.id!==id).concat({id,...b}); return saveLocal(); } if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(trackId(b)).set(b); }catch(e){ toast(e?.code==="quota_exceeded"?"The tracker is full.":"Couldn't save that bet. Try again in a moment."); } }
+async function dropTrack(id){ if(TRK.local){ TRK.bets=TRK.bets.filter(t=>t.id!==id); return saveLocal(); } if(!TRK.db) return; try{ await TRK.db.collection("placed").doc(id).delete(); }catch(e){ toast("Couldn't remove that bet. Try again in a moment."); } }
 
 // ---- grading and live chances ----
 // a tracked bet's box line: tonight's from live.json, earlier nights' from boxes.json
@@ -2345,6 +2351,14 @@ function thesis(b){
   out.push(risk||rec);
   return out.filter(Boolean).join(" "); }
 var PKX=new Set();   // pick cards opened to show the chart and details
+// Tonight at a glance (Nov 13): one line per bet (player, bet, price, stake, dollars); tapping a line jumps to its card
+function betSlip(bs){ if(bs.length<3) return ""; const d=tonight();
+  return `<div class="pa-h" role="heading" aria-level="2">Tonight's bets at a glance</div><div class="pa-card pa-slip">${bs.map(b=>{ const mine=b.player&&tracked(b.date||d,b.player,b.stat,b.side);
+    return `<button class="pa-sliprow" data-act="jump" data-key="${esc(b.gid+"|"+b.bet)}"><span class="n"><b>${esc(b.player?lastName(b.player):b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${short(b.side,b.line,b.stat)}</span>`:""}${mine?` <span class="pa-st win">placed</span>`:""}</span><span class="r">${oddsTxt(b.odds)} · <b>${b.stake||0}u</b> ${usd(b.stake||0)}</span></button>`; }).join("")}
+    <div class="pa-small">Tap a bet to jump to its reasons below.</div></div>`; }
+// "How to read a pick": closed until asked for
+let HLP=false;
+function helpCard(){ return `<div><button class="pa-link" data-act="help" aria-expanded="${HLP}" style="padding:0">How to read a pick ${HLP?"▴":"▾"}</button>${HLP?`<div class="pa-card pa-helpc"><div class="pa-small"><b>U 5.5 AST</b> means under 5.5 assists; <b>O</b> is over. <b>PRA</b> is points, rebounds and assists added together.</div><div class="pa-small"><b>Win chance</b>: how often the model expects the bet to win, after blending its simulations with the sportsbook's price.</div><div class="pa-small"><b>Price</b>: −130 means bet $130 to win $100. A plus price like +115 wins $115 on a $100 bet.</div><div class="pa-small"><b>Exp. profit</b>: the average profit per dollar bet if the win chance is right.</div><div class="pa-small"><b>u (units)</b>: your standard bet size; set what 1u means to you just below. A bigger edge gets a bigger stake: 0.5u, 1.5u or 2u.</div><div class="pa-small"><b>Not locked</b>: picks can still change with injury news. <b>Locked</b>: final for tonight.</div></div>`:""}</div>`; }
 function pickCard(b){
   const t=tip(b.gid), stake=b.stake||0, mine=tracked(b.date||tonight(),b.player,b.stat,b.side), key=b.gid+"|"+b.bet, why=thesis(b);
   return `<article class="pa-card${PKX.has(key)?" open":""}" data-pk="${esc(key)}">
@@ -2358,7 +2372,7 @@ function pickCard(b){
     <button class="pa-pkx" data-act="pkx" aria-expanded="${PKX.has(key)}"><span class="o">Recent games &amp; matchup</span><span class="c">Hide recent games</span></button>
     ${b.player&&boardRow(b.player,b.stat)?`<div class="pa-two"><button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}">Details &amp; prices</button>
       ${mine?`<button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${mine.line}|${mine.odds}" style="color:var(--over)">Placed ${mine.stake}u at ${oddsTxt(mine.odds)} ✓</button>`
-        :TRK.state!=="off"?`<button class="pa-btn primary" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}|${b.odds}">I placed this</button>`:""}</div>`:""}
+        :TRK.state!=="off"?`<button class="pa-btn" data-calc="${esc(b.player)}|${b.stat}|${b.side}|${b.line}|${b.odds}">I placed this</button>`:""}</div>`:""}
   </article>`; }
 function trackRow(t,showGame){ const g=grade(t), b=g.b, lg=b.lg, row=boardRow(t.player,t.stat);
   let st=g.res, cls="n", extra="";
@@ -2426,7 +2440,7 @@ async function askRun(){ if(REQ.sent||REQ.busy||!ALERTS?.requests) return; REQ.b
     if(t.split("\n").some(l=>{ try{ return JSON.parse(l).title==="Fresh run requested"; }catch(e){ return false; } })){ REQ.sent=REQ.dup=true; REQ.busy=REQ.confirm=false; try{ localStorage.setItem("tellme-askrun",String(Date.now())); }catch(e){} render(); return; } }catch(e){}
   try{ await fetch("https://ntfy.sh/"+encodeURIComponent(ALERTS.requests),{method:"POST",body:`Someone asked for a fresh NBA run. The card was frozen ${clock(D.picks.frozenAt)} ET.`,headers:{Title:"Fresh run requested",Tags:"basketball"}});
     REQ.sent=true; REQ.busy=REQ.confirm=false; try{ localStorage.setItem("tellme-askrun",String(Date.now())); }catch(e){} render(); }
-  catch(e){ REQ.busy=false; render(); alert("Couldn't send that right now. Try again in a minute."); } }
+  catch(e){ REQ.busy=false; render(); toast("Couldn't send that right now. Try again in a minute."); } }
 function alertsCard(){ const t=ALERTS?.ntfy; if(!t) return "";
   return `<div class="pa-h" role="heading" aria-level="2">Pick alerts</div><div class="pa-card"><div class="pa-small">Get a notification when the card is posted, changes or locks, and when results are in. It uses ntfy, a free app with no account.</div>
     <ol class="pa-steps"><li>Install <b>ntfy</b>, the green app by Philipp Heckel: <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> · <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a></li>
@@ -2463,9 +2477,9 @@ function rTonight(){
   const games=calls.map(c=>{ const H=c.home, A=c.away, n=bs.filter(b=>b.gid===c.gid).length, fav=c.winner;
     return `<div class="pa-game"><div class="pa-row"><span class="pa-teams">${esc(A)} <span class="muted" style="font-size:.85rem">@</span> ${esc(H)}</span><span class="pa-small">${clock(c.time)}${n?` · <b>${n} pick${n>1?"s":""}</b>`:""}</span></div>
       <div class="pa-small">Model: <b>${esc(fav)} ${P1(c.winProb)}</b> · fair ${esc(H)} ${SGN(c.fairSpread)} (book ${c.spread>0?"+":""}${c.spread}) · total <b>${c.fairTotal.toFixed(1)}</b> (book ${c.total})</div></div>`; }).join("");
-  return `${statusBanner()}${recStrip()}${unitCard()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk · ${usd(risk)}</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win · ${usd(+win.toFixed(2))}</span></div></div>
+  return `${statusBanner()}${betSlip(bs)}${helpCard()}<div class="pa-card"><div class="pa-kpis"><div><b>${bs.length}</b><span>plays</span></div><div><b>${risk.toFixed(1)}u</b><span>at risk · ${usd(risk)}</span></div><div><b class="up">${win.toFixed(2)}u</b><span>to win · ${usd(+win.toFixed(2))}</span></div></div>
       <div class="pa-small">${P.final?`<span class="pa-st win">locked</span> `:`<span class="pa-st n">not locked</span> `}Frozen ${ET(P.frozenAt,{weekday:"short",hour:"numeric",minute:"2-digit"})} ET at ${(P.sims||0).toLocaleString()} sims per game. Stakes: 2u at 66%+, 1.5u at 64–66%, 0.5u at 60–64%.</div></div>
-    ${bs.length?`<div class="sr-only" role="heading" aria-level="2">Tonight's picks</div>`+bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
+    ${recStrip()}${unitCard()}${bs.length?`<div class="sr-only" role="heading" aria-level="2">Tonight's picks</div>`+bs.map(pickCard).join(""):empty("No plays tonight","Nothing cleared the bar: 60%+ to win, 5%+ expected profit, priced −150 to +150.")}
     ${parlayCard(bs.filter(b=>b.tier!=="value"&&!(tip(b.gid)&&new Date(tip(b.gid))<=Date.now())).map(b=>({g:b.gid, p:b.pBlend, odds:b.odds, label:`<b>${esc(b.player||b.bet)}</b>${b.player?` <span class="pa-pb ${sideCls(b.side)}">${esc(short(b.side,b.line,b.stat))}</span>`:""}`})),
       "Built from tonight's likeliest picks, one per game, from games that haven't tipped. Backtest, 17 nights (Oct 21–Nov 8), 1u each: 2 legs 8-7, +9.6u; 3 legs 4-10, +7.1u. One missed leg loses the whole parlay, so keep it small.")}
     ${altSection()}
@@ -2568,7 +2582,7 @@ function brk(title,groups){
 // ---- Trust view: is the model's stated win chance honest, and is any bet type going bad? ----
 // Calibration (predicted vs actual by win-chance bucket), filters, results against Fanatics' closing line (clv.ps1),
 // and a watch list of bet types running well below what the model said.
-const TF={stat:"",side:"",price:"",from:"",to:""};
+const TF={stat:"",side:"",price:"",from:"",to:"",range:""};   // range: a period preset (Nov 13) that sets from/to; "custom" shows the two date menus
 const PRICE_B=[["","Any price"],["short","−121 or shorter (favourites)"],["mid","−120 to −101"],["plus","Even or plus"]];
 const md=n=>ET(ymd(n),{month:"short",day:"numeric"});
 const priceB=o=>o<=-121?"short":o<=-101?"mid":"plus";
@@ -2609,10 +2623,10 @@ function rTrust(all){ const bs=tfilter(all), d=decided(bs), w=d.filter(b=>b.resu
   const sel=(id,opts,v)=>`<select id="${id}">${opts.map(([k,l])=>`<option value="${k}"${k===v?" selected":""}>${l}</option>`).join("")}</select>`;
   const on=TF.stat||TF.side||TF.price||TF.from||TF.to;
   return `<div class="pa-h" role="heading" aria-level="2">Can you trust it?</div>
-  ${wl.length?`<div class="pa-card pa-watch"><span class="pa-h" role="heading" aria-level="3" style="margin:0;font-size:1rem">Watch list</span>${wl.map(r=>`<div class="pa-small"><b>${r.st==="DD"?"Double-doubles":`${STAT[r.st]} ${r.sd}s`}</b>: ${r.w}-${r.n-r.w}, the model expected about ${r.ex.toFixed(1)} wins. <button class="pa-link" data-tf="${r.st}|${r.sd}">Show these</button></div>`).join("")}<div class="pa-small muted">A bet type lands here once it has 6+ decided picks and is at least 1.5 wins (and one standard deviation) behind the model's own expectation.</div></div>`:""}
+  ${wl.length?`<div class="pa-card pa-watch"><span class="pa-h" role="heading" aria-level="3" style="margin:0;font-size:1rem">Watch list</span>${wl.map(r=>`<div class="pa-small"><b>${r.st==="DD"?"Double-doubles":`${STAT[r.st]} ${r.sd}s`}</b>: ${r.w}-${r.n-r.w}, the model expected about ${r.ex.toFixed(1)} wins.${r.st==="3PM"||(r.sd==="over"&&(r.st==="AST"||r.st==="PRA"))?" <b>Already off the card.</b>":""} <button class="pa-link" data-tf="${r.st}|${r.sd}">Show these</button></div>`).join("")}<div class="pa-small muted">A bet type lands here once it has 6+ decided picks and is at least 1.5 wins (and one standard deviation) behind the model's own expectation.</div></div>`:""}
   <div class="pa-card"><div class="pa-filters pa-tf">
     ${sel("tfS",[["","All stats"],...stats.map(s=>[s,STAT[s]])],TF.stat)}${sel("tfD",[["","Both sides"],["over","Overs"],["under","Unders"]],TF.side)}
-    ${sel("tfP",PRICE_B,TF.price)}${sel("tfF",[["","From start"],...nights.map(n=>[n,"From "+md(n)])],TF.from)}${sel("tfT",[["","To last night"],...nights.map(n=>[n,"To "+md(n)])],TF.to)}
+    ${sel("tfP",PRICE_B,TF.price)}${sel("tfR",[["","All nights"],["7","Last 7 nights"],["14","Last 14 nights"],["month","This month"],["custom","Custom dates…"]],TF.range)}${TF.range==="custom"?sel("tfF",[["","From start"],...nights.map(n=>[n,"From "+md(n)])],TF.from)+sel("tfT",[["","To last night"],...nights.map(n=>[n,"To "+md(n)])],TF.to):""}
     ${on?`<button class="pa-link" data-act="tfclear" style="justify-self:start;padding:0">Clear filters</button>`:""}</div>
     <div class="pa-kpis"><div><b>${t.w}-${t.l}</b><span>${bs.length} picks</span></div><div><b>${d.length?Math.round(100*w/d.length):0}%</b><span>won · said ${d.length?Math.round(100*ex/d.length):0}%</span></div><div><b class="${t.units>=0?"up":"dn"}">${U(t.units,1)}</b><span>flat 1u</span></div></div>
     <span class="pa-h" role="heading" aria-level="3" style="margin:4px 0 0;font-size:1rem">Calibration</span>
@@ -2645,7 +2659,7 @@ function rRecord(){
     return `<div class="pa-card"><div class="pa-row"><span class="pa-h" role="heading" aria-level="3" style="margin:0">${dayTxt(d)}</span><span class="pa-small"><b>${t.w}-${t.l}</b> · ${t.risked?U(t.staked):U(t.units)+" flat"}</span></div><div class="pa-night">
       ${nb.map(b=>`<div class="pa-row"><span style="min-width:0"><b>${esc(b.bet)}</b><br><span class="pa-small">${oddsTxt(b.odds)} ${esc(b.book)} · ${P1(b.p)}${b.stake?` · ${b.stake}u`:""} · ${esc(b.actual||"")}</span></span>${chip(b.result)}</div>`).join("")}</div></div>`; };
   return `<div class="pa-h" role="heading" aria-level="2" style="margin-top:0">The model's card</div><div class="pa-card"><div class="pa-kpis"><div><b>${T.w}-${T.l}</b><span>record · ${Math.round(100*T.w/Math.max(1,T.w+T.l))}%</span></div><div><b class="${T.staked>=0?"up":"dn"}">${U(T.staked,1)}</b><span>staked units</span></div><div><b class="${T.units>=0?"up":"dn"}">${U(T.units,1)}</b><span>flat 1u</span></div></div>
-      <div class="pa-small">${T.risked?`${SGN(100*T.staked/T.risked)}% return on ${T.risked.toFixed(1)}u staked. `:""}Last night (${dayTxt(last)}): <b>${LN.w}-${LN.l}</b>, ${LN.risked?U(LN.staked)+" at stakes":U(LN.units)+" flat"}.${first?` Stakes started ${dayTxt(first.date)}; earlier picks count in the flat record only.`:""}</div>${split}</div>
+      <div class="pa-small">${T.risked?`${SGN(100*T.staked/T.risked)}% return on ${T.risked.toFixed(1)}u staked. `:""}Last night (${dayTxt(last)}): <b>${LN.w}-${LN.l}</b>, ${LN.risked?U(LN.staked)+" at stakes":U(LN.units)+" flat"}.${first?` Stakes started ${dayTxt(first.date)}; earlier picks count in the flat record only.`:""} A prop on a player who doesn't play is void, as at the sportsbooks.</div>${split}</div>
     ${brk("By bet type",types)}${myRecord()}${chart(bs)}${rTrust(bs)}${brk("By win chance",tiers)}
     <div class="pa-h" role="heading" aria-level="2">Night by night</div>${show.map(night).join("")}
     ${nights.length>3?`<button class="pa-btn" data-act="nights">${REC_ALL?"Show fewer nights":`Show all ${nights.length} nights`}</button>`:""}${foot()}`; }
@@ -2673,11 +2687,11 @@ function nfRecord(){ const ps=nfGraded(), chip=r=>`<span class="pa-st ${r==="WIN
     const tiers=[["66%+",.66,9],["64–66%",.64,.66],["60–64%",.60,.64],["Under 60%",0,.60]].map(([k,a,z])=>({k,t:tally(ps.filter(b=>b.p>=a&&b.p<z))}));
     const gd=nfGdDone(), G=tally(gd), A=tally(ps.concat(gd));
     top=`<div class="pa-card"><div class="pa-kpis"><div><b>${A.w}-${A.l}</b><span>all paper picks · ${Math.round(100*A.w/Math.max(1,A.w+A.l))}%</span></div><div><b class="${A.staked>=0?"up":"dn"}">${U(A.staked,1)}</b><span>paper units, at stakes</span></div><div><b class="${A.units>=0?"up":"dn"}">${U(A.units,1)}</b><span>flat 1u</span></div></div>
-      <div class="pa-small">Week cards: <b>${T.w}-${T.l}</b>, ${U(T.staked)}.${gd.length?` Game-day picks: <b>${G.w}-${G.l}</b>, ${U(G.staked)}.`:""} ${A.risked?`${SGN(100*A.staked/A.risked)}% return on ${A.risked.toFixed(1)}u (paper). `:""}Last week's card (week ${+wk.at(-1).split("|")[1]}): <b>${LW.w}-${LW.l}</b>, ${U(LW.staked)}. Live paper results, graded after each game; a player who doesn't play counts as a loss. The tables below are the week cards only.</div></div>
+      <div class="pa-small">Week cards: <b>${T.w}-${T.l}</b>, ${U(T.staked)}.${gd.length?` Game-day picks: <b>${G.w}-${G.l}</b>, ${U(G.staked)}.`:""} ${A.risked?`${SGN(100*A.staked/A.risked)}% return on ${A.risked.toFixed(1)}u (paper). `:""}Last week's card (week ${+wk.at(-1).split("|")[1]}): <b>${LW.w}-${LW.l}</b>, ${U(LW.staked)}. Live paper results, graded after each game. A player who doesn't play counts as a loss here, which is stricter than the NBA card (it voids the bet, as sportsbooks do). The tables below are the week cards only.</div></div>
       ${brk("By bet type",types)}${brk("By win chance",tiers)}`; }
   const wks=[...new Set(ps.map(nfWk))].sort().reverse();
   return `<div class="pa-h" role="heading" aria-level="2" style="margin-top:0">The model's paper card</div>${top}
-    <div class="pa-h" role="heading" aria-level="2">Can you trust it? The backtest</div>${nfBacktest()}
+    <div class="pa-h" role="heading" aria-level="2">Can you trust it? The backtest</div>${NF.bt?.built?`<div class="pa-small">Backtest last run ${ET(NF.bt.built,{month:"short",day:"numeric"})}. It is re-run when the model changes, so it can trail the newest settings by a few days.</div>`:""}${nfBacktest()}
     ${wks.length?`<div class="pa-h" role="heading" aria-level="2">Week by week</div>`:""}${wks.map(k=>{ const wp=ps.filter(p=>nfWk(p)===k), t=tally(wp);
       return `<div class="pa-card"><div class="pa-row"><span class="pa-h" role="heading" aria-level="3" style="margin:0">${k.split("|")[0]} week ${+k.split("|")[1]}</span><span class="pa-small"><b>${t.w}-${t.l}</b> · ${U(t.staked)}</span></div><div class="pa-night">
         ${wp.map(p=>`<div class="pa-row"><span style="min-width:0"><b>${esc(p.bet)}</b><br><span class="pa-small">${oddsTxt(p.odds)} ${nfBook(p.book)} · ${P1(p.p)} · ${p.stake}u · actual ${esc(String(p.actual??"–"))} · ${esc(p.final||p.game)}</span></span>${chip(p.result)}</div>`).join("")}</div></div>`; }).join("")}
@@ -2900,14 +2914,16 @@ app.addEventListener("click",e=>{
   else if(a.dataset.act==="copytopic"){ const tp=a.dataset.topic, done=()=>{ a.textContent="Copied ✓"; setTimeout(()=>{ a.textContent="Copy topic"; },2500); };
     (navigator.clipboard?.writeText(tp)||Promise.reject()).then(done).catch(()=>{ const r=document.createRange(), el=app.querySelector(".pa-topic"); r.selectNodeContents(el); const s=getSelection(); s.removeAllRanges(); s.addRange(r); try{ document.execCommand("copy"); done(); }catch(e){ a.textContent="Press and hold the topic to copy"; } }); }
   else if(a.dataset.act==="pkx"){ const c=a.closest("[data-pk]"), k=c.dataset.pk, on=!PKX.has(k); on?PKX.add(k):PKX.delete(k); c.classList.toggle("open",on); a.setAttribute("aria-expanded",on); }
-  else if(a.dataset.act==="share"){ const b=(D.picks?.bets||[]).find(x=>x.gid+"|"+x.bet===a.dataset.key); if(b) sharePick(b).catch(()=>alert("Couldn't make the picture on this phone.")); }
-  else if(a.dataset.act==="tfclear"){ Object.assign(TF,{stat:"",side:"",price:"",from:"",to:""}); render(); }
+  else if(a.dataset.act==="jump"){ const c=[...app.querySelectorAll("[data-pk]")].find(x=>x.dataset.pk===a.dataset.key); if(c){ const top=c.getBoundingClientRect().top+scrollY-(app.querySelector(".pa-top")?.offsetHeight||0)-8; window.scrollTo({top,behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"}); } }
+  else if(a.dataset.act==="help"){ HLP=!HLP; render(); }
+  else if(a.dataset.act==="share"){ const b=(D.picks?.bets||[]).find(x=>x.gid+"|"+x.bet===a.dataset.key); if(b) sharePick(b).catch(()=>toast("Couldn't make the picture on this phone.")); }
+  else if(a.dataset.act==="tfclear"){ Object.assign(TF,{stat:"",side:"",price:"",from:"",to:"",range:""}); render(); }
   else if(a.dataset.act==="full"){ if(D.picks) FROZEN=D.picks; document.body.classList.remove("phone"); app.hidden=true; window.scrollTo(0,0); if(typeof runAll==="function"&&SLATE&&!Object.keys(PRICED).length) runAll(); }
 });
 app.addEventListener("input",e=>{ if(e.target.id==="paUnit"){ const v=+e.target.value; if(v>0){ UNIT=v; try{ localStorage.setItem("tellme-unit",String(v)); }catch(x){} app.querySelectorAll("[data-u]").forEach(s=>{ s.textContent=usdTxt(+s.dataset.u); }); } return; }
   if(e.target.id==="paQ"){ PF.q=e.target.value; PF.n=60; document.getElementById("paPL").innerHTML=propsList(); }
   if(e.target.id==="nfQ"){ NF.q=e.target.value; NF.n=60; document.getElementById("nfPL").innerHTML=nfPropsList(); } });
-app.addEventListener("change",e=>{ const TFK={tfS:"stat",tfD:"side",tfP:"price",tfF:"from",tfT:"to"}[e.target.id]; if(TFK){ TF[TFK]=e.target.value; render(); document.getElementById(e.target.id)?.focus({preventScroll:true}); return; }
+app.addEventListener("change",e=>{ const TFK={tfS:"stat",tfD:"side",tfP:"price",tfF:"from",tfT:"to",tfR:"range"}[e.target.id]; if(TFK){ TF[TFK]=e.target.value; if(TFK==="range"){ const ns=[...new Set((D.season?.bets||[]).map(b=>b.date))].sort(), v=TF.range; if(v!=="custom"){ TF.to=""; TF.from=v==="7"?ns.at(-7)||"":v==="14"?ns.at(-14)||"":v==="month"?ns.find(n=>n.slice(0,6)===ns.at(-1).slice(0,6))||"":""; } } render(); document.getElementById(e.target.id)?.focus({preventScroll:true}); return; }
   if(e.target.id==="nfG"){ NF.game=e.target.value; NF.n=60; render(); document.getElementById("nfG")?.focus({preventScroll:true}); return; }
   if(e.target.id==="nfAll"){ NF.all=e.target.value==="1"; NF.n=60; render(); return; }
   if(e.target.id==="paG"){ PF.game=e.target.value; PF.n=60; render(); } else if(e.target.id==="paAll"){ PF.all=e.target.value==="1"; PF.ban=e.target.value!=="b"; PF.n=60; render(); } });
