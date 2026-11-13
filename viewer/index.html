@@ -1053,7 +1053,8 @@ async function loadNFL(){ if(NF.loaded) return; NF.loaded=true; const g=n=>fetch
 // the paper picks graded so far (nfl/results.json), newest week first
 // Record, laid out like the NBA Record tab: the paper card's totals, by bet type and win chance, the backtest (Can you trust it?),
 // week by week, then league trends. Paper results come from nfl/results.json (units there are staked units).
-const nfGraded=()=>(NF.res?.picks||[]).map(p=>{ const m=String(p.bet).match(/(Over|Under) [\d.]+ (.+)$/);
+// the card's record only: game-day rows (set "gameday", Fanatics prices on game day) are totalled apart in nfGameday()
+const nfGraded=()=>(NF.res?.picks||[]).filter(p=>!p.set||p.set==="card").map(p=>{ const m=String(p.bet).match(/(Over|Under) [\d.]+ (.+)$/);
   return {...p, staked:p.units||0, units:p.result==="WIN"?dec(p.odds)-1:p.result==="LOSS"?-1:0, risked:p.stake, type:m?`${m[2].replace(/^./,c=>c.toUpperCase())} ${m[1].toLowerCase()}s`:"Other"}; });
 const nfWk=p=>`${p.season}|${String(p.week).padStart(2,"0")}`;
 function nfRecStrip(){ const ps=nfGraded(); if(!ps.length) return ""; const T=tally(ps), last=[...new Set(ps.map(nfWk))].sort().at(-1), L=tally(ps.filter(p=>nfWk(p)===last));
@@ -1073,7 +1074,13 @@ function nfRecord(){ const ps=nfGraded(), chip=r=>`<span class="pa-st ${r==="WIN
     ${wks.length?`<div class="pa-h">Week by week</div>`:""}${wks.map(k=>{ const wp=ps.filter(p=>nfWk(p)===k), t=tally(wp);
       return `<div class="pa-card"><div class="pa-row"><span class="pa-h" style="margin:0">${k.split("|")[0]} week ${+k.split("|")[1]}</span><span class="pa-small"><b>${t.w}-${t.l}</b> · ${U(t.staked)}</span></div><div class="pa-night">
         ${wp.map(p=>`<div class="pa-row"><span style="min-width:0"><b>${esc(p.bet)}</b><br><span class="pa-small">${oddsTxt(p.odds)} ${nfBook(p.book)} · ${P1(p.p)} · ${p.stake}u · actual ${esc(String(p.actual??"–"))} · ${esc(p.final||p.game)}</span></span>${chip(p.result)}</div>`).join("")}</div></div>`; }).join("")}
-    <div class="pa-h">League trends</div>${nfTrends()}${nfFoot()}`; }
+    ${nfGameday()}<div class="pa-h">League trends</div>${nfTrends()}${nfFoot()}`; }
+// game-day cards (locked nfl/tonight.json, graded by nfl-grade.ps1 as set "gameday"): picks, alternatives and the parlay
+function nfGameday(){ const ps=(NF.res?.picks||[]).filter(p=>p.set==="gameday"&&p.result!=="OPEN").map(p=>({...p, staked:p.units||0, units:p.result==="WIN"?dec(p.odds)-1:p.result==="LOSS"?-1:0, risked:p.stake}));
+  if(!ps.length) return ""; const T=tally(ps), kind=p=>p.tier==="parlay"?"parlay":p.tier==="alt"?"alt":p.tier==="long"?"long shot":"pick";
+  const chip=r=>`<span class="pa-st ${r==="WIN"?"win":r==="LOSS"?"loss":"n"}">${r==="WIN"?"W":r==="LOSS"?"L":esc(r||"–")}</span>`;
+  return `<div class="pa-h">Game-day picks (Fanatics prices)</div><div class="pa-card"><div class="pa-small"><b>${T.w}-${T.l}</b> · <b class="${T.staked>=0?"up":"dn"}">${U(T.staked)}</b> paper. Priced at Fanatics on game day and locked before kickoff: picks, plus-money alternatives and the parlay. Kept apart from the card's record. The parlay is graded at the legs multiplied, which pays more than Fanatics' same-game price would.</div><div class="pa-night">
+    ${ps.map(p=>`<div class="pa-row"><span style="min-width:0"><b>${esc(p.bet)}</b><br><span class="pa-small">${kind(p)} · ${oddsTxt(p.odds)} · ${P1(p.p)} · ${p.stake}u · actual ${esc(String(p.actual??"–"))} · ${esc(p.final||p.game)}</span></span>${chip(p.result)}</div>`).join("")}</div></div>`; }
 function nfFoot(){ return `<div class="pa-foot"><p>NFL pilot: every pick is frozen before kickoff, tracked on paper and graded against the final box score. They aren't recommended bets until the live record earns it.</p></div>`; }
 const nfBet=r=>r.st==="ATD"?"Anytime TD":`${r.side} ${r.line} ${NFL_LABEL[r.st]||r.st}`;
 const nfBook=b=>b==="OPEN"?"opener":b==="FAN"?"Fanatics":b;
