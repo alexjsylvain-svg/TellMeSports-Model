@@ -39,3 +39,5 @@ archive/
 
 # local preview copy of the full model page (served by serve.ps1 at /next): never publish
 dashboard-next.html
+
+tracking/check-*.json
