@@ -64,6 +64,18 @@ const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8,td:
 //   left at 1. Role-spike shrink (S0.k0, target/carry shares pulled toward 3%) .3 -> 1.5: worse on every stat, left at .3.
 //   The official injury report beats a stale ESPN tag for this week's card (curFn: Out/Doubtful there drops a player, a player
 //   on the report without either is kept even if ESPN still says Out).
+// Nov 13 factor audit (fit 2025, held out 2026 wk 1-9; blend log loss on REC/REC_YDS/PASS_YDS/RUSH_ATT/RUSH_YDS overs at the
+// opener, base .68120; card units staked at OPEN 2026/2025 and FAN 2026/2025, base +17.84/+10.66/+2.92/-2.15):
+//   opponent factor (gamma .5): kept. Off .68145, +12.72/+8.89/-3.53/+1.06; full strength (1) .68182, +10.95/+7.62/-0.76/-1.81.
+//   man/zone + coverage shell: kept. Off .68150, +12.22/+15.49/+0.13/-5.37.
+//   blitz .68145, top-target "primary defender" .68149 (+8.53 at 2026 openers), box count no change: all stay off.
+//   home field (homeF, vs his own home/away mix): worse at every size (.68126-.68150); the spread already carries it.
+//   indoors (domeF): worse at every size (.68139-.68175).
+//   wind (windF per mph over windAt, vs his history's wind): on all passing and receiving, mixed. On passing only (windPassOnly)
+//   at 14 mph, .10: pass yds held out .6879 -> .6847 (model .6975 -> .6896), pass-yds card picks 3-1 -> 7-2 at 2026 openers,
+//   whole card +18.60/+13.86/+4.01/+9.71. Box scores agree: QBs threw 88% (2024) and 85% (2025) of their usual yards in 15+ mph
+//   wind; receivers showed no steady drop. Not live: nflverse records wind after the game (and only 45 of 2026's games so far),
+//   so it needs a forecast at freeze time, and the 14 mph threshold was picked from the same 2025 data.
 const NOCARD=new Set(['PASS_ATT','PASS_CMP','RR_YDS','PASS_TD']);
 // ---- matchup engine (play-by-play): per player-game production split by the defense's look, per defense-game the looks it
 // showed. Splits: blitz (FTN: 1+ blitzers) on dropbacks; man vs zone and coverage shell (pbp participation, 2025 only:
@@ -141,11 +153,15 @@ function matchup(MX,pid,st,s,w,opp,P,recShare){
   if(fx.top&&(st==='REC'||st==='REC_YDS')) m*=topMult(MX,pid,s,w,opp,P);
   return m;
 }
+// game weather for the factor tests (Nov 13): dome/closed roof = indoors, no wind; outdoors/open = the recorded wind (mph), or null
+// when it wasn't recorded. nflverse records wind after the game, so a live card would need a forecast instead.
+const gameWx=g=>/dome|closed/i.test(g?.roof||'')?{dome:1,wind:0}:/outdoors|open/i.test(g?.roof||'')?{dome:0,wind:g.wind??null}:{dome:null,wind:null};
 function prep(D,PL){
   const gk={};
   for(const a of D.games){ const g={}; D.gameCols.forEach((c,i)=>g[c]=a[i]); gk[`${g.season}|${g.week}|${g.home}`]=g; gk[`${g.season}|${g.week}|${g.away}`]=g; }
   const R=D.rows.map(a=>{ const r={}; D.rowCols.forEach((c,i)=>r[c]=a[i]); r.ord=r.season*100+r.week; r.pg=r.pos==='FB'?'RB':r.pos; r.rr=(r.ryds||0)+(r.recyds||0); r.td=(r.rtd||0)+(r.rectd||0);
-    const g=gk[`${r.season}|${r.week}|${r.team}`]; if(g&&g.total!=null&&g.spread!=null){ const s=g.home===r.team?1:-1; r.tt=g.total/2+s*g.spread/2; r.sp=s*g.spread; } return r; });
+    const g=gk[`${r.season}|${r.week}|${r.team}`]; if(g&&g.total!=null&&g.spread!=null){ const s=g.home===r.team?1:-1; r.tt=g.total/2+s*g.spread/2; r.sp=s*g.spread; }
+    if(g){ r.home=g.home===r.team?1:0; const wx=gameWx(g); r.dome=wx.dome; r.wind=wx.wind; } return r; });
   const byP={}, byName={};
   for(const r of R){ (byP[r.pid]??=[]).push(r); (byName[norm(r.name)]??=new Set()).add(r.pid); }
   for(const k in byP) byP[k].sort((a,b)=>a.ord-b.ord);
@@ -167,9 +183,10 @@ function project(M,pid,st,s,w,ctx,P){
   const all=M.byP[pid]; if(!all) return null; const f=STATS[st], ord=s*100+w;
   const hist=all.filter(r=>r.ord<ord&&r.season>=s-1&&!(r.snap!=null&&r.snap<P.minSnap));
   if(hist.length<P.minG) return null;
-  let sw=0,sx=0,stt=0,swt=0,ssp=0;
+  let sw=0,sx=0,stt=0,swt=0,ssp=0,hw=0,hs=0,dw=0,ds=0,ww=0,ws=0;
   for(let i=hist.length-1,age=0;i>=0;i--,age++){ const r=hist[i], wt=Math.pow(.5,age/P.hl)*(r.season<s?P.prevW:1);
-    sw+=wt; sx+=wt*(r[f]||0); if(r.tt!=null){ stt+=wt*r.tt; swt+=wt; ssp+=wt*r.sp; } }
+    sw+=wt; sx+=wt*(r[f]||0); if(r.tt!=null){ stt+=wt*r.tt; swt+=wt; ssp+=wt*r.sp; }
+    if(r.home!=null){ hw+=wt; hs+=wt*r.home; } if(r.dome!=null){ dw+=wt; ds+=wt*r.dome; } if(r.wind!=null){ ww+=wt; ws+=wt*r.wind; } }
   const last=hist[hist.length-1], base=sx/sw; let m=base;
   // anytime TD: expected TDs = a mix of his expected TDs from his carries and targets by field position (play-by-play) and
   // his actual TD rate, both weighted like the box-score history
@@ -177,6 +194,11 @@ function project(M,pid,st,s,w,ctx,P){
       let xw=0,xs=0; for(let i=ks.length-1,age=0;i>=0;i--,age++){ const wt=Math.pow(.5,age/P.hl)*(ks[i].s<s?P.prevW:1); xw+=wt; xs+=wt*ks[i].xtd; }
       if(ks.length>=2) m=P.tdMix*(xs/xw)+(1-P.tdMix)*base; } }
   if(ctx.tt!=null&&swt>0){ m*=Math.pow(ctx.tt/(stt/swt),P.alpha[GROUP[st]]); if(GROUP[st]==='rush') m*=Math.exp(P.beta*(ctx.sp-ssp/swt)); }
+  // factor tests (off unless set; Nov 13): home field, indoors, and wind on passing/receiving, each against his own history's mix
+  if(P.homeF&&ctx.home!=null&&hw>0) m*=Math.exp(P.homeF*(ctx.home-hs/hw));
+  const pr=GROUP[st]==='pass'||GROUP[st]==='rec', wa=P.windAt??10;
+  if(P.domeF&&pr&&ctx.dome!=null&&dw>0) m*=Math.exp(P.domeF*(ctx.dome-ds/dw));
+  if(P.windF&&(P.windPassOnly?GROUP[st]==='pass':pr)&&ctx.wind!=null&&ww>0) m*=Math.exp(-P.windF*(Math.max(0,ctx.wind-wa)-Math.max(0,ws/ww-wa)));
   const of=oppFactor(M,ctx.opp,s,w,last.pg,st,P.k); m*=Math.pow(of,P.gamma);
   let rr=0,rc=0; for(const r of hist){ rr+=r.rr||0; rc+=r.recyds||0; }
   const mx=matchup(M.MX,pid,st,s,w,ctx.opp,P,rr>0?rc/rr:.5); m*=mx;
@@ -212,7 +234,7 @@ function priceWeek(M,L,dist,P,{book='FAN',grade=true,cur=null}={}){
       let team=played?.team ?? hist.filter(r=>r.ord<s*100+w).slice(-1)[0]?.team; if(!team) continue;
       const c=cur?cur(q.player,[g.away,g.home]):null; if(cur){ if(!c||![g.away,g.home].includes(c.team)) continue; team=c.team; }
       const home=team===g.home, opp=home?g.away:g.home;
-      const ctx={opp, tt:tot!=null&&spr!=null?tot/2+(home?1:-1)*spr/2:null, sp:spr!=null?(home?1:-1)*spr:0};
+      const ctx={opp, tt:tot!=null&&spr!=null?tot/2+(home?1:-1)*spr/2:null, sp:spr!=null?(home?1:-1)*spr:0, home:home?1:0, ...gameWx(gm)};
       const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
       // anytime TD: chance of 1+ = 1 - e^-expected TDs; the market chance from the Yes price less an assumed margin
       const atd=q.stat==='ATD';
@@ -234,7 +256,7 @@ function trainRows(M,weeks,P){
     for(const g of L.games){ const gm=M.gk[`${s}|${w}|${g.home}`];
       for(const q of g.props){ if(q.stat==='ATD') continue; const pid=findPid(M,q.player,[g.away,g.home],s,w); if(!pid) continue; const key=`${pid}|${s}|${w}|${q.stat}`; if(seen.has(key)) continue; seen.add(key);
         const played=M.byP[pid].find(r=>r.season===s&&r.week===w); if(!played) continue; const home=played.team===g.home;
-        const ctx={opp:home?g.away:g.home, tt:gm?.total!=null&&gm?.spread!=null?gm.total/2+(home?1:-1)*gm.spread/2:null, sp:gm?.spread!=null?(home?1:-1)*gm.spread:0};
+        const ctx={opp:home?g.away:g.home, tt:gm?.total!=null&&gm?.spread!=null?gm.total/2+(home?1:-1)*gm.spread/2:null, sp:gm?.spread!=null?(home?1:-1)*gm.spread:0, home:home?1:0, ...gameWx(gm)};
         const pr=project(M,pid,q.stat,s,w,ctx,P); if(!pr) continue;
         out.push({st:q.stat, m:pr.m, lm:Math.log(Math.max(pr.m,.1)), a:played[STATS[q.stat]]||0, line:q.line, s, w}); } } }
   return out;
