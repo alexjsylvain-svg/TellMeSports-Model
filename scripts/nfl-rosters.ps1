@@ -15,7 +15,7 @@ foreach($t in $teams){
   $o = [ordered]@{ espn=@(); nfl=@(); depth=[ordered]@{} }
   try{
     $r = Invoke-RestMethod "$api/teams/$($t.id)/roster" -Headers $UA -TimeoutSec 60
-    $o.espn = @(foreach($g in $r.athletes){ foreach($a in $g.items){ [ordered]@{ name=$a.displayName; pos=$a.position.abbreviation; group=$g.position; status=$a.status.name; inj=(@($a.injuries | % { $_.status }) -join ",") } } })
+    $o.espn = @(foreach($g in $r.athletes){ foreach($a in $g.items){ [ordered]@{ name=$a.displayName; id=$a.id; pos=$a.position.abbreviation; group=$g.position; status=$a.status.name; inj=(@($a.injuries | % { $_.status }) -join ",") } } })
   } catch { $miss += "$code espn roster" }
   try{
     $d = Invoke-RestMethod "$api/teams/$($t.id)/depthcharts" -Headers $UA -TimeoutSec 60
@@ -32,5 +32,8 @@ foreach($t in $teams){
 }
 $obj = [ordered]@{ fetched=(Get-Date).ToUniversalTime().ToString("o"); sources="nfl.com team rosters; ESPN rosters, injuries and depth charts"; teams=$res }
 $of = Join-Path $out "rosters.json"; [IO.File]::WriteAllText($of, ($obj | ConvertTo-Json -Depth 6 -Compress))
+# ids.json: team -> normalized name -> ESPN athlete id, so the phone page can show headshots (same key as nfNm in the page)
+$ids = [ordered]@{}; foreach($k in $res.Keys){ $m = [ordered]@{}; foreach($a in $res[$k].espn){ if($a.id){ $n = (($a.name.ToLower() -replace '[^a-z]','') -replace '(jr|sr|ii|iii|iv)$',''); if(-not $m.Contains($n)){ $m[$n] = "$($a.id)" } } }; $ids[$k] = $m }
+[IO.File]::WriteAllText((Join-Path $out "ids.json"), ($ids | ConvertTo-Json -Depth 3 -Compress))
 $n = ($res.Values | % { $_.nfl.Count }) | Measure-Object -Sum; $e = ($res.Values | % { $_.espn.Count }) | Measure-Object -Sum
 "wrote $of : $($res.Count) teams, nfl.com $($n.Sum) players, ESPN $($e.Sum) players$(if($miss){"; missing: $($miss -join ', ')"})"
