@@ -49,8 +49,8 @@ const lg=x=>{x=Math.min(.99,Math.max(.01,x));return Math.log(x/(1-x));}, sg=x=>1
 // actual TD rate was worse). Margin on Yes-only TD prices 19.6% (2025 openers). No TD price cleared 5% edge in either season.
 // Rush+rec yards: blend worse than the opener out of sample (.6931 -> .7036), so priced but never carded.
 const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8,td:1}, beta:.02, gamma:.5, k:4, K:400,
-  w:{PASS_YDS:.3,PASS_CMP:.3,PASS_ATT:.35,PASS_TD:.3,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.25,REC:.3,RR_YDS:.35,ATD:.15},
-  fx:{blitz:false,mz:true,cov:true,box:false,top:false,press:false}, kP:30, kD:50, tdMix:1, atdHold:.196,
+  w:{PASS_YDS:.4,PASS_CMP:.3,PASS_ATT:.35,PASS_TD:.3,RUSH_YDS:.05,RUSH_ATT:.1,REC_YDS:.25,REC:.3,RR_YDS:.35,ATD:.15},
+  fx:{blitz:false,mz:true,cov:true,box:false,top:false,press:false}, windF:.10, windAt:14, windPassOnly:true, kP:30, kD:50, tdMix:1, atdHold:.196,
   // game-sim blend (Nov 9, fit on 2025 openers, held out 2026 wk 1-9): win chance = market, box-score model and 10,000-game sim
   // mixed in log-odds at [model, sim] weights. Rushing and anytime TD only: the sim beat the model there (rush att .6750 -> .6730,
   // rush yds .6694 -> .6684, TD .4937 -> .4932; card at openers 59-36 +9.6u -> 87-55 +18.3u staked); receiving and passing didn't.
@@ -74,8 +74,12 @@ const P0={hl:12, prevW:.4, minG:3, minSnap:.2, alpha:{pass:.8,rush:.6,rec:.8,td:
 //   wind (windF per mph over windAt, vs his history's wind): on all passing and receiving, mixed. On passing only (windPassOnly)
 //   at 14 mph, .10: pass yds held out .6879 -> .6847 (model .6975 -> .6896), pass-yds card picks 3-1 -> 7-2 at 2026 openers,
 //   whole card +18.60/+13.86/+4.01/+9.71. Box scores agree: QBs threw 88% (2024) and 85% (2025) of their usual yards in 15+ mph
-//   wind; receivers showed no steady drop. Not live: nflverse records wind after the game (and only 45 of 2026's games so far),
-//   so it needs a forecast at freeze time, and the 14 mph threshold was picked from the same 2025 data.
+//   wind; receivers showed no steady drop. LIVE since Nov 13 (the user OK'd it): nflverse records wind only after the game, so the
+//   freeze uses scripts\nfl-weather.ps1's forecast. Caveats: the 14 mph threshold was picked from the same 2025 data, and no
+//   held-out 2026 game has had 15+ mph wind yet, so watch passing picks in windy games. The 2026 gain is indirect: no 2026
+//   projection moved; with 2025's windy games accounted for, the model fits 2025 passing yards better (.7144 -> .6992), the
+//   fitted blend weight rises .3 -> .4 (now in w.PASS_YDS), and that weight tests better on 2026.
+//   Forecast vs recorded wind (40 outdoor 2025 games): correlation .83; the forecast reads low, so nfl-weather.ps1 converts it.
 const NOCARD=new Set(['PASS_ATT','PASS_CMP','RR_YDS','PASS_TD']);
 // ---- matchup engine (play-by-play): per player-game production split by the defense's look, per defense-game the looks it
 // showed. Splits: blitz (FTN: 1+ blitzers) on dropbacks; man vs zone and coverage shell (pbp participation, 2025 only:
@@ -154,8 +158,10 @@ function matchup(MX,pid,st,s,w,opp,P,recShare){
   return m;
 }
 // game weather for the factor tests (Nov 13): dome/closed roof = indoors, no wind; outdoors/open = the recorded wind (mph), or null
-// when it wasn't recorded. nflverse records wind after the game, so a live card would need a forecast instead.
-const gameWx=g=>/dome|closed/i.test(g?.roof||'')?{dome:1,wind:0}:/outdoors|open/i.test(g?.roof||'')?{dome:0,wind:g.wind??null}:{dome:null,wind:null};
+// when it wasn't recorded. nflverse records wind after the game, so a live card uses the forecast (roofFc/windFc, set by freeze
+// from scripts\nfl-weather.ps1), which wins over the schedule's roof (a neutral site, a retractable roof ESPN lists as indoor).
+const gameWx=g=>{ const roof=g?.roofFc??g?.roof??'', wind=g?.windFc??g?.wind??null;
+  return /dome|closed/i.test(roof)?{dome:1,wind:0}:/outdoors|open/i.test(roof)?{dome:0,wind}:{dome:null,wind:null}; };
 function prep(D,PL){
   const gk={};
   for(const a of D.games){ const g={}; D.gameCols.forEach((c,i)=>g[c]=a[i]); gk[`${g.season}|${g.week}|${g.home}`]=g; gk[`${g.season}|${g.week}|${g.away}`]=g; }
@@ -548,6 +554,11 @@ window.NFLBT={
   // distribution trained on every graded prop so far; players listed Out/Doubtful on this week's injury report are left out
   async freeze(season,week,{books=['OPEN','FAN'],nS=10000}={}){ const M=this.M;
     const L=await fetch(`/nfl/lines-${season}-w${String(week).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.json());
+    // game-time wind forecast (scripts\nfl-weather.ps1; run it first, and again on game day): passing projections drop past
+    // P0.windAt mph. Without the file, outdoor games have no wind and get no adjustment.
+    const WX=await fetch(`/nfl/weather-${season}-w${String(week).padStart(2,'0')}.json`,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null), wxBy={};
+    for(const x of WX?.games||[]){ wxBy[x.game]=x; const gm=M.gk[`${season}|${week}|${x.game.split(' @ ')[1]}`]; if(!gm) continue;
+      gm.roofFc=x.indoor?'dome':'outdoors'; gm.windFc=x.indoor?0:x.wind??null; }
     const train=this.WK.filter(x=>x.season<season||(x.season===season&&x.week<week)); const dist=NFL.makeDist(NFL.trainRows(M,train,NFL.P0));
     const inj=this.D.inj||{}, have=new Set(), rows=[];
     const RO=await fetch('/nfl/rosters.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null), cur=this.curFn(RO,season===this.D.season?{inj:this.D.inj,week}:{});
@@ -569,12 +580,12 @@ window.NFLBT={
     // snap share on every row; a Fanatics-only freeze is a game-day card, where long shots need GAMEDAY_SNAP.
     // Before locking a game-day card, check the official inactives (out about 90 minutes before kickoff) and re-freeze if a
     // carded player is inactive: a healthy scratch still shows as active on the nfl.com/ESPN rosters (Van Jefferson, Nov 12).
-    for(const r of rows) r.snap3=NFL.snap3(M,r.pid,season,week);
+    for(const r of rows){ r.snap3=NFL.snap3(M,r.pid,season,week); const x=wxBy[r.game]; if(x&&!x.indoor&&x.wind!=null) r.wind=x.wind; }
     const gameday=books.length===1&&books[0]==='FAN';
     const picks=NFL.card(rows,gameday?{long:{...NFL.LONG,minSnap:NFL.GAMEDAY_SNAP}}:{}).map(r=>({...r, stake:r.tier==='long'?NFL.LONG.stake:NFL.stake(r.p)}));
     const board=rows.filter(r=>!NFL.NOCARD.has(r.st)).sort((a,b)=>b.ev-a.ev).slice(0,250);
     const games=L.games.map(g=>({game:`${g.away} @ ${g.home}`, start:g.start, open:g.props.filter(q=>q.book==='OPEN').length, fan:g.props.filter(q=>q.book==='FAN').length}));
-    return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, rostersFetched:RO?.fetched||null, nSims:nS, picks, board, games, sims:scr}; }
+    return {season, week, frozenAt:new Date().toISOString(), linesFetched:L.fetched, rostersFetched:RO?.fetched||null, weatherFetched:WX?.fetched||null, nSims:nS, picks, board, games, sims:scr}; }
 };
 
 // ===================== page: the frozen paper card and the backtest summary =====================
