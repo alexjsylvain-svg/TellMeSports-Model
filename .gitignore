@@ -1,7 +1,8 @@
 # downloaded source data (re-fetched by build.ps1; ~250 MB)
 raw/
 videos/
-.claude/
+.claude/*
+!.claude/agents/
 # backtest and analysis scratch
 tracking/bt*/
 tracking/phonetest/

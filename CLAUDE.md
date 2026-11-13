@@ -10,6 +10,7 @@ PowerShell 5.1 and a local server; the model itself runs in the browser.
 - `scripts/harness.js`: NBA backtest harness (`__H`, `__PKS`, `__BT`, `__PX`), loaded into the page on the local server.
 - `tracking/`: nightly records: `picks-<date>.json` (frozen cards), `results-*.json`, `slate-*.json`/`finals-*.json` (archived nights).
   `tracking/nfl/`: `data.json` (nflverse, large: query it, don't read it), `lines-*`, `card-<S>-w<NN>.json`, `weather-*`, `results.json`.
+- `.claude/agents/`: the team (scout, backtester, grader, content). The rest of `.claude/` is git-ignored.
 - `private/` (git-ignored): webhook secrets and docs. `archive/` (git-ignored): never commit.
 
 ## Hard rules
@@ -40,7 +41,7 @@ PowerShell 5.1 and a local server; the model itself runs in the browser.
 | Local server | preview config `tellme-local` (`scripts/serve.ps1`, port 8765) |
 
 ## Commits
-- Work on `main`. End every message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- Work on `main`. End every message with the Co-Authored-By line of the Claude model doing the work, for example `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`.
 - Write the message with `[IO.File]::WriteAllText(path, text, (New-Object Text.UTF8Encoding $false))` and commit with `git commit -F path` (no BOM).
 
 ## PowerShell traps (each has bitten this repo)
