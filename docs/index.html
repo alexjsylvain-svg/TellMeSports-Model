@@ -1835,6 +1835,7 @@ const LIVE={data:null, res:{}};
 // never two picks on one player in a game (nor on one stat while G.oneStat is on; off since Nov 6); −150 to +150 only. All four nights were used to choose these rules,
 // so expect real results below the backtest.
 const MIN_P=0.60, TOP_P=0.64;
+const NEVER_CARD=new Set(["tari eason"]);   // never on the card (see gamePicks); names as norm() writes them
 // Stake by win chance (from Oct 27). Over the first 105 graded picks (Oct 21–26): 66%+ went 11-2 (+6.0u flat), 64–66% 10-4
 // (+3.5u), 60–64% 24-30 (−10.4u). Flat on the 81 picks at 60%+ that's −0.9u; staked 2 / 1.5 / 0.5 it would have been +12.1u.
 // The tiers were chosen on those same picks, so expect less going forward.
@@ -1874,6 +1875,9 @@ function gamePicks(gid, taken=[], {alts=false}={}){
   const unproven=p=>(p.prior||(p.yr&&p.yr.startsWith("2024-25"))) && !(G.newMinG>0 && curGames(p)>=G.newMinG);
   const shaky=new Set(P.props.filter(b=>b.mismatch).map(b=>b.player));
   RESULTS[gid].P.forEach(p=>{ if(p.status==="q"||unproven(p)) shaky.add(p.name); });
+  // Players the user has ruled off the card for good (Nov 14: Tari Eason, 0-4 on the card: Oct 24, Oct 30, Nov 9, Nov 13).
+  // A user rule, not a model finding: four picks prove nothing about him. His props are still priced and shown on the board.
+  P.props.forEach(b=>{ if(NEVER_CARD.has(norm(b.player))) shaky.add(b.player); });
   // Game lines (moneyline, spread, total) compete under the same bar, at most one per game. Over the first 33 graded games none
   // cleared it, and the sim's own side lost money in all three markets (ML −1.0u, spread 14-19, totals 15-18), so they rarely will.
   // No PRA overs (Nov 9): over 17 nights (Oct 21–Nov 8, current model, scripts\overs-eval.ps1) every PRA over that cleared the bar
