@@ -83,6 +83,8 @@ jobs:
           if(Test-Path picks-skip.txt){ "Tonight's card was locked while the sims ran: nothing to publish."; exit 0 }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # paper-only line-gap list (never on the card)
+          try { ./scripts/gap-paper.ps1 -Date $env:D -Log } catch { Write-Warning "gap-paper log failed: $_" }
           ./scripts/push-site.ps1 -Message "Slate $env:D refresh (on GitHub)"
 
       - name: Server log on failure

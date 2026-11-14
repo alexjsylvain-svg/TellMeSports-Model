@@ -34,6 +34,7 @@ PowerShell 5.1 and a local server; the model itself runs in the browser.
 | Grade last night's NBA card | `scripts/grade.ps1`, then `scripts/notify.ps1 -Kind results` |
 | Model regression check | `scripts/check.ps1` (`-Only nba` / `-Only nfl`; `-Update` re-baselines after an approved model change). GitHub runs the NBA half on every push that touches the model (`model-check.yml`); the NFL half needs local data. |
 | Is the assist-under edge still there? | `scripts/edge-watch.ps1` (last 30 assist unders vs the season, Fanatics vs FanDuel prices; exits 2 on WATCH or ALARM) |
+| Line-gap paper list (Fanatics line 1+ above FanDuel's, under; PAPER ONLY, never on the card) | logged by `night.ps1` and `picks.yml` each freeze, graded by `nightly-grading.yml`; by hand `scripts/gap-paper.ps1 -Log` / `-Grade -Date D` / `-Summary` |
 | NFL week data | `nfl-data.ps1 -Refetch`, `nfl-lines.ps1`, `nfl-rosters.ps1`, `nfl-weather.ps1 -Week N` (again on game day) |
 | NFL card | freeze in the browser at `http://localhost:8765/nfl/?norun=1`: `await NFLBT.load(); await NFLBT.freeze(S,W)` |
 | Grade an NFL week (when asked) | `scripts/nfl-grade.ps1 -Week N`; a player who didn't play grades as a loss |

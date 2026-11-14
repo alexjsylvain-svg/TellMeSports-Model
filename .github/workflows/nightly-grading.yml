@@ -52,6 +52,8 @@ jobs:
           $old = @{}; foreach($n in $before.nights){ $old["$($n.date)"] = ($n.sets.recommended | ConvertTo-Json -Compress) }
           foreach($n in $after.nights){ if("$($n.date)" -ne $D -and $old.ContainsKey("$($n.date)") -and $old["$($n.date)"] -ne ($n.sets.recommended | ConvertTo-Json -Compress)){ throw "ledger night $($n.date) changed; not publishing" } }
           try { ./scripts/clv.ps1 -Dates $D } catch { Write-Warning "closing lines failed: $_" }
+          # paper-only line-gap list: grade it with the box scores and Fanatics' close (never part of the record)
+          try { ./scripts/gap-paper.ps1 -Date $D -Grade } catch { Write-Warning "gap-paper grade failed: $_" }
           ./scripts/season.ps1
           $r = $after.toDate.recommended
           "Season to date: $($r.w)-$($r.l), $($r.units)u flat" + $(if($r.staked -ne $null){ ", $($r.staked)u staked" } else { "" })
