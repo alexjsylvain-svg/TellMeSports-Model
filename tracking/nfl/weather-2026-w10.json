@@ -1,7 +1,7 @@
 {
     "season":  2026,
     "week":  10,
-    "fetched":  "2026-11-13T14:29:33.3161670Z",
+    "fetched":  "2026-11-14T20:22:36.5008620Z",
     "source":  "ESPN venue and roof; Open-Meteo forecast, 10 m wind in mph averaged kickoff to +3 h (windRaw), on nflverse\u0027s scale (wind = 1.8 + 0.92 x windRaw)",
     "games":  [
                   {
@@ -24,12 +24,12 @@
                       "venue":  "FC Bayern Munich Stadium",
                       "city":  "Munich, Germany",
                       "indoor":  false,
-                      "wind":  4.6,
+                      "wind":  4.5,
                       "lat":  48.137,
                       "lon":  11.575,
-                      "windRaw":  3,
-                      "gust":  7.1,
-                      "temp":  46,
+                      "windRaw":  2.9,
+                      "gust":  6.8,
+                      "temp":  47,
                       "rain":  0
                   },
                   {
@@ -46,13 +46,13 @@
                       "venue":  "Huntington Bank Field",
                       "city":  "Cleveland, OH, USA",
                       "indoor":  false,
-                      "wind":  12.3,
+                      "wind":  13.7,
                       "lat":  41.500,
                       "lon":  -81.695,
-                      "windRaw":  11.4,
-                      "gust":  13,
-                      "temp":  46,
-                      "rain":  0.02
+                      "windRaw":  12.9,
+                      "gust":  16.4,
+                      "temp":  44,
+                      "rain":  0
                   },
                   {
                       "game":  "MIN @ GB",
@@ -60,12 +60,12 @@
                       "venue":  "Lambeau Field",
                       "city":  "Green Bay, WI, USA",
                       "indoor":  false,
-                      "wind":  3.8,
+                      "wind":  4.6,
                       "lat":  44.519,
                       "lon":  -88.020,
-                      "windRaw":  2.2,
-                      "gust":  2.4,
-                      "temp":  44,
+                      "windRaw":  3.1,
+                      "gust":  4.5,
+                      "temp":  42,
                       "rain":  0
                   },
                   {
@@ -74,12 +74,12 @@
                       "venue":  "Nissan Stadium",
                       "city":  "Nashville, TN, USA",
                       "indoor":  false,
-                      "wind":  6.4,
+                      "wind":  8.1,
                       "lat":  36.166,
                       "lon":  -86.784,
-                      "windRaw":  5,
-                      "gust":  6.6,
-                      "temp":  54,
+                      "windRaw":  6.9,
+                      "gust":  9.8,
+                      "temp":  53,
                       "rain":  0
                   },
                   {
@@ -104,12 +104,12 @@
                       "venue":  "MetLife Stadium",
                       "city":  "East Rutherford, NJ, USA",
                       "indoor":  false,
-                      "wind":  13.6,
+                      "wind":  9.8,
                       "lat":  40.834,
                       "lon":  -74.097,
-                      "windRaw":  12.8,
-                      "gust":  17.2,
-                      "temp":  49,
+                      "windRaw":  8.7,
+                      "gust":  18.4,
+                      "temp":  44,
                       "rain":  0
                   },
                   {
@@ -142,11 +142,11 @@
                       "venue":  "Paycor Stadium",
                       "city":  "Cincinnati, OH, USA",
                       "indoor":  false,
-                      "wind":  4.8,
+                      "wind":  4.3,
                       "lat":  39.127,
                       "lon":  -84.514,
-                      "windRaw":  3.2,
-                      "gust":  5.9,
+                      "windRaw":  2.7,
+                      "gust":  7.7,
                       "temp":  42,
                       "rain":  0
                   },
@@ -156,11 +156,11 @@
                       "venue":  "M\u0026T Bank Stadium",
                       "city":  "Baltimore, MD, USA",
                       "indoor":  false,
-                      "wind":  5.3,
+                      "wind":  5,
                       "lat":  39.290,
                       "lon":  -76.612,
-                      "windRaw":  3.8,
-                      "gust":  10.6,
+                      "windRaw":  3.5,
+                      "gust":  7.6,
                       "temp":  46,
                       "rain":  0
                   }
