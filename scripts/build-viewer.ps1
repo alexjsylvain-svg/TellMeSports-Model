@@ -4,7 +4,7 @@
 #   viewer\index.html      the phone app from nba-matchup-sim.html: page head and styles, the #phoneApp markup and the phone
 #                          script, with the model script replaced by the few helpers the phone app uses (copied from the model
 #                          so they stay in sync). Always the phone layout; no "Open the full model" button.
-#   viewer\*.json          picks, board, live, results, season, boxes, alerts (from docs\), nfl\*.json (not nfl\index.html)
+#   viewer\*.json          picks, board, live, results, season, boxes, creates, alerts (from docs\), nfl\*.json (not nfl\index.html)
 #   viewer\icons, manifest the home-screen app files
 # Runs in Windows PowerShell and in pwsh on GitHub's Linux runners. Called by push-site.ps1 and the nightly-grading workflow.
 #   ./scripts/build-viewer.ps1
@@ -59,7 +59,7 @@ if(-not $html.Contains('id="phoneApp"')){ throw "build-viewer: phone app markup 
 [IO.File]::WriteAllText((Join-Path $out "index.html"), $html, (New-Object Text.UTF8Encoding($false)))
 
 # data and app files
-$files = 'picks.json','board.json','live.json','results.json','season.json','boxes.json','alerts.json','manifest.webmanifest'
+$files = 'picks.json','board.json','live.json','results.json','season.json','boxes.json','creates.json','alerts.json','manifest.webmanifest'
 foreach($f in $files){ $p = Join-Path $docs $f; if(Test-Path $p){ Copy-Item $p (Join-Path $out $f) -Force } }
 if(Test-Path (Join-Path $docs "icons")){ Copy-Item (Join-Path $docs "icons") $out -Recurse -Force }
 $nflOut = Join-Path $out "nfl"; New-Item -ItemType Directory -Force $nflOut | Out-Null

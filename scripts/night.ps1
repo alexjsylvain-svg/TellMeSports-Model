@@ -94,6 +94,8 @@ Write-Host ("Out: " + ($out -join " | "))
 if($ov.Count){ Write-Host ("Overrides used: " + (($ov.GetEnumerator() | % { "$($_.Key)=$($_.Value.status)$(if($_.Value.status -eq 'q'){":"+$_.Value.prob})" }) -join ", ")) }
 # paper-only line-gap list (Nov 14): logged with each freeze, never on the card; a failure here never stops the run
 try { Write-Host (& "$PSScriptRoot/gap-paper.ps1" -Date $Date -Log) } catch { Write-Warning "gap-paper log failed: $_" }
+# "How he gets it" panel data (Nov 14): caches last night's play-by-play, writes site/creates.json; context only, never stops the run
+try { Write-Host (& "$PSScriptRoot/creates.ps1" -Date $Date) } catch { Write-Warning "creates failed: $_" }
 
 # 7. publish to GitHub Pages
 if($NoPush){ Say "not published (-NoPush)"; exit 0 }

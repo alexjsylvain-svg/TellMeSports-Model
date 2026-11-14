@@ -17,7 +17,11 @@ $map = [ordered]@{
   "results.json" = "site/results.json"
   "season.json"  = "site/season.json"
   "boxes.json"   = "site/boxes.json"
+  "creates.json" = "site/creates.json"   # "How he gets it" panel data (scripts/creates.ps1), loaded only when a player's panel is opened
 }
+# the NFL panel data follows the frozen NFL cards; rebuilt only when a card or the play-by-play is newer (needs tracking/nfl/plays.json, so PC only)
+$ncf = Join-Path $docs "nfl/creates.json"; $nsrc = @("tracking/nfl/plays.json","tracking/nfl/card.json","tracking/nfl/tonight.json","tracking/nfl/mnf.json") | % { Join-Path $root $_ } | ? { Test-Path $_ }
+if((Test-Path (Join-Path $root "tracking/nfl/plays.json")) -and (-not (Test-Path $ncf) -or @($nsrc | ? { (Get-Item $_).LastWriteTime -gt (Get-Item $ncf).LastWriteTime }).Count)){ try { & "$PSScriptRoot/nfl-creates.ps1" } catch { Write-Warning "nfl-creates failed: $_" } }
 $picksBefore = if(Test-Path (Join-Path $docs "picks.json")){ [IO.File]::ReadAllText((Join-Path $docs "picks.json")) } else { "" }   # for the phone alert
 $copied = @()
 foreach($k in $map.Keys){ $src = Join-Path $root $map[$k]; if(Test-Path $src){ Copy-Item $src (Join-Path $docs $k) -Force; $copied += $k } }
@@ -57,7 +61,7 @@ if($LASTEXITCODE -ne 0){
   $conf = @(git diff --name-only --diff-filter=U)
   # not a content clash (network, sign-in): keep our commit here for the next try, as before
   if(-not $conf.Count){ git rebase --abort 2>$null; throw "git pull --rebase failed; local commit kept, not pushed" }
-  $gen = '^(docs/[^/]+\.json|viewer/([^/]+|nfl/[^/]+)\.json|site/(slate|live)\.json|tracking/(board|picks)-\d{8}\.json|tracking/live-state-\d{8}\.json)$'
+  $gen = '^(docs/[^/]+\.json|viewer/([^/]+|nfl/[^/]+)\.json|site/(slate|live|creates)\.json|tracking/(board|picks)-\d{8}\.json|tracking/live-state-\d{8}\.json)$'
   $other = @($conf | ? { $_ -notmatch $gen })
   if($other.Count){ Set-Aside "git pull --rebase clashed in $($other -join ', '), which isn't generated data" -Fail }
   $gh = Get-Card "HEAD"; $mine = Get-Card "REBASE_HEAD"   # mid-rebase, HEAD is GitHub's tip and REBASE_HEAD is our commit

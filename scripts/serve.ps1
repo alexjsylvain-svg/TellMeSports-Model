@@ -49,7 +49,7 @@ while ($l.IsListening) {
   } elseif ($path -eq '/harness.js') {
     # backtest harness for the local preview (scripts\harness.js)
     $b = [IO.File]::ReadAllBytes((Join-Path $PSScriptRoot "harness.js")); $c.Response.ContentType = "text/javascript"
-  } elseif ($path -match '^/(slate|live|results|finals|picks|board|season|boxes|alerts)\.json$') {
+  } elseif ($path -match '^/(slate|live|results|finals|picks|board|season|boxes|alerts|creates)\.json$') {
     # picks, board, season and boxes are the phone view's files; they're only there when the -Data folder holds them
     $f = Join-Path (Split-Path $Data) ($matches[1] + ".json")
     # the /next preview falls back to the published copy (docs\) so its NBA side shows the current card
