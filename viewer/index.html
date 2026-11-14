@@ -375,6 +375,38 @@ button.pa-hb-col{cursor:pointer}
 .pa-btn{width:100%;padding:10px;border-radius:8px;font-family:var(--f-display);font-size:1rem;text-transform:uppercase;letter-spacing:.05em}
 .pa-chart svg{display:block;width:100%;height:auto}
 .pa-chart text{fill:var(--mute);font-family:var(--f-mono);font-size:10px}
+/* "How he gets it" panel (Nov 14): context next to a prop, never a model input */
+.pa-cr[open]>summary{margin-bottom:8px}
+.cr{display:grid;gap:14px;min-width:0}
+.cr-sec{display:grid;gap:8px;min-width:0}
+.cr-sec h4{margin:0;font-family:var(--f-display);font-size:1rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.cr-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:620px){.cr-two{grid-template-columns:minmax(0,1fr)}}
+.cr-rows{display:grid;gap:7px}
+.cr-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;font-size:.84rem}
+.cr-row .nm{display:flex;align-items:center;gap:6px;min-width:0}
+.cr-row .nm span.t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-row .v{font-family:var(--f-mono);font-size:.76rem;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.cr-bar{grid-column:1/-1;height:5px;background:var(--rule);border-radius:3px;overflow:hidden}
+.cr-bar i{display:block;height:100%;border-radius:3px;background:var(--accent)}
+.cr-sw{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.cr-chip{font-family:var(--f-mono);font-size:.64rem;letter-spacing:.04em;text-transform:uppercase;padding:1px 5px;border-radius:3px;flex:none}
+.cr-chip.ok{background:var(--over-soft);color:var(--over)} .cr-chip.out{background:var(--under-soft);color:var(--under)} .cr-chip.q{background:var(--warn-soft);color:var(--warn)}
+.cr-court .bg{fill:var(--court)} .cr-court .pt{fill:var(--paint)} .cr-court .ln{fill:none;stroke:var(--court-line);stroke-width:.25}
+.cr-court svg,.cr-log svg{display:block;width:100%;height:auto;max-width:100%}
+.cr-log text{fill:var(--mute);font-family:var(--f-mono);font-size:7px}
+.cr-leg{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:.75rem;color:var(--mute)}
+.cr-leg span{display:inline-flex;align-items:center;gap:4px}
+.cr-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}
+.cr-kv div{display:grid;background:var(--paper);border-radius:8px;padding:6px 9px}
+.cr-kv b{font-family:var(--f-display);font-size:1.15rem;line-height:1.15}
+.cr-kv span{font-size:.7rem;color:var(--mute)}
+.cr-tbl{width:100%;border-collapse:collapse;font-size:.8rem}
+.cr-tbl th{font-weight:500;color:var(--mute);font-size:.7rem;text-align:right;padding:3px 4px;position:static;background:none}
+.cr-tbl td{padding:4px;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;border-top:1px solid var(--rule)}
+.cr-tbl th:first-child,.cr-tbl td:first-child{text-align:left;font-family:var(--f-body)}
+.cr-tbl .up{color:var(--over)} .cr-tbl .dn{color:var(--under)}
+.cr-wrap{overflow-x:auto}
 .pa-legend{display:flex;gap:14px;font-family:var(--f-mono);font-size:.75rem;color:var(--mute)}
 .pa-legend i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:3px;margin-right:5px}
 .pa-empty{text-align:center;padding:26px 14px;display:grid;gap:6px;justify-items:center}
@@ -620,6 +652,7 @@ function sheetResults(){ const row=S.row, oo=curOO(), r=priceAt(row,S.side,S.lin
     <div class="pa-chart"><svg viewBox="0 0 ${W} 54" preserveAspectRatio="none" style="height:64px" role="img" aria-label="Sim distribution with the line at ${S.line}">${hist}<line x1="${lx}" x2="${lx}" y1="0" y2="44" stroke="var(--ink)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
       <div class="pa-row pa-small"><span>${row.lo}</span><span>${row.lo+row.cnt.length-1}</span></div></div>
     ${logTable(row)}
+    ${crPanel(row)}
     ${live?`<div class="pa-small"><b>In progress.</b> These numbers are pregame; the Live tab has the chance from here.</div>`:""}
     ${TRK.state==="off"?`<div class="pa-small">Bet tracking needs you signed in as the page's owner, with tracking switched on for the page.</div>`
       : mine?`<div class="pa-verdict go" style="background:var(--accent-soft);color:var(--accent)"><b>Tracked</b><span>${mine.stake}u at ${oddsTxt(mine.odds)} ${esc(mine.book||"")}</span></div><button class="pa-btn" data-act="untrack" data-id="${esc(mine.id)}">Remove from my bets</button>`
@@ -646,6 +679,58 @@ function detailBlock(row,r,v){ const inj=D.board?.injuries?.[row.gid]||{}, opp=O
     ${row.team?li(`<b>${esc(row.team)} injuries:</b> ${lst(inj[row.team])}`):""}${opp?li(`<b>${esc(opp)} injuries:</b> ${lst(inj[opp])}`):""}
     ${l5.length>=4&&l5h/l5.length<.4?li(`<b class="dn">Against it:</b> only ${l5h} of his last ${l5.length} games went ${S.side.toLowerCase()} ${S.line}.`):""}
     ${row.flag?li(`Flag: ${esc(row.flag)}`):""}</ul></div>`; }
+// ---- "How he gets it" (Nov 14): season play-by-play behind a prop, from creates.json (scripts/creates.ps1). Context only:
+// nothing here feeds a projection, a win chance or the card. Loaded the first time the panel is opened.
+let CR=null, CRL=false, CROPEN=false;
+const CRZ=["At the rim","Paint","Mid-range","Corner 3","Above-break 3"], CRC=["var(--accent)","var(--ball)","var(--home)"];
+const crSt=s=>{ const t=String(s||""); return /out/i.test(t)?["out","Out tonight"]:/doubt/i.test(t)?["out","Doubtful"]:/ques|day-to-day|gtd/i.test(t)?["q","Questionable"]:/prob/i.test(t)?["q","Probable"]:t==="Active"?["ok","Playing"]:null; };
+const crChip=s=>{ const c=crSt(s); return c?`<span class="cr-chip ${c[0]}">${c[1]}</span>`:""; };
+const crPct=(a,b)=>b?Math.round(100*a/b)+"%":"–";
+function crLoad(){ if(CR||CRL) return; CRL=true;
+  fetch("creates.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null).then(d=>{ CR=d||{players:{}}; CRL=false; const el=document.getElementById("crBody"); if(el&&S.row) el.innerHTML=crBody(S.row); }); }
+document.addEventListener("toggle",e=>{ const t=e.target; if(t.classList&&t.classList.contains("pa-cr")){ CROPEN=t.open; if(t.open) crLoad(); } },true);
+const CR_LAB={PTS:"points",REB:"rebounds",AST:"assists","3PM":"threes",PRA:"points, rebounds & assists",PR:"points & rebounds",PA:"points & assists",RA:"rebounds & assists",DD:"double-double"};
+function crPanel(row){ return `<details class="pa-log pa-cr"${CROPEN?" open":""}><summary>How he gets his ${CR_LAB[row.stat]||esc(STAT[row.stat]||row.stat)}</summary><div id="crBody">${CR?crBody(row):'<div class="pa-small">Loading this season&#39;s play-by-play…</div>'}</div></details>`; }
+// half court, baseline at the top: ESPN's x runs 0-50 across, y is feet out from the rim (5.25 ft off the baseline)
+function crCourt(dots,label){ const hy=5.25, R=23.75, cy=(hy+Math.sqrt(R*R-22*22)).toFixed(2), seen={};
+  let s=`<rect class="bg" x="-1" y="-1" width="52" height="35"/><rect class="pt" x="17" y="0" width="16" height="19"/><g class="ln"><rect x="0" y="0" width="50" height="34"/><rect x="17" y="0" width="16" height="19"/><circle cx="25" cy="19" r="6"/><path d="M3 0V${cy}A${R} ${R} 0 0 0 47 ${cy}V0"/><path d="M21 ${hy}A4 4 0 0 0 29 ${hy}"/><line x1="22" y1="4" x2="28" y2="4"/><circle cx="25" cy="${hy}" r=".75"/></g>`;
+  for(const d of dots){ const k=(seen[d.x+","+d.y]=(seen[d.x+","+d.y]||0)+1), a=k*2.39996, rr=k>1?.5*Math.sqrt(k-1):0;   // stacked spots spread on a small spiral
+    const x=Math.min(49.5,Math.max(.5,d.x+rr*Math.cos(a))), y=Math.min(33.5,Math.max(.5,d.y+hy+rr*Math.sin(a)));
+    s+=d.hollow?`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r=".62" fill="none" stroke="${d.c}" stroke-width=".22" opacity=".75"/>`:`<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r=".78" fill="${d.c}" stroke="var(--sheet)" stroke-width=".15"/>`; }
+  return `<div class="cr-court"><svg viewBox="-1 -1 52 35" role="img" aria-label="${esc(label)}">${s}</svg></div>`; }
+const crRow=(nm,v,frac,col,extra="")=>`<div class="cr-row"><div class="nm">${col?`<i class="cr-sw" style="background:${col}"></i>`:""}<span class="t">${esc(nm)}</span>${extra}</div><div class="v">${v}</div><div class="cr-bar"><i style="width:${Math.max(0,Math.min(100,frac*100)).toFixed(0)}%;background:${col||"var(--accent)"}"></i></div></div>`;
+function crPts(d,three){ const zs=three?[3,4]:[0,1,2,3,4], df=CR.def?.[d.opp], L=CR.league;
+  const sh=d.sh.filter(s=>!three||s[3]===3), mk=sh.filter(s=>s[2]).length;
+  const dots=sh.map(s=>({x:s[0],y:s[1],c:s[2]?"var(--over)":"var(--mute)",hollow:!s[2]})).sort((a,b)=>(b.hollow?1:0)-(a.hollow?1:0));
+  const rows=zs.map(z=>{ const [m,a]=d.zf[z], lg=L[z][1]?L[z][0]/L[z][1]:0, o=df&&df[z][1]?df[z][0]/df[z][1]:null, diff=o==null?null:(o-lg)*100;
+    return `<tr><td>${CRZ[z]}</td><td>${m}/${a}</td><td>${crPct(m,a)}</td><td>${crPct(a,sh.length)}</td><td>${o==null?"–":Math.round(o*100)+"%"}${diff==null?"":` <span class="${diff>=0?"up":"dn"}">${diff>=0?"+":"−"}${Math.abs(diff).toFixed(0)}</span>`}</td></tr>`; }).join("");
+  const tA=df?df[3][1]+df[4][1]:0, tAll=df?df.reduce((a,z)=>a+z[1],0):0, lgT=(L[3][1]+L[4][1])/L.reduce((a,z)=>a+z[1],0);
+  const by=(d.by||[]).map(b=>`${esc(b[0])} ${b[1]}${crSt(b[2])?.[0]==="out"?" "+crChip(b[2]):""}`).join(", ");
+  return `<div class="cr-sec"><h4>${three?"His threes":"His shots"}</h4><div class="cr-two">
+    <div>${crCourt(dots,three?"Every three he took this season":"Every shot he took this season")}<div class="cr-leg"><span><i class="cr-sw" style="background:var(--over)"></i>made</span><span><i class="cr-sw" style="border:1.5px solid var(--mute)"></i>missed</span><span>${mk} of ${sh.length} (${crPct(mk,sh.length)})</span></div></div>
+    <div class="cr-sec"><div class="cr-wrap"><table class="cr-tbl"><thead><tr><th>Zone</th><th>FG</th><th>FG%</th><th>His shots</th><th>${esc(d.opp||"Opp")} allows</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="pa-small">"${esc(d.opp||"Opp")} allows" is what every opponent has shot against them in that zone, and how far above (+) or below (−) the league that is.</div>
+      ${three?`<div class="pa-small"><b>${d.avg.TPM}</b> made of <b>${d.avg.TPA}</b> tried a game. ${crPct(d.asd3,d.tpm)} of his made threes were assisted.${tAll?` ${esc(d.opp)} gives up threes on ${crPct(tA,tAll)} of opponents' shots (league ${Math.round(lgT*100)}%).`:""}</div>`
+        :`<div class="pa-small">${crPct(d.asd,d.fgm)} of his baskets were assisted${by?`, most by ${by}`:""}. <b>${d.avg.FTA}</b> free throws a game (${crPct(d.avg.FTM,d.avg.FTA)} made).</div>`}</div></div></div>`; }
+function crReb(d){ const lab=["Rim misses","Paint misses","Mid-range misses","Corner 3 misses","Above-break 3 misses","Missed free throws"], tot=d.rz.reduce((a,b)=>a+b,0), mx=Math.max(1,...d.rz);
+  const mates=(d.mates||[]).map(m=>crRow(m[0],`${m[1]} a game`,m[1]/Math.max(d.avg.REB,...d.mates.map(x=>x[1])),"var(--mute)",crChip(m[2]))).join("");
+  return `<div class="cr-sec"><h4>His rebounds</h4><div class="cr-kv"><div><b>${d.avg.REB}</b><span>a game</span></div><div><b>${d.avg.OREB}</b><span>offensive</span></div><div><b>${d.avg.DREB}</b><span>defensive</span></div><div><b>${d.avg.MIN}</b><span>minutes</span></div></div>
+    <div class="cr-two"><div class="cr-rows"><div class="pa-small">Which misses he grabs (${tot} rebounds)</div>${d.rz.map((n,i)=>crRow(lab[i],`${n} · ${crPct(n,tot)}`,n/mx)).join("")}</div>
+      <div class="cr-rows"><div class="pa-small">Teammates competing for the same boards, and tonight's status</div>${mates||'<div class="pa-small">No teammate data yet.</div>'}</div></div></div>`; }
+function crAst(d){ const tot=d.to.reduce((a,t)=>a+t[1],0)||1, all=d.az.reduce((a,b)=>a+b,0), mx=d.to[0]?.[1]||1, zmx=Math.max(1,...d.az);
+  const dots=d.ash.map(a=>({x:a[0],y:a[1],c:a[2]>=0?CRC[a[2]]:"var(--mute)"})).sort((a,b)=>(a.c==="var(--mute)"?-1:1)-(b.c==="var(--mute)"?-1:1));
+  const kinds=[["l","layups"],["d","dunks & lobs"],["j","jumpers & floaters"]].map(([k,n])=>`<b>${d.ak[k]||0}</b> ${n}`).join(" · ");
+  return `<div class="cr-sec"><h4>His assists</h4><div class="cr-two">
+    <div class="cr-rows"><div class="pa-small">Who he feeds (${all} assists), and tonight's status</div>${d.to.map((t,i)=>crRow(t[0],`${t[1]} · ${crPct(t[1],all)}`,t[1]/mx,i<3?CRC[i]:"var(--mute)",crChip(t[2]))).join("")}</div>
+    <div>${crCourt(dots,"Where his assisted baskets were scored")}<div class="cr-leg">${d.to.slice(0,3).map((t,i)=>`<span><i class="cr-sw" style="background:${CRC[i]}"></i>${esc(t[0])}</span>`).join("")}<span><i class="cr-sw" style="background:var(--mute)"></i>others</span></div></div></div>
+    <div class="cr-two"><div class="cr-rows">${d.az.map((n,i)=>crRow(CRZ[i],`${n} · ${crPct(n,all)}`,n/zmx)).join("")}</div><div class="pa-small">Shot types he set up: ${kinds}.</div></div></div>`; }
+// PowerShell writes a one-item list of lists as a flat list: put it back
+const crL=x=>!Array.isArray(x)?[]:x.length&&!Array.isArray(x[0])?[x]:x;
+function crBody(row){ const d0=CR?.players?.[row.player], d=d0&&{...d0,sh:crL(d0.sh),by:crL(d0.by),to:crL(d0.to),ash:crL(d0.ash),mates:crL(d0.mates)};
+  if(!d) return `<div class="pa-small">No play-by-play for ${esc(row.player)} yet${CR?.date&&CR.date!==tonight()?" (this file is for "+esc(CR.date)+")":""}.</div>`;
+  const parts={PTS:["p"],REB:["r"],AST:["a"],"3PM":["t"],PRA:["p","r","a"],PR:["p","r"],PA:["p","a"],RA:["r","a"],DD:["p","r","a"]}[row.stat]||["p"];
+  const fn={p:()=>crPts(d,false),t:()=>crPts(d,true),r:()=>crReb(d),a:()=>crAst(d)};
+  return `<div class="cr"><div class="pa-small">This season: <b>${d.avg.PTS}</b> PTS · <b>${d.avg.REB}</b> REB · <b>${d.avg.AST}</b> AST a game in ${d.g} games (${d.avg.MIN} min). From ESPN play-by-play through last night; context only, it doesn't change the model's numbers.</div>${parts.map(k=>fn[k]()).join("")}</div>`; }
 function logTable(row){ const log=(row.log||[]).slice().reverse(); if(!log.length) return "";
   return `<details class="pa-log"><summary>Game log this season (${log.length})</summary><table class="pa-tbl"><thead><tr><th class="l">Game</th><th>Min</th><th>${STAT[row.stat]}</th><th>${S.side==="Over"?"O":"U"} ${S.line}</th></tr></thead><tbody>
     ${log.map(g=>{ const win=S.side==="Over"?g.v>S.line:g.v<S.line, push=g.v===S.line; return `<tr><td class="l">${esc(dayTxt(g.d))}${g.opp?` <span class="muted">${esc(g.opp)}</span>`:""}</td><td>${g.min}</td><td><b>${g.v}</b></td><td><span class="pa-st ${push?"n":win?"win":"loss"}">${push?"push":win?"hit":"miss"}</span></td></tr>`; }).join("")}</tbody></table></details>`; }
@@ -1079,7 +1164,7 @@ function rRecord(){
 // ---- NFL (pilot): the paper card, the priced board and the backtest, from nfl/card.json and nfl/backtest.json ----
 const NFL_LABEL={PASS_YDS:"pass yds",PASS_CMP:"completions",PASS_ATT:"pass att",PASS_TD:"pass TDs",RUSH_YDS:"rush yds",RUSH_ATT:"rush att",REC_YDS:"rec yds",REC:"receptions",RR_YDS:"rush+rec yds",ATD:"anytime TD"};
 async function loadNFL(){ if(NF.loaded) return; NF.loaded=true; const g=n=>fetch(n,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);
-  [NF.card,NF.bt,NF.trends,NF.mnf,NF.res,NF.tn,NF.ids]=await Promise.all([g("nfl/card.json"),g("nfl/backtest.json"),g("nfl/trends.json"),g("nfl/mnf.json"),g("nfl/results.json"),g("nfl/tonight.json"),g("nfl/ids.json")]); render(); }
+  [NF.card,NF.bt,NF.trends,NF.mnf,NF.res,NF.tn,NF.ids,NF.cr]=await Promise.all([g("nfl/card.json"),g("nfl/backtest.json"),g("nfl/trends.json"),g("nfl/mnf.json"),g("nfl/results.json"),g("nfl/tonight.json"),g("nfl/ids.json"),g("nfl/creates.json")]); render(); }
 // the paper picks graded so far (nfl/results.json), newest week first
 // Record, laid out like the NBA Record tab: the paper card's totals, by bet type and win chance, the backtest (Can you trust it?),
 // week by week, then league trends. Paper results come from nfl/results.json (units there are staked units).
@@ -1145,13 +1230,43 @@ const nfNm=s=>String(s||"").toLowerCase().replace(/[^a-z]/g,"").replace(/(jr|sr|
 const nfHs=r=>r.hs||NF.ids?.[r.team]?.[nfNm(r.player)]||null;
 const nfFace=r=>{ const id=nfHs(r); return `<div class="pa-face">${id?`<img class="hs" src="https://a.espncdn.com/i/headshots/nfl/players/full/${esc(id)}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`:`<span class="hs"></span>`}<img class="lg" src="https://a.espncdn.com/i/teamlogos/nfl/500/${esc(nfLogo(r.team))}.png" alt="${esc(r.team)}" loading="lazy" onerror="this.remove()"></div>`; };
 const nfTime=t=>nfDayOf(t)===nfDayOf(Date.now())?ET(t,{hour:"numeric",minute:"2-digit"}):nfWhen(t);
+// "How he gets it" for an NFL pick (nfl/creates.json, scripts/nfl-creates.ps1): role, splits by the defense's look, the opponent
+// against the league, and the week-by-week stat. Context only; the paper card's numbers don't change.
+function nfCr(r){ const C=NF.cr, d=C?.players?.[r.pid]; if(!d) return "";
+  const L=C.league, D=C.def?.[d.opp]||{}, st=r.st, g=Math.max(1,d.games), n1=x=>x==null?"–":(+x).toFixed(1), pc=x=>x==null?"–":Math.round(x*100)+"%";
+  const kind=/^PASS/.test(st)?"pass":/^RUSH/.test(st)?"rush":/^REC/.test(st)?"rec":st==="RR_YDS"?"rr":"td";
+  const kv=a=>`<div class="cr-kv">${a.map(([b,s])=>`<div><b>${b}</b><span>${s}</span></div>`).join("")}</div>`;
+  const sp=(lab,x,u="yds/target")=>`<tr><td>${lab}</td><td>${x[0]||0}</td><td>${x[0]?n1(x[1])+" "+u:"–"}</td></tr>`;
+  const vs=(lab,v,lg,fmt)=>{ const df=v!=null&&lg!=null?v-lg:null; return `<tr><td>${lab}</td><td>${v==null?"–":fmt(v)}</td><td>${lg==null?"–":fmt(lg)}</td></tr>`; };
+  const tbl=(h,rows)=>`<div class="cr-wrap"><table class="cr-tbl"><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+  const R=d.rec, U=d.rush, P=d.pass, sec=[];
+  if(kind==="rec"||kind==="rr"||(kind==="td"&&R.tgt>=U.car)) sec.push(`<div class="cr-sec"><h4>Receiving</h4>${kv([[n1(R.tgt/g),"targets a game"],[pc(R.share),"of the team's targets"],[pc(R.tgt?R.rec/R.tgt:null),"caught"],[n1(R.adot),"air yds a target"],[n1(R.yac),"yds after catch"],[R.deep+" · "+R.rz,"deep (20+) · red-zone targets"]])}
+    ${tbl(["Split","Targets","Yards"],[sp("Blitzed",R.blitz.y),sp("Not blitzed",R.blitz.n),sp("Vs man (2025)",d.mz25.man),sp("Vs zone (2025)",d.mz25.zone)])}</div>`);
+  if(kind==="rush"||kind==="rr"||(kind==="td"&&U.car>R.tgt)||(kind==="pass"&&false)) sec.push(`<div class="cr-sec"><h4>Rushing</h4>${kv([[n1(U.car/g),"carries a game"],[pc(U.share),"of the team's carries"],[n1(U.car?U.yds/U.car:null),"yds a carry"],[U.r10,"runs of 10+"],[U.rz+" · "+U.i5,"red-zone · inside-5 carries"]])}
+    ${tbl(["Defenders in the box","Designed runs","Yards"],[sp("6 or fewer",U.box.lt7,"a carry"),sp("7",U.box.b7,"a carry"),sp("8 or more",U.box.ge8,"a carry")])}
+    ${U.designed!=null&&U.designed<U.car?`<div class="pa-small">${U.designed} of his ${U.car} carries were designed runs; the rest were scrambles, which aren't charted by box count.</div>`:""}</div>`);
+  if(kind==="pass") sec.push(`<div class="cr-sec"><h4>Passing</h4>${kv([[n1(P.att/g),"attempts a game"],[pc(P.att?P.cmp/P.att:null),"completed"],[n1(P.att?P.yds/P.att:null),"yds an attempt"],[n1(P.adot),"air yds a throw"]])}
+    ${tbl(["Split","Dropbacks","Yards"],[sp("Blitzed",P.blitz.y,"a dropback"),sp("Not blitzed",P.blitz.n,"a dropback"),sp("Pressured",P.press.y,"a dropback"),sp("Clean pocket",P.press.n,"a dropback")])}</div>`);
+  if(kind==="td") sec.push(`<div class="cr-sec"><h4>Scoring chances</h4>${kv([[d.td,"touchdowns this season"],[R.rz,"red-zone targets"],[U.rz,"red-zone carries"],[U.i5,"carries inside the 5"]])}</div>`);
+  const opp=[];
+  if(kind!=="rush") opp.push(vs("Yards a target allowed",D.ydsTgt,L.ydsTgt,n1),vs("Air yards a target allowed",D.adot,L.adot,n1),vs("Yards after catch allowed",D.yac,L.yac,n1),vs("Blitz rate",D.blitz,L.blitz,pc),vs("Pressure rate",D.press,L.press,pc),vs("Man coverage (2025)",d.oppMan25,C.leagueMan25,pc));
+  if(kind==="rush"||kind==="rr"||kind==="td") opp.push(vs("Yards a carry allowed",D.ypc,L.ypc,n1),vs("8+ in the box on runs",D.stack,L.stack,pc));
+  sec.push(`<div class="cr-sec"><h4>${esc(d.opp||"Opponent")}'s defense</h4>${tbl(["This season",esc(d.opp||"Opp"),"League"],opp)}</div>`);
+  // the bet's stat week by week, with this line
+  const key=st==="ATD"?"TD":st, wk=(d.weeks||[]).map(w=>({w:w.w,v:+w[key]||0}));
+  if(wk.length){ const W=300,H=110,pl=20,pb=16,pt=6,bw=(W-pl)/Math.max(wk.length,6), top=Math.max(r.line+1,...wk.map(x=>x.v),1), y=v=>pt+(H-pt-pb)*(1-v/top);
+    let s=[0,top].map(t=>`<line x1="${pl}" x2="${W}" y1="${y(t)}" y2="${y(t)}" stroke="var(--rule)" stroke-width=".6"/><text x="${pl-3}" y="${y(t)+2.5}" text-anchor="end">${Math.round(t)}</text>`).join("");
+    wk.forEach((x,i)=>{ const win=r.side==="Under"?x.v<r.line:x.v>r.line, X=pl+i*bw+bw*.2, w=bw*.6; s+=`<rect x="${X}" y="${y(x.v)}" width="${w}" height="${Math.max(.8,y(0)-y(x.v))}" rx="1.2" fill="var(--${win?"over":"under"})"><title>Week ${x.w}: ${x.v}</title></rect><text x="${X+w/2}" y="${H-4}" text-anchor="middle">W${x.w}</text>`; });
+    if(st!=="ATD") s+=`<line x1="${pl}" x2="${W}" y1="${y(r.line)}" y2="${y(r.line)}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="3 2"/>`;
+    sec.push(`<div class="cr-sec"><h4>${esc(NFL_LABEL[st]||st)} by week</h4><div class="cr-log"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(NFL_LABEL[st]||st)} each week this season">${s}</svg></div><div class="cr-leg"><span><i class="cr-sw" style="background:var(--over)"></i>${esc(r.side==="Under"?"under":"over")} would have won</span><span><i class="cr-sw" style="background:var(--under)"></i>would have lost</span>${st!=="ATD"?`<span>dashed: this line (${r.line})</span>`:""}</div></div>`); }
+  return `<details class="pa-log pa-crn"><summary>How he gets his ${esc(NFL_LABEL[st]||st)}</summary><div class="cr">${sec.join("")}<div class="pa-small">From nflverse play-by-play through week ${C.throughWeek}. Man vs zone is from 2025 (nflverse hasn't published 2026 coverage yet). Context only: the paper card's numbers don't change.</div></div></details>`; }
 function nfPick(r){ const key=nfKey(r);
   return `<article class="pa-card${PKX.has(key)?" open":""}" data-pk="${esc(key)}">
     <div class="pa-row"><span class="eyebrow">${esc(r.game)} · ${nfTime(r.start)}</span><span class="pa-stake">${r.stake}u · paper</span></div>
     <div class="pa-who">${r.team?nfFace(r):""}<div><div class="pa-player" role="heading" aria-level="3">${esc(r.player)}${r.team?`<span class="pa-team">${esc(r.team)}</span>`:""}</div><div class="pa-bet ${r.side==="Under"?"u":"o"}">${esc(nfBetS(r))}${r.tier==="long"?` <span class="pa-st n">long shot</span>`:r.tier==="alt"?` <span class="pa-st n">alt</span>`:""}</div></div></div>
     <div class="pa-nums"><div><b>${P1(r.p)}</b><span>win chance</span></div><div><b>${oddsTxt(r.odds)}</b><span>${nfBook(r.book)}</span></div><div><b class="up">${SGN(r.ev*100)}%</b><span>exp. profit</span></div></div>
     <p class="pa-thesis">${esc(nfThesis(r))}</p>
-    <div class="pa-more"><p class="pa-note">${r.role?`Depth chart: ${esc(r.role)}. `:""}${r.snap3!=null?`Snaps, last 3 games: <b style="color:var(--ink)">${Math.round(r.snap3*100)}%</b>. `:""}${r.wind!=null?`Wind forecast: <b style="color:var(--ink)">${Math.round(r.wind)} mph</b>. `:""}Projection <b style="color:var(--ink)">${r.st==="ATD"?r.proj.toFixed(2)+" TDs":r.proj.toFixed(1)}</b>. Market ${P1(r.pm)}${r.pSim!=null?` · game sims ${P1(r.pSim)}`:""} · edge ${P1(r.ev)}${nfMx(r)}.${r.inj?` <span class="dn">${esc(r.inj)}</span>.`:""} Wins ${toWin(r.odds,r.stake).toFixed(2)}u on paper.</p></div>
+    <div class="pa-more"><p class="pa-note">${r.role?`Depth chart: ${esc(r.role)}. `:""}${r.snap3!=null?`Snaps, last 3 games: <b style="color:var(--ink)">${Math.round(r.snap3*100)}%</b>. `:""}${r.wind!=null?`Wind forecast: <b style="color:var(--ink)">${Math.round(r.wind)} mph</b>. `:""}Projection <b style="color:var(--ink)">${r.st==="ATD"?r.proj.toFixed(2)+" TDs":r.proj.toFixed(1)}</b>. Market ${P1(r.pm)}${r.pSim!=null?` · game sims ${P1(r.pSim)}`:""} · edge ${P1(r.ev)}${nfMx(r)}.${r.inj?` <span class="dn">${esc(r.inj)}</span>.`:""} Wins ${toWin(r.odds,r.stake).toFixed(2)}u on paper.</p>${nfCr(r)}</div>
     <button class="pa-pkx" data-act="pkx" aria-expanded="${PKX.has(key)}"><span class="o">Details &amp; matchup</span><span class="c">Hide details</span></button>
   </article>`; }
 // a separate Monday-night card (nfl/mnf.json) shows until that game kicks off
